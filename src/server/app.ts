@@ -1,7 +1,7 @@
 import Fastify from "fastify";
 import cors from "@fastify/cors";
-import { env } from "./config/env.js";
-import { registerRealtime } from "./realtime/socket.js";
+import { env } from "../config/env.js";
+import { registerRealtime } from "../realtime/socket.js";
 
 export function buildApp() {
   const app = Fastify({ logger: true });
@@ -13,7 +13,7 @@ export function buildApp() {
 
   app.get("/health", async () => ({
     ok: true,
-    service: "kumari-bites-backend",
+    service: "kumari-bites",
     environment: env.NODE_ENV
   }));
 

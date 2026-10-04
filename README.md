@@ -145,6 +145,12 @@ npm run generate
 npm run migrate
 ```
 
+### Current Foundation
+
+The current main branch contains the Node/Fastify foundation, environment validation, MySQL/Drizzle connection, migration configuration, health/API endpoints, and WebSocket foundation.
+
+The React frontend directories are reserved in the unified project structure; feature implementation will be added there without creating a separate backend application.
+
 ## Current Milestone
 
 - [x] Repository initialized
@@ -153,6 +159,8 @@ npm run migrate
 - [x] Initial stack documented
 - [x] Global configurable theme direction documented
 - [x] Default Terracotta + Cream + Deep Brown palette documented
+- [x] Single-project architecture documented
+- [x] Legacy `backend/` application directory removed
 - [x] Backend TypeScript / Fastify scaffold
 - [x] Environment configuration
 - [x] MySQL / Drizzle base connection
@@ -160,6 +168,7 @@ npm run migrate
 - [x] Health and API version endpoints
 - [x] WebSocket foundation
 - [x] Backend local development scripts
+- [ ] React frontend
 - [ ] Authentication
 - [ ] Roles & permissions
 - [ ] Menu management

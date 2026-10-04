@@ -1,12 +1,12 @@
 {
-  "name": "@kumari-bites/backend",
+  "name": "kumari-bites",
   "private": true,
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/server.ts",
+    "dev": "tsx watch src/server/server.ts",
     "build": "tsc -p tsconfig.json",
-    "start": "node dist/server.js",
+    "start": "node dist/server/server.js",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "generate": "drizzle-kit generate",
     "migrate": "drizzle-kit migrate"
