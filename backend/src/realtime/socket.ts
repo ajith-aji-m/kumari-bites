@@ -1,6 +1,6 @@
+import { WebSocket } from "ws";
 import type { FastifyInstance } from "fastify";
 import websocket from "@fastify/websocket";
-import type { WebSocket } from "ws";
 
 const clients = new Set<WebSocket>();
 
@@ -23,7 +23,7 @@ export function broadcast(event: unknown) {
   const message = JSON.stringify(event);
 
   for (const client of clients) {
-    if (client.readyState === client.OPEN) {
+    if (client.readyState === WebSocket.OPEN) {
       client.send(message);
     }
   }
