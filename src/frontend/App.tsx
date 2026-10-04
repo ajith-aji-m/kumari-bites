@@ -9,9 +9,10 @@ const menuItems = [
 ];
 
 function Login({ onLogin }: { onLogin: () => void }) {
-  const [phone, setPhone] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
-
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   return (
     <main className="login-page">
       <section className="login-card">
@@ -20,20 +21,40 @@ function Login({ onLogin }: { onLogin: () => void }) {
         <h1>Welcome back</h1>
         <p className="muted">Sign in to manage your orders, menu and business.</p>
 
-        <form onSubmit={(event) => { event.preventDefault(); onLogin(); }}>
+        <form onSubmit={async (event) => {
+          event.preventDefault();
+          setError("");
+          setLoading(true);
+          try {
+            const response = await fetch("/api/v1/auth/login", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              credentials: "include",
+              body: JSON.stringify({ identifier, password })
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.message ?? "Unable to sign in");
+            onLogin();
+          } catch (err) {
+            setError(err instanceof Error ? err.message : "Unable to sign in");
+          } finally {
+            setLoading(false);
+          }
+        }}>
           <label>
             Phone or email
-            <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Enter your phone or email" />
+            <input value={identifier} onChange={(e) => setIdentifier(e.target.value)} placeholder="Enter your phone or email" autoComplete="username" />
           </label>
           <label>
             Password
-            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Enter your password" />
+            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Enter your password" autoComplete="current-password" />
           </label>
           <div className="form-row">
             <label className="checkbox"><input type="checkbox" /> Remember me</label>
             <button type="button" className="link-button">Forgot password?</button>
           </div>
-          <button className="primary-button" type="submit">Sign in</button>
+          {error && <p className="login-error">{error}</p>}
+          <button className="primary-button" type="submit" disabled={loading}>{loading ? "Signing in..." : "Sign in"}</button>
         </form>
 
         <p className="login-footer">Kumari Bites Admin · Secure access</p>
@@ -56,7 +77,10 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
             </button>
           ))}
         </nav>
-        <button className="nav-item logout" onClick={onLogout}><span>↪</span> Sign out</button>
+        <button className="nav-item logout" onClick={async () => {
+          await fetch("/api/v1/auth/logout", { method: "POST", credentials: "include" });
+          onLogout();
+        }}><span>↪</span> Sign out</button>
       </aside>
 
       <main className="dashboard">
