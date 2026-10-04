@@ -64,3 +64,11 @@ input:not([type="checkbox"]):focus { border-color: #b85c38; box-shadow: 0 0 0 3p
 .popular-row strong { font-size: 12px; }
 @media (max-width: 900px) { .stats { grid-template-columns: repeat(2, 1fr); } .dashboard-grid { grid-template-columns: 1fr; } }
 @media (max-width: 650px) { .sidebar { width: 72px; flex-basis: 72px; padding: 18px 8px; } .sidebar-brand span:last-child, .nav-item:not(.logout) { font-size: 0; } .nav-item { justify-content: center; } .dashboard { padding: 22px 15px 35px; } .stats { grid-template-columns: 1fr; } .welcome { align-items: start; gap: 15px; flex-direction: column; } .login-card { padding: 30px 22px; } }
+
+.login-submit { display: inline-flex; align-items: center; justify-content: center; gap: 9px; transition: transform .2s ease, box-shadow .25s ease, background .25s ease; }
+.login-submit:disabled { opacity: 1; cursor: default; }
+.lock-icon { display: inline-grid; place-items: center; width: 20px; font-size: 16px; animation: lockPulse 1.4s ease-in-out infinite; }
+.login-submit.unlocked { background: #34704c; box-shadow: 0 8px 22px rgba(52,112,76,.22); transform: translateY(-1px); }
+.login-submit.unlocked .lock-icon { animation: unlockPop .45s ease both; }
+@keyframes unlockPop { 0% { transform: scale(.7) rotate(-12deg); } 60% { transform: scale(1.2) rotate(4deg); } 100% { transform: scale(1) rotate(0); } }
+@keyframes lockPulse { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-1px); } }
