@@ -9,6 +9,7 @@ const menuItems = [
 ];
 
 function Login({ onLogin }: { onLogin: () => void }) {
+  const [loginSuccess, setLoginSuccess] = useState(false);
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -34,7 +35,8 @@ function Login({ onLogin }: { onLogin: () => void }) {
             });
             const data = await response.json();
             if (!response.ok) throw new Error(data.message ?? "Unable to sign in");
-            onLogin();
+            setLoginSuccess(true);
+            window.setTimeout(onLogin, 650);
           } catch (err) {
             setError(err instanceof Error ? err.message : "Unable to sign in");
           } finally {
@@ -54,7 +56,7 @@ function Login({ onLogin }: { onLogin: () => void }) {
             
           </div>
           {error && <p className="login-error">{error}</p>}
-          <button className="primary-button" type="submit" disabled={loading}>{loading ? "Signing in..." : "Sign in"}</button>
+          <button className={`primary-button login-submit ${loginSuccess ? "unlocked" : ""}`} type="submit" disabled={loading || loginSuccess}><span className="lock-icon" aria-hidden="true">{loginSuccess ? "🔓" : "🔒"}</span><span>{loginSuccess ? "Signed in" : loading ? "Signing in..." : "Sign in"}</span></button>
         </form>
 
         <p className="login-footer">Kumari Bites Admin · Secure access</p>
