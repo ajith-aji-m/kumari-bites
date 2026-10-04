@@ -71,6 +71,37 @@ function Login({ onLogin }: { onLogin: () => void }) {
   );
 }
 
+function Orders() {
+  const [status, setStatus] = useState("all");
+  const [query, setQuery] = useState("");
+  const orders = [
+    ["#KB-1048","Arun Kumar","Chicken Kothu Parotta","Preparing","₹420"],
+    ["#KB-1047","Priya","Parotta · Chicken Curry","Ready","₹360"],
+    ["#KB-1046","Suresh","Egg Dosa · Tea","New","₹180"],
+    ["#KB-1045","Meena","Meals · Chicken 65","Completed","₹520"],
+    ["#KB-1044","Ravi","2 Parotta · Egg Curry","Confirmed","₹310"],
+    ["#KB-1043","Karthik","Dosa · Coffee","Cancelled","₹160"]
+  ];
+  const filtered = orders.filter(([id, customer, items, state]) =>
+    (status === "all" || state.toLowerCase() === status) &&
+    [id, customer, items].some(value => value.toLowerCase().includes(query.toLowerCase()))
+  );
+  return <section className="panel">
+    <div className="panel-head"><div><h3>Orders</h3><p className="muted">Manage customer orders and kitchen status.</p></div><span className="status-dot">Live</span></div>
+    <div className="orders-toolbar">
+      <input className="search-input" value={query} onChange={e => setQuery(e.target.value)} placeholder="Search order, customer or item" />
+      <select className="filter-select" value={status} onChange={e => setStatus(e.target.value)}>
+        <option value="all">All statuses</option><option value="new">New</option><option value="confirmed">Confirmed</option><option value="preparing">Preparing</option><option value="ready">Ready</option><option value="completed">Completed</option><option value="cancelled">Cancelled</option>
+      </select>
+    </div>
+    <div style={{overflowX:"auto"}}>
+      <table className="orders-table"><thead><tr><th>Order</th><th>Customer</th><th>Items</th><th>Status</th><th>Total</th></tr></thead>
+      <tbody>{filtered.map(([id,customer,items,state,total]) => <tr key={id}><td className="order-number">{id}</td><td><div className="order-customer"><strong>{customer}</strong><small>Customer</small></div></td><td>{items}</td><td><span className={"order-status "+state.toLowerCase()}>{state}</span></td><td><strong>{total}</strong></td></tr>)}</tbody></table>
+      {filtered.length === 0 && <p className="muted" style={{padding:"25px 14px",textAlign:"center"}}>No orders found.</p>}
+    </div>
+  </section>;
+}
+
 function Dashboard({ onLogout }: { onLogout: () => void }) {
   const [active, setActive] = useState("Dashboard");
 
@@ -100,6 +131,7 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
           <div className="admin-chip"><span className="avatar">A</span><span>Admin</span></div>
         </header>
 
+        {active === "Orders" ? <Orders /> : <>
         <section className="welcome">
           <div>
             <p className="eyebrow">TODAY</p>
@@ -134,6 +166,7 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
             ))}
           </article>
         </section>
+        </>}
       </main>
     </div>
   );
