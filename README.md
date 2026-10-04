@@ -67,21 +67,34 @@ Changing the selected palette in Settings should apply the primary theme tokens 
 12. Reports
 13. Realtime Order Events
 
-## Initial Database Entities
+## Database Design
 
-- users
-- roles
-- permissions
-- role_permissions
-- categories
-- menu_items
-- menu_item_prices
-- offers
-- coupons
-- orders
-- order_items
-- payments
-- invoices
+The database is designed around the complete ordering and admin workflow.
+
+### Core tables
+
+- `users`, `roles`, `permissions`, `role_permissions` — admin authentication and access control
+- `categories`, `menu_items`, `menu_item_prices` — menu catalog and price history
+- `offers`, `offer_items`, `coupons` — promotions and discounts
+- `orders`, `order_items`, `order_coupons` — customer orders; customer identity is kept on the order using phone/name, with no separate Customers module
+- `payments` — cash, UPI, card and online payment records
+- `invoices` — invoice number, generated PDF path and WhatsApp delivery state
+- `order_status_events` — status history for realtime/order auditing
+- `app_settings` — global settings and theme configuration
+- `whatsapp_integrations` — WhatsApp provider/linking state and encrypted credentials
+- `ai_integrations` — AI provider/model and encrypted API key
+- `audit_logs` — admin activity history
+- `health_checks` — application health foundation
+
+### Important data rules
+
+- Money uses fixed-point `DECIMAL(10,2)`, not floating point.
+- Order items store the item name and unit price as a snapshot so historical invoices remain correct after menu changes.
+- Secrets such as WhatsApp credentials and AI API keys are stored as encrypted server-side values; they are never returned to the React client.
+- Customer data is intentionally order-centric; there is no standalone customer management page.
+- Order status changes are recorded separately so WebSocket events and audit/history views can use the same source of truth.
+
+The complete typed schema is in `src/db/schema.ts`.
 
 ## Order Flow
 
