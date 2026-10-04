@@ -149,7 +149,9 @@ npm run migrate
 
 The current main branch contains the Node/Fastify foundation, environment validation, MySQL/Drizzle connection, migration configuration, health/API endpoints, and WebSocket foundation.
 
-The React frontend directories are reserved in the unified project structure; feature implementation will be added there without creating a separate backend application.
+The first frontend milestone is now implemented in the same project: the Admin Login screen and Dashboard shell use React + Vite and the Terracotta + Cream + Deep Brown design direction. The login currently demonstrates the UI-to-dashboard transition; real credential validation and session persistence remain the next authentication step.
+
+The React frontend lives under `src/frontend/` and does not create a separate backend application.
 
 ## Current Milestone
 
@@ -168,7 +170,9 @@ The React frontend directories are reserved in the unified project structure; fe
 - [x] Health and API version endpoints
 - [x] WebSocket foundation
 - [x] Backend local development scripts
-- [ ] React frontend
+- [x] React frontend foundation
+- [x] Admin Login screen
+- [x] Dashboard screen shell
 - [ ] Authentication
 - [ ] Roles & permissions
 - [ ] Menu management
