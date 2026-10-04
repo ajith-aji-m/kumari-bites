@@ -33,8 +33,14 @@ function Login({ onLogin }: { onLogin: () => void }) {
               credentials: "include",
               body: JSON.stringify({ identifier, password })
             });
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.message ?? "Unable to sign in");
+            const contentType = response.headers.get("content-type") ?? "";
+            const raw = await response.text();
+            let data: { message?: string } = {};
+            if (raw.trim() && contentType.includes("application/json")) {
+              try { data = JSON.parse(raw) as { message?: string }; } catch { /* handled below */ }
+            }
+            if (!response.ok) throw new Error(data.message ?? (raw.trim() || "Unable to sign in"));
+            if (!raw.trim() || !contentType.includes("application/json")) throw new Error("Login server returned an invalid response");
             setLoginSuccess(true);
             window.setTimeout(onLogin, 650);
           } catch (err) {
