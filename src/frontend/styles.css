@@ -72,3 +72,22 @@ input:not([type="checkbox"]):focus { border-color: #b85c38; box-shadow: 0 0 0 3p
 .login-submit.unlocked .lock-icon { animation: unlockPop .45s ease both; }
 @keyframes unlockPop { 0% { transform: scale(.7) rotate(-12deg); } 60% { transform: scale(1.2) rotate(4deg); } 100% { transform: scale(1) rotate(0); } }
 @keyframes lockPulse { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-1px); } }
+
+.orders-toolbar { display:flex; gap:12px; align-items:center; margin-bottom:18px; flex-wrap:wrap; }
+.search-input { flex:1; min-width:220px; }
+.filter-select { padding:13px 14px; border:1px solid #dfcfc1; border-radius:11px; background:#fff; color:#3c2118; }
+.orders-table { width:100%; border-collapse:collapse; }
+.orders-table th { text-align:left; padding:12px 14px; color:#846f63; font-size:11px; text-transform:uppercase; letter-spacing:.08em; border-bottom:1px solid #eadbcd; }
+.orders-table td { padding:15px 14px; border-bottom:1px solid #f0e5dc; font-size:13px; }
+.orders-table tr:last-child td { border-bottom:0; }
+.order-number { font-weight:800; color:#3c2118; }
+.order-customer { display:grid; gap:3px; }
+.order-customer small { color:#9b897d; }
+.order-status { border:0; padding:6px 9px; border-radius:8px; font-size:11px; font-weight:800; }
+.order-status.new { background:#e9e1f4; color:#6c4c8e; }
+.order-status.confirmed { background:#e9eef8; color:#4c628e; }
+.order-status.preparing { background:#f7e7c9; color:#95601b; }
+.order-status.ready { background:#e4f2e8; color:#34704c; }
+.order-status.completed { background:#e8efe8; color:#48634e; }
+.order-status.cancelled { background:#f6dfdc; color:#9b4439; }
+@media (max-width:700px) { .orders-table th:nth-child(3), .orders-table td:nth-child(3), .orders-table th:nth-child(5), .orders-table td:nth-child(5) { display:none; } }
