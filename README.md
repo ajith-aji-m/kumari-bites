@@ -36,11 +36,20 @@ Food-truck ordering, menu management, billing, and real-time order management sy
 | Validation | Zod |
 | UI | Tailwind CSS + shadcn/ui |
 | Authentication | HTTP-only secure cookies / session-based auth |
-| Theme | Crimson Orange |
+| Theme | Configurable palette; default Terracotta + Cream + Deep Brown |
 
 ### Theme
 
-The primary visual direction is **Crimson Orange**, supported by neutral surfaces, strong contrast, clean typography, and smooth interaction states.
+The application uses a **global configurable theme palette** managed from the backend Settings screen.
+
+**Default palette:** Terracotta + Cream + Deep Brown.
+
+Planned palette options include:
+- Terracotta + Cream + Deep Brown
+- Saffron + Dark Brown + Ivory
+- Custom palette
+
+Changing the selected palette in Settings should apply the primary theme tokens consistently across Dashboard, Orders, Menu, Reports, and Settings.
 
 ## Planned Backend Modules
 
@@ -88,15 +97,58 @@ Customer QR scan → Menu → Cart → Place Order → Payment → Real-time Adm
 - Document every finalized architecture or configuration change in this README.
 - Prefer simple, fast, maintainable implementations over premature scaling.
 
+## Backend Foundation
+
+The backend lives under `backend/` and is currently structured around Fastify + TypeScript, MySQL + Drizzle ORM, Zod validation, and WebSocket realtime communication.
+
+### Backend Layout
+
+```
+backend/
+├── src/
+│   ├── config/env.ts
+│   ├── db/
+│   │   ├── index.ts
+│   │   └── schema.ts
+│   ├── realtime/socket.ts
+│   ├── app.ts
+│   └── server.ts
+├── .env.example
+├── .gitignore
+├── package.json
+└── tsconfig.json
+```
+
+### Initial Endpoints
+
+- `GET /health` — backend health status
+- `GET /api/v1` — API version/service information
+- `WS /ws` — realtime connection foundation
+
+### Local Backend Setup
+
+```bash
+cd backend
+cp .env.example .env
+npm install
+npm run dev
+```
+
+The default development server listens on `127.0.0.1:4000`.
+
 ## Current Milestone
 
 - [x] Repository initialized
 - [x] Main branch confirmed
 - [x] Product scope documented
 - [x] Initial stack documented
-- [x] Crimson Orange theme documented
-- [ ] Backend project scaffold
-- [ ] MySQL / Drizzle configuration
+- [x] Global configurable theme direction documented
+- [x] Default Terracotta + Cream + Deep Brown palette documented
+- [x] Backend TypeScript / Fastify scaffold
+- [x] Environment configuration
+- [x] MySQL / Drizzle base connection
+- [x] Health and API version endpoints
+- [x] WebSocket foundation
 - [ ] Authentication
 - [ ] Roles & permissions
 - [ ] Menu management
