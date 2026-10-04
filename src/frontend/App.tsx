@@ -51,7 +51,7 @@ function Login({ onLogin }: { onLogin: () => void }) {
           </label>
           <div className="form-row">
             <label className="checkbox"><input type="checkbox" /> Remember me</label>
-            <button type="button" className="link-button">Forgot password?</button>
+            
           </div>
           {error && <p className="login-error">{error}</p>}
           <button className="primary-button" type="submit" disabled={loading}>{loading ? "Signing in..." : "Sign in"}</button>
