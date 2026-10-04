@@ -136,6 +136,13 @@ npm run dev
 
 The default development server listens on `127.0.0.1:4000`.
 
+Database migrations are managed with Drizzle Kit:
+
+```bash
+npm run generate
+npm run migrate
+```
+
 ## Current Milestone
 
 - [x] Repository initialized
@@ -147,8 +154,10 @@ The default development server listens on `127.0.0.1:4000`.
 - [x] Backend TypeScript / Fastify scaffold
 - [x] Environment configuration
 - [x] MySQL / Drizzle base connection
+- [x] Drizzle Kit migration configuration
 - [x] Health and API version endpoints
 - [x] WebSocket foundation
+- [x] Backend local development scripts
 - [ ] Authentication
 - [ ] Roles & permissions
 - [ ] Menu management
