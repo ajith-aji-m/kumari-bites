@@ -17,6 +17,13 @@ const timestamps = {
   updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull()
 };
 
+export const roles = mysqlTable("roles", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 80 }).notNull(),
+  description: varchar("description", { length: 255 }),
+  ...timestamps
+}, (table) => [uniqueIndex("roles_name_uq").on(table.name)]);
+
 export const users = mysqlTable("users", {
   id: int("id").autoincrement().primaryKey(),
   name: varchar("name", { length: 120 }).notNull(),
@@ -33,28 +40,27 @@ export const users = mysqlTable("users", {
   index("users_role_idx").on(table.roleId)
 ]);
 
-export const roles = mysqlTable("roles", {
-  id: int("id").autoincrement().primaryKey(),
-  name: varchar("name", { length: 80 }).notNull(),
-  description: varchar("description", { length: 255 }),
-  ...timestamps
-}, (table) => [
-  uniqueIndex("roles_name_uq").on(table.name)
-]);
-
 export const permissions = mysqlTable("permissions", {
   id: int("id").autoincrement().primaryKey(),
   key: varchar("key", { length: 120 }).notNull(),
   description: varchar("description", { length: 255 })
-}, (table) => [
-  uniqueIndex("permissions_key_uq").on(table.key)
-]);
+}, (table) => [uniqueIndex("permissions_key_uq").on(table.key)]);
 
 export const rolePermissions = mysqlTable("role_permissions", {
   roleId: int("role_id").notNull(),
   permissionId: int("permission_id").notNull()
+}, (table) => [uniqueIndex("role_permissions_uq").on(table.roleId, table.permissionId)]);
+
+export const sessions = mysqlTable("sessions", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("user_id").notNull(),
+  tokenHash: varchar("token_hash", { length: 64 }).notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+  ...timestamps
 }, (table) => [
-  uniqueIndex("role_permissions_uq").on(table.roleId, table.permissionId)
+  uniqueIndex("sessions_token_hash_uq").on(table.tokenHash),
+  index("sessions_user_idx").on(table.userId),
+  index("sessions_expires_idx").on(table.expiresAt)
 ]);
 
 export const categories = mysqlTable("categories", {
@@ -98,10 +104,7 @@ export const menuItemPrices = mysqlTable("menu_item_prices", {
   effectiveTo: timestamp("effective_to"),
   isActive: boolean("is_active").default(true).notNull(),
   ...timestamps
-}, (table) => [
-  index("menu_item_prices_item_idx").on(table.menuItemId),
-  index("menu_item_prices_active_idx").on(table.isActive)
-]);
+}, (table) => [index("menu_item_prices_item_idx").on(table.menuItemId), index("menu_item_prices_active_idx").on(table.isActive)]);
 
 export const offers = mysqlTable("offers", {
   id: int("id").autoincrement().primaryKey(),
@@ -113,17 +116,13 @@ export const offers = mysqlTable("offers", {
   endsAt: timestamp("ends_at"),
   isActive: boolean("is_active").default(true).notNull(),
   ...timestamps
-}, (table) => [
-  index("offers_active_idx").on(table.isActive, table.startsAt)
-]);
+}, (table) => [index("offers_active_idx").on(table.isActive, table.startsAt)]);
 
 export const offerItems = mysqlTable("offer_items", {
   offerId: int("offer_id").notNull(),
   menuItemId: int("menu_item_id").notNull(),
   quantity: int("quantity").default(1).notNull()
-}, (table) => [
-  uniqueIndex("offer_items_uq").on(table.offerId, table.menuItemId)
-]);
+}, (table) => [uniqueIndex("offer_items_uq").on(table.offerId, table.menuItemId)]);
 
 export const coupons = mysqlTable("coupons", {
   id: int("id").autoincrement().primaryKey(),
@@ -139,10 +138,7 @@ export const coupons = mysqlTable("coupons", {
   endsAt: timestamp("ends_at"),
   isActive: boolean("is_active").default(true).notNull(),
   ...timestamps
-}, (table) => [
-  uniqueIndex("coupons_code_uq").on(table.code),
-  index("coupons_active_idx").on(table.isActive, table.startsAt)
-]);
+}, (table) => [uniqueIndex("coupons_code_uq").on(table.code), index("coupons_active_idx").on(table.isActive, table.startsAt)]);
 
 export const orders = mysqlTable("orders", {
   id: int("id").autoincrement().primaryKey(),
@@ -177,18 +173,13 @@ export const orderItems = mysqlTable("order_items", {
   discountAmount: decimal("discount_amount", { precision: 10, scale: 2 }).default("0").notNull(),
   lineTotal: decimal("line_total", { precision: 10, scale: 2 }).notNull(),
   notes: varchar("notes", { length: 500 })
-}, (table) => [
-  index("order_items_order_idx").on(table.orderId),
-  index("order_items_menu_item_idx").on(table.menuItemId)
-]);
+}, (table) => [index("order_items_order_idx").on(table.orderId), index("order_items_menu_item_idx").on(table.menuItemId)]);
 
 export const orderCoupons = mysqlTable("order_coupons", {
   orderId: int("order_id").notNull(),
   couponId: int("coupon_id").notNull(),
   discountAmount: decimal("discount_amount", { precision: 10, scale: 2 }).notNull()
-}, (table) => [
-  uniqueIndex("order_coupons_uq").on(table.orderId, table.couponId)
-]);
+}, (table) => [uniqueIndex("order_coupons_uq").on(table.orderId, table.couponId)]);
 
 export const payments = mysqlTable("payments", {
   id: int("id").autoincrement().primaryKey(),
@@ -200,10 +191,7 @@ export const payments = mysqlTable("payments", {
   status: mysqlEnum("status", ["pending", "success", "failed", "refunded"]).default("pending").notNull(),
   paidAt: timestamp("paid_at"),
   ...timestamps
-}, (table) => [
-  index("payments_order_idx").on(table.orderId),
-  index("payments_reference_idx").on(table.transactionReference)
-]);
+}, (table) => [index("payments_order_idx").on(table.orderId), index("payments_reference_idx").on(table.transactionReference)]);
 
 export const invoices = mysqlTable("invoices", {
   id: int("id").autoincrement().primaryKey(),
@@ -213,10 +201,7 @@ export const invoices = mysqlTable("invoices", {
   generatedAt: timestamp("generated_at").defaultNow().notNull(),
   whatsappSentAt: timestamp("whatsapp_sent_at"),
   ...timestamps
-}, (table) => [
-  uniqueIndex("invoices_order_uq").on(table.orderId),
-  uniqueIndex("invoices_number_uq").on(table.invoiceNumber)
-]);
+}, (table) => [uniqueIndex("invoices_order_uq").on(table.orderId), uniqueIndex("invoices_number_uq").on(table.invoiceNumber)]);
 
 export const orderStatusEvents = mysqlTable("order_status_events", {
   id: int("id").autoincrement().primaryKey(),
@@ -225,9 +210,7 @@ export const orderStatusEvents = mysqlTable("order_status_events", {
   toStatus: varchar("to_status", { length: 40 }).notNull(),
   changedByUserId: int("changed_by_user_id"),
   createdAt: timestamp("created_at").defaultNow().notNull()
-}, (table) => [
-  index("order_status_events_order_idx").on(table.orderId, table.createdAt)
-]);
+}, (table) => [index("order_status_events_order_idx").on(table.orderId, table.createdAt)]);
 
 export const appSettings = mysqlTable("app_settings", {
   id: int("id").autoincrement().primaryKey(),
@@ -235,9 +218,7 @@ export const appSettings = mysqlTable("app_settings", {
   value: text("value"),
   isSecret: boolean("is_secret").default(false).notNull(),
   ...timestamps
-}, (table) => [
-  uniqueIndex("app_settings_key_uq").on(table.key)
-]);
+}, (table) => [uniqueIndex("app_settings_key_uq").on(table.key)]);
 
 export const whatsappIntegrations = mysqlTable("whatsapp_integrations", {
   id: int("id").autoincrement().primaryKey(),

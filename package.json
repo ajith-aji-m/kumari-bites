@@ -10,7 +10,8 @@
     "start": "node dist/server/server.js",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "generate": "drizzle-kit generate",
-    "migrate": "drizzle-kit migrate"
+    "migrate": "drizzle-kit migrate",
+    "seed": "tsx src/db/seed.ts"
   },
   "dependencies": {
     "@fastify/cors": "^11.2.0",
@@ -21,7 +22,8 @@
     "mysql2": "^3.24.5",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "zod": "^4.6.5"
+    "zod": "^4.6.5",
+    "@fastify/cookie": "^11.0.2"
   },
   "devDependencies": {
     "@types/node": "^24.9.2",
