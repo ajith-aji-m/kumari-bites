@@ -97,46 +97,48 @@ Customer QR scan → Menu → Cart → Place Order → Payment → Real-time Adm
 - Document every finalized architecture or configuration change in this README.
 - Prefer simple, fast, maintainable implementations over premature scaling.
 
-## Backend Foundation
+## Application Architecture
 
-The backend lives under `backend/` and is currently structured around Fastify + TypeScript, MySQL + Drizzle ORM, Zod validation, and WebSocket realtime communication.
+The project is a **single Node.js application**. React is the frontend, while Fastify provides the API and the same Node.js process owns realtime WebSocket communication.
 
-### Backend Layout
+### Project Layout
 
 ```
-backend/
+kumari-bites/
 ├── src/
-│   ├── config/env.ts
-│   ├── db/
-│   │   ├── index.ts
-│   │   └── schema.ts
-│   ├── realtime/socket.ts
-│   ├── app.ts
-│   └── server.ts
+│   ├── frontend/          # React + Vite application
+│   ├── server/            # Fastify HTTP/API layer
+│   ├── db/                # Drizzle + MySQL
+│   ├── realtime/          # WebSocket events
+│   └── shared/            # Shared types and validation
+├── public/
+├── package.json
+├── tsconfig.json
+├── drizzle.config.ts
 ├── .env.example
 ├── .gitignore
-├── package.json
-└── tsconfig.json
+└── README.md
 ```
 
-### Initial Endpoints
+### Single-Domain Deployment
 
-- `GET /health` — backend health status
-- `GET /api/v1` — API version/service information
-- `WS /ws` — realtime connection foundation
+The application is designed to run behind one domain:
 
-### Local Backend Setup
+- `https://kumari-bites.com/` → React application
+- `https://kumari-bites.com/api/*` → Fastify API
+- `wss://kumari-bites.com/ws` → WebSocket realtime channel
+
+React, API, and WebSocket are therefore part of one deployable Node.js application. There is no separate `backend/` application directory.
+
+### Local Development
 
 ```bash
-cd backend
-cp .env.example .env
 npm install
+cp .env.example .env
 npm run dev
 ```
 
-The default development server listens on `127.0.0.1:4000`.
-
-Database migrations are managed with Drizzle Kit:
+Database migrations:
 
 ```bash
 npm run generate
