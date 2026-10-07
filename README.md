@@ -170,6 +170,20 @@ Authentication uses a hashed server-side session token stored in an HTTP-only co
 - `PATCH /api/v1/menu-items/:id` — requires `menu.manage`; price changes create a new price record
 - `DELETE /api/v1/menu-items/:id` — soft-disables an item
 
+### Offers & Coupons
+
+- `GET /api/v1/offers` — requires `offers.view`
+- `POST /api/v1/offers` — requires `offers.manage`
+- `PATCH /api/v1/offers/:id` — requires `offers.manage`
+- `DELETE /api/v1/offers/:id` — soft-deactivates an offer
+- `GET /api/v1/coupons` — requires `offers.view`
+- `POST /api/v1/coupons` — requires `offers.manage`
+- `PATCH /api/v1/coupons/:id` — requires `offers.manage`
+- `DELETE /api/v1/coupons/:id` — soft-deactivates a coupon
+- `GET /api/v1/coupons/:code/validate` — validates an active coupon for order use
+
+Percentage discounts are capped at 100%, offer/coupon date ranges are validated, and combo offers can reference menu items.
+
 ### Orders
 
 - `GET /api/v1/orders` — requires `orders.view`
@@ -209,6 +223,7 @@ The React frontend lives under `src/frontend/` and does not create a separate ba
 - [x] Realtime order-created/status events
 - [x] Menu/category API foundation
 - [x] Menu price history foundation
+- [x] Offers and coupons API foundation
 - [x] Environment configuration
 - [x] MySQL / Drizzle base connection
 - [x] Drizzle Kit migration configuration
