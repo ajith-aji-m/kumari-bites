@@ -44,7 +44,7 @@ function money(value: string | number) { return `₹${Number(value).toLocaleStri
 function Orders() {
   const [status, setStatus] = useState("all"); const [query, setQuery] = useState(""); const [orders, setOrders] = useState<DashboardData["recentOrders"]>([]);
   const [loading, setLoading] = useState(true);
-  useEffect(() => { fetch("/api/v1/orders", {credentials:"include"}).then(r=>r.ok?r.json():Promise.reject()).then(setOrders).catch(()=>setOrders([])).finally(()=>setLoading(false)); }, []);
+  const loadOrders = () => fetch("/api/v1/orders", {credentials:"include"}).then(r=>r.ok?r.json():Promise.reject()).then(setOrders).catch(()=>setOrders([])).finally(()=>setLoading(false)); }, []);
   const filtered = orders.filter(o => (status==="all" || o.status===status) && [o.orderNumber,o.customerName??""].some(v=>v.toLowerCase().includes(query.toLowerCase())));
   return <section className="panel"><div className="panel-head"><div><h3>Orders</h3><p className="muted">Manage customer orders and kitchen status.</p></div><span className="status-dot">Live</span></div>
     <div className="orders-toolbar"><input className="search-input" value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search order or customer" />
@@ -55,10 +55,10 @@ function Orders() {
   </section>;
 }
 
-function DashboardHome() {
+function useRealtimeRefresh(onEvent: (event: { type: string; payload?: unknown }) => void) {\n  useEffect(() => {\n    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";\n    const socket = new WebSocket(`${protocol}//${window.location.host}/ws`);\n    socket.onmessage = event => { try { onEvent(JSON.parse(event.data)); } catch { /* ignore malformed events */ } };\n    return () => socket.close();\n  }, [onEvent]);\n}\n\nfunction DashboardHome() {
   const [data, setData] = useState<DashboardData | null>(null); const [error, setError] = useState("");
   const load = () => { setError(""); fetch("/api/v1/dashboard",{credentials:"include"}).then(async r=>{if(!r.ok) throw new Error((await r.json().catch(()=>({}))).message??"Unable to load dashboard"); return r.json();}).then(setData).catch(e=>setError(e.message)); };
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, []);\n  useRealtimeRefresh((event) => { if (event.type === "order.created" || event.type === "order.status_changed") load(); });
   if (error) return <section className="panel"><h3>Dashboard unavailable</h3><p className="muted">{error}</p><button className="primary-button compact" onClick={load}>Retry</button></section>;
   if (!data) return <section className="panel"><p className="muted">Loading dashboard...</p></section>;
   const top = data.popularItems[0];
