@@ -4,6 +4,7 @@ import cookie from "@fastify/cookie";
 import { env } from "../config/env.js";
 import { registerRealtime } from "../realtime/socket.js";
 import { registerAuth } from "../auth/routes.js";
+import { registerOrderRoutes } from "../orders/routes.js";
 
 export function buildApp() {
   const app = Fastify({ logger: true });
@@ -16,5 +17,7 @@ export function buildApp() {
 
   app.register(registerAuth);
   app.register(registerRealtime);
+  app.register(registerOrderRoutes);
+
   return app;
 }
