@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import type { FastifyReply, FastifyRequest } from "fastify";
 import { db } from "../db/index.js";
 import { permissions, rolePermissions } from "../db/schema.js";
@@ -21,38 +21,17 @@ export async function requirePermission(
     return null;
   }
 
-  const permission = await db
-    .select({ id: permissions.id })
+  const matches = await db
+    .select({ permissionId: permissions.id })
     .from(rolePermissions)
     .innerJoin(permissions, eq(permissions.id, rolePermissions.permissionId))
-    .where(eq(rolePermissions.roleId, user.roleId))
-    .then((rows) => rows.find((row) => row.id && permissionKey));
+    .where(and(
+      eq(rolePermissions.roleId, user.roleId),
+      eq(permissions.key, permissionKey)
+    ))
+    .limit(1);
 
-  const hasPermission = await db
-    .select({ id: permissions.id })
-    .from(rolePermissions)
-    .innerJoin(permissions, eq(permissions.id, rolePermissions.permissionId))
-    .where(eq(rolePermissions.roleId, user.roleId))
-    .then(async () => {
-      const rows = await db
-        .select({ id: permissions.id })
-        .from(permissions)
-        .where(eq(permissions.key, permissionKey))
-        .limit(1);
-
-      if (!rows[0]) return false;
-
-      const links = await db
-        .select({ permissionId: rolePermissions.permissionId })
-        .from(rolePermissions)
-        .where(eq(rolePermissions.roleId, user.roleId));
-
-      return links.some((link) => link.permissionId === rows[0].id);
-    });
-
-  void permission;
-
-  if (!hasPermission) {
+  if (!matches[0]) {
     await reply.code(403).send({ message: "Permission denied" });
     return null;
   }
