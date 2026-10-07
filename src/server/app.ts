@@ -6,6 +6,7 @@ import { registerRealtime } from "../realtime/socket.js";
 import { registerAuth } from "../auth/routes.js";
 import { registerOrderRoutes } from "../orders/routes.js";
 import { registerMenuRoutes } from "../menu/routes.js";
+import { registerOfferRoutes } from "../offers/routes.js";
 
 export function buildApp() {
   const app = Fastify({ logger: true });
@@ -20,6 +21,7 @@ export function buildApp() {
   app.register(registerRealtime);
   app.register(registerOrderRoutes);
   app.register(registerMenuRoutes);
+  app.register(registerOfferRoutes);
 
   return app;
 }
