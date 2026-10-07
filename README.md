@@ -4,7 +4,7 @@ Food-truck ordering, menu management, billing, and real-time order management sy
 
 ## Project Status
 
-**Phase:** Foundation setup  
+**Phase:** Backend foundation + Admin UI foundation  
 **Default branch:** main
 
 ## Product Scope
@@ -36,20 +36,11 @@ Food-truck ordering, menu management, billing, and real-time order management sy
 | Validation | Zod |
 | UI | Tailwind CSS + shadcn/ui |
 | Authentication | HTTP-only secure cookies / session-based auth |
-| Theme | Configurable palette; default Terracotta + Cream + Deep Brown |
+| Theme | Crimson Orange |
 
 ### Theme
 
-The application uses a **global configurable theme palette** managed from the backend Settings screen.
-
-**Default palette:** Terracotta + Cream + Deep Brown.
-
-Planned palette options include:
-- Terracotta + Cream + Deep Brown
-- Saffron + Dark Brown + Ivory
-- Custom palette
-
-Changing the selected palette in Settings should apply the primary theme tokens consistently across Dashboard, Orders, Menu, Reports, and Settings.
+**Kumari Bites** uses a Crimson Orange visual direction with warm neutral surfaces, dark readable text, rounded cards, and smooth interaction states. The theme should stay lightweight and consistent across Login, Dashboard, Orders, Menu, Offers, Reports, Users, and Settings.
 
 ## Planned Backend Modules
 
@@ -158,7 +149,31 @@ npm run generate
 npm run migrate
 ```
 
-### Current Foundation
+### Backend API Foundation
+
+### Authentication
+
+- `POST /api/v1/auth/login`
+- `GET /api/v1/auth/me`
+- `POST /api/v1/auth/logout`
+
+Authentication uses a hashed server-side session token stored in an HTTP-only cookie.
+
+### Orders
+
+- `GET /api/v1/orders` — requires `orders.view`
+- `POST /api/v1/orders` — requires `orders.manage`
+- `PATCH /api/v1/orders/:id/status` — requires `orders.manage`
+
+Order creation broadcasts `order.created`. Status changes broadcast `order.status_changed`.
+
+### Realtime
+
+WebSocket endpoint: `/ws`
+
+The realtime server runs inside the same Node.js/Fastify application; no separate realtime server is required for the MVP.
+
+## Current Foundation
 
 The current main branch contains the Node/Fastify foundation, environment validation, MySQL/Drizzle connection, migration configuration, health/API endpoints, and WebSocket foundation.
 
@@ -172,11 +187,15 @@ The React frontend lives under `src/frontend/` and does not create a separate ba
 - [x] Main branch confirmed
 - [x] Product scope documented
 - [x] Initial stack documented
-- [x] Global configurable theme direction documented
-- [x] Default Terracotta + Cream + Deep Brown palette documented
+- [x] Crimson Orange theme confirmed
 - [x] Single-project architecture documented
 - [x] Legacy `backend/` application directory removed
 - [x] Backend TypeScript / Fastify scaffold
+- [x] Authentication endpoints
+- [x] HTTP-only session handling
+- [x] Permission guard
+- [x] Order API foundation
+- [x] Realtime order-created/status events
 - [x] Environment configuration
 - [x] MySQL / Drizzle base connection
 - [x] Drizzle Kit migration configuration
@@ -186,8 +205,8 @@ The React frontend lives under `src/frontend/` and does not create a separate ba
 - [x] React frontend foundation
 - [x] Admin Login screen
 - [x] Dashboard screen shell
-- [ ] Authentication
-- [ ] Roles & permissions
+- [ ] Full authentication/session-aware frontend
+- [ ] Roles & permissions UI
 - [ ] Menu management
 - [ ] Order management
 - [ ] WebSocket events
