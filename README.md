@@ -170,6 +170,11 @@ Authentication uses a hashed server-side session token stored in an HTTP-only co
 - `PATCH /api/v1/menu-items/:id` — requires `menu.manage`; price changes create a new price record
 - `DELETE /api/v1/menu-items/:id` — soft-disables an item
 
+### Dashboard
+
+- `GET /api/v1/dashboard` — requires `dashboard.view`
+- Returns today's sales/order KPIs, active/completed/cancelled order counts, 7-day sales trend, top items, and recent orders.
+
 ### Offers & Coupons
 
 - `GET /api/v1/offers` — requires `offers.view`
@@ -224,6 +229,7 @@ The React frontend lives under `src/frontend/` and does not create a separate ba
 - [x] Menu/category API foundation
 - [x] Menu price history foundation
 - [x] Offers and coupons API foundation
+- [x] Dashboard analytics API foundation
 - [x] Environment configuration
 - [x] MySQL / Drizzle base connection
 - [x] Drizzle Kit migration configuration
