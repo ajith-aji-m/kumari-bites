@@ -159,6 +159,17 @@ npm run migrate
 
 Authentication uses a hashed server-side session token stored in an HTTP-only cookie.
 
+### Menu
+
+- `GET /api/v1/categories` — requires `menu.view`
+- `POST /api/v1/categories` — requires `menu.manage`
+- `PATCH /api/v1/categories/:id` — requires `menu.manage`
+- `DELETE /api/v1/categories/:id` — soft-deactivates a category
+- `GET /api/v1/menu-items` — requires `menu.view`
+- `POST /api/v1/menu-items` — requires `menu.manage`
+- `PATCH /api/v1/menu-items/:id` — requires `menu.manage`; price changes create a new price record
+- `DELETE /api/v1/menu-items/:id` — soft-disables an item
+
 ### Orders
 
 - `GET /api/v1/orders` — requires `orders.view`
@@ -196,6 +207,8 @@ The React frontend lives under `src/frontend/` and does not create a separate ba
 - [x] Permission guard
 - [x] Order API foundation
 - [x] Realtime order-created/status events
+- [x] Menu/category API foundation
+- [x] Menu price history foundation
 - [x] Environment configuration
 - [x] MySQL / Drizzle base connection
 - [x] Drizzle Kit migration configuration
