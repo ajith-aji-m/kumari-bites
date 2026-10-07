@@ -4,7 +4,7 @@ import { categories, permissions, rolePermissions, roles, users } from "./schema
 import { hashPassword } from "../auth/password.js";
 import { env } from "../config/env.js";
 
-const permissionKeys = ["dashboard.view","orders.view","orders.manage","menu.view","menu.manage","reports.view","settings.manage"];
+const permissionKeys = ["dashboard.view","orders.view","orders.manage","menu.view","menu.manage","offers.view","offers.manage","reports.view","settings.manage"];
 const existingRole = (await db.select().from(roles).where(eq(roles.name, "Super Admin")).limit(1))[0];
 const roleId = existingRole?.id ?? (await db.insert(roles).values({ name: "Super Admin", description: "Full access to Kumari Bites admin" }).$returningId())[0]!.id;
 for (const key of permissionKeys) {
