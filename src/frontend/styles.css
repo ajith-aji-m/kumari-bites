@@ -1866,3 +1866,30 @@ button {
 .menu-management .menu-image-upload-button.has-image .menu-upload-plus {
   display:none;
 }
+
+/* Image preview: no blur, tint, or duplicate overlay on hover. */
+.menu-management .menu-upload-preview .menu-image-upload-button.has-image {
+  opacity:0;
+  inset:0;
+  background:transparent !important;
+  backdrop-filter:none !important;
+  -webkit-backdrop-filter:none !important;
+  filter:none !important;
+  box-shadow:none !important;
+  border:0 !important;
+}
+.menu-management .menu-upload-preview:hover .menu-image-upload-button.has-image,
+.menu-management .menu-upload-preview .menu-image-upload-button.has-image:hover,
+.menu-management .menu-upload-preview .menu-image-upload-button.has-image:focus-within {
+  opacity:0;
+  background:transparent !important;
+  backdrop-filter:none !important;
+  -webkit-backdrop-filter:none !important;
+  filter:none !important;
+  box-shadow:none !important;
+  border:0 !important;
+}
+.menu-management .menu-upload-preview:has(.menu-image-upload-button.has-image) > img {
+  filter:none !important;
+  opacity:1 !important;
+}
