@@ -307,19 +307,30 @@ function MenuManagement() {
 
   async function saveItem(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setError("");
+    const form = new FormData(event.currentTarget);
+    const name = String(form.get("name") ?? "").trim();
+    const categoryId = String(form.get("categoryId") ?? "");
+    const price = Number(form.get("price"));
+    const slug = String(form.get("slug") ?? "").trim();
+
+    if (!name) { setError("Please enter the menu item name."); return; }
+    if (!categoryId || categoryId === "0") { setError("Please choose a menu category."); return; }
+    if (!Number.isFinite(price) || price <= 0) { setError("Please enter a valid price greater than ₹0."); return; }
+    if (!slug) { setError("Please add a menu slug."); return; }
+
     setSaving(true);
     try {
-      const form = new FormData(event.currentTarget);
       const payload = {
-        categoryId: Number(form.get("categoryId")),
-        name: String(form.get("name") ?? "").trim(),
-        slug: String(form.get("slug") ?? "").trim(),
+        categoryId: Number(categoryId),
+        name,
+        slug,
         description: String(form.get("description") ?? "").trim() || undefined,
         imageUrl: String(form.get("imageUrl") ?? "").trim() || undefined,
         sku: String(form.get("sku") ?? "").trim() || undefined,
         isVeg: form.get("isVeg") === "on",
         isAvailable: form.get("isAvailable") === "on",
-        price: Number(form.get("price")),
+        price,
         sortOrder: Number(form.get("sortOrder") ?? 0)
       };
       if (itemModal === "new") {
@@ -330,7 +341,7 @@ function MenuManagement() {
       setItemModal(null);
       await load();
     } catch (err) {
-      window.alert(err instanceof Error ? err.message : "Unable to save menu item");
+      setError(err instanceof Error ? err.message : "Unable to save menu item");
     } finally {
       setSaving(false);
     }
@@ -428,12 +439,13 @@ function MenuManagement() {
     {itemDefaults && <div className="modal-backdrop" onMouseDown={e => e.currentTarget === e.target && setItemModal(null)}><form className="modal-card" onSubmit={saveItem}>
       <div className="modal-head"><div><p className="eyebrow">MENU ITEM</p><h2>{itemModal === "new" ? "Add menu item" : "Edit menu item"}</h2></div><button type="button" className="icon-button" onClick={() => setItemModal(null)}>×</button></div>
       <div className="menu-item-editor">
+        {error && <div className="chef-guide menu-item-feedback has-error" role="alert" aria-live="polite"><div className="chef-character" aria-hidden="true"><img src="/assets/kumari-bites-chef.png" alt="" /></div><div className="chef-bubble"><strong>Chef says</strong><span>{error}</span></div></div>}
         <div className="editor-section">
           <div className="editor-section-head"><span className="editor-step">01</span><div><strong>Basic details</strong><small>Name the dish and place it in the right menu category.</small></div></div>
           <div className="form-grid">
-            <label className="field-wide">Item name *<input name="name" defaultValue={itemDefaults.name} required placeholder="e.g. Chicken Kathi Roll" /></label>
-            <label>Category *<div className="custom-form-select"><CustomSelect value={String(itemDefaults.categoryId)} onChange={value => { const input = document.querySelector<HTMLInputElement>('input[name="categoryId"]'); if (input) input.value = value; }} options={categories.map(c => ({ value: String(c.id), label: c.name }))} /></div><input className="visually-hidden-field" name="categoryId" defaultValue={itemDefaults.categoryId} required /></label>
-            <label>Price *<div className="price-input"><span>₹</span><input name="price" type="number" min="0" step="0.01" defaultValue={itemDefaults.price ?? ""} required placeholder="0" /></div></label>
+            <label className="field-wide">Item name *<input name="name" defaultValue={itemDefaults.name} placeholder="e.g. Chicken Kathi Roll" /></label>
+            <label>Category *<div className="custom-form-select"><CustomSelect value={String(itemDefaults.categoryId)} onChange={value => { const input = document.querySelector<HTMLInputElement>('input[name="categoryId"]'); if (input) input.value = value; }} options={categories.map(c => ({ value: String(c.id), label: c.name }))} /></div><input className="visually-hidden-field" name="categoryId" defaultValue={itemDefaults.categoryId} /></label>
+            <label>Price *<div className="price-input"><span>₹</span><input name="price" type="number" min="0" step="0.01" defaultValue={itemDefaults.price ?? ""} placeholder="0" /></div></label>
           </div>
         </div>
         <div className="editor-section">
@@ -452,7 +464,7 @@ function MenuManagement() {
           <div className="editor-section-head"><span className="editor-step">03</span><div><strong>Menu settings</strong><small>Optional internal details and availability.</small></div></div>
           <div className="form-grid">
             <label>SKU<input name="sku" defaultValue={itemDefaults.sku ?? ""} placeholder="Optional" /></label>
-            <label>Slug *<input name="slug" defaultValue={itemDefaults.slug} required placeholder="chicken-kathi-roll" /></label>
+            <label>Slug *<input name="slug" defaultValue={itemDefaults.slug} placeholder="chicken-kathi-roll" /></label>
             <label>Sort order<input name="sortOrder" type="number" min="0" defaultValue={itemDefaults.sortOrder} /></label>
           </div>
           <div className="toggle-row">
