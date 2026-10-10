@@ -2453,3 +2453,5 @@ button {
 .category-drag-handle:hover { color: #ff8a4c; }
 .category-order-hint { min-height: 100px; display: flex; flex-direction: column; justify-content: center; gap: 6px; color: #fff4eb; }
 .category-order-hint small { color: rgba(255,239,227,.55); }
+
+.category-order-preview { min-height: 190px; }
