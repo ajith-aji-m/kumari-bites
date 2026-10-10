@@ -6075,3 +6075,10 @@ button {
  .customer-order-confirmation{bottom:82px!important}
  .customer-order-tracker-mini{right:12px!important;bottom:14px!important;width:min(320px,calc(100vw - 24px))!important;padding:12px 13px!important}
 }
+
+
+/* Once an order exists, remove the welcome cloud/bubble and keep the chef + tracker focus. */
+.customer-story.has-active-order .customer-story-bubble,
+.customer-story.has-active-order .customer-story-cloud-image{
+  display:none!important;
+}
