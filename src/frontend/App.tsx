@@ -52,7 +52,8 @@ function money(value: string | number | null | undefined) {
 }
 
 function statusLabel(status: string) {
-  return status.charAt(0).toUpperCase() + status.slice(1);
+  const labels: Record<string, string> = { placed: "Order placed", preparing: "Preparing", ready: "Ready", completed: "Completed", cancelled: "Cancelled" };
+  return labels[status] ?? status;
 }
 
 async function api<T>(url: string, options?: RequestInit): Promise<T> {
@@ -218,7 +219,7 @@ function DashboardHome() {
 
   const popular = data?.popularItems ?? [];
   const recentOrders = data?.recentOrders ?? [];
-  const activeStatuses = new Set(["new", "confirmed", "preparing", "ready"]);
+  const activeStatuses = new Set(["placed", "preparing", "ready"]);
   const activeOrders = orders.filter(order => activeStatuses.has(order.status)).length;
   const preparingOrders = orders.filter(order => order.status === "preparing").length;
   const readyOrders = orders.filter(order => order.status === "ready").length;
@@ -582,7 +583,7 @@ function Orders() {
       {error && !showCreate && <div className="inline-error" role="alert">{error} <button type="button" onClick={loadOrders}>Retry</button></div>}
       <div className="menu-toolbar menu-index-controls orders-toolbar">
         <input className="search-input" value={query} onChange={e => setQuery(e.target.value)} placeholder="Search order, customer or phone..." />
-        <CustomSelect value={status} onChange={setStatus} options={[{ value: "all", label: "All statuses" }, ...["new","confirmed","preparing","ready","completed","cancelled"].map(s => ({ value: s, label: statusLabel(s) }))]} />
+        <CustomSelect value={status} onChange={setStatus} options={[{ value: "all", label: "All statuses" }, ...["placed","preparing","ready","completed","cancelled"].map(s => ({ value: s, label: statusLabel(s) }))]} />
       </div>
       {loading ? <p className="muted">Loading orders...</p> : <div className="menu-table-wrap orders-table-wrap">
         <table className="menu-table orders-table">
@@ -593,7 +594,7 @@ function Orders() {
             <td><div className="order-items-cell">{order.items?.length ? order.items.map(item => <span key={item.id}>{item.itemName} <small>× {item.quantity}</small></span>) : <span className="muted">Items unavailable</span>}</div></td>
             <td><span className={"order-status " + order.status}>{statusLabel(order.status)}</span></td>
             <td><strong>{money(order.totalAmount)}</strong></td>
-            <td>{order.status === "completed" || order.status === "cancelled" ? <span className="order-status-lock" title={`${statusLabel(order.status)} orders cannot be changed`}><span aria-hidden="true">🔒</span> Locked</span> : <CustomSelect value={order.status} onChange={value => updateStatus(order.id, value)} portalMenu statusTone options={["new","confirmed","preparing","ready","completed","cancelled"].map(s => ({ value: s, label: statusLabel(s) }))} />}</td>
+            <td>{order.status === "completed" || order.status === "cancelled" ? <span className="order-status-lock" title={`${statusLabel(order.status)} orders cannot be changed`}><span aria-hidden="true">🔒</span> Locked</span> : <CustomSelect value={order.status} onChange={value => updateStatus(order.id, value)} portalMenu statusTone options={["placed","preparing","ready","completed","cancelled"].map(s => ({ value: s, label: statusLabel(s) }))} />}</td>
             <td><div className="order-document-actions"><button type="button" className="order-document-button order-print-button" onClick={() => { if (!printOrderReceipt(order)) setError("Your browser blocked the print window. Allow pop-ups and try again."); }} title={"Print order " + order.orderNumber}><span aria-hidden="true">⎙</span><span>Print</span></button><button type="button" className="order-document-button order-pdf-button" onClick={() => downloadOrderPdf(order)} title={"Download PDF for order " + order.orderNumber}><span aria-hidden="true">↓</span><span>PDF</span></button></div></td>
           </tr>)}</tbody>
         </table>
