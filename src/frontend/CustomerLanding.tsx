@@ -115,7 +115,7 @@ export function CustomerLanding() {
         <div className="customer-story-bottom"><span className="story-bottom-line" /> SCROLL TO CONTINUE <span className="story-bottom-arrow">↓</span></div>
       </div>
     </section>
-    {cartCount > 0 && <button className="customer-cart-fab" onClick={() => setCartOpen(v => !v)}><span>🛍</span><span>Your bites · {cartCount}</span><strong>{money(total)}</strong></button>}
+    {cartCount > 0 && <button key={cartCount} className="customer-cart-fab" onClick={() => setCartOpen(v => !v)}><span>🛒</span><span>Your bites · {cartCount}</span><strong>{money(total)}</strong></button>}
     {cartOpen && <aside className="customer-cart-panel" aria-label="Your cart"><div className="customer-cart-title"><div><small>YOUR ORDER</small><h3>Your bites</h3></div><button onClick={() => setCartOpen(false)} aria-label="Close cart">×</button></div>
       {items.filter(i => cart[i.id]).map(i => <div className="customer-cart-line" key={i.id}><div><strong>{i.name}</strong><small>{money(i.price)} each</small></div><div className="customer-quantity-controls"><button onClick={() => change(i.id, -1)}>−</button><span>{cart[i.id]}</span><button onClick={() => add(i.id)}>+</button></div><button className="customer-cart-remove" onClick={() => setCart(c => { const n = { ...c }; delete n[i.id]; return n; })}>Remove</button><strong>{money(Number(i.price ?? 0) * cart[i.id])}</strong></div>)}
       <div className="customer-cart-total"><span>Subtotal</span><strong>{money(total)}</strong></div><p className="customer-cart-note">Cart preview only — checkout integration comes next.</p>
