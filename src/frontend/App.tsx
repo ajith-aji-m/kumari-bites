@@ -616,21 +616,16 @@ function MenuManagement() {
         <div className="editor-section">
           <div className="editor-section-head"><span className="editor-step">02</span><div><strong>Category presentation</strong><small>Add a visual image that represents this category.</small></div></div>
           <div className="editor-media-grid category-media-grid">
-            <div className="menu-upload-preview category-upload-preview">
+            <label className="menu-upload-preview category-upload-preview category-single-upload" aria-label={categoryImage ? "Change category image" : "Add category image"}>
               {categoryImage ? <img src={categoryImage} alt="Selected category" /> : <div className="menu-image-empty"><span className="menu-upload-plus" aria-hidden="true">+</span><strong>Add image</strong><small>PNG, JPG or WEBP · Max 5 MB</small></div>}
-              <label className={`menu-image-upload-button${categoryImage ? " has-image" : ""}`} aria-label={categoryImage ? "Change image" : "Add image"}>{categoryImage && <span className="menu-upload-plus" aria-hidden="true">+</span>}<input type="file" accept="image/png,image/jpeg,image/webp" onChange={event => {
+              <input type="file" accept="image/png,image/jpeg,image/webp" onChange={event => {
                 const file = event.target.files?.[0];
                 if (!file) return;
                 if (!file.type.startsWith("image/")) { setError("Please choose an image file."); return; }
                 if (file.size > 5 * 1024 * 1024) { setError("Please choose an image smaller than 5 MB."); return; }
                 readImageAsDataUrl(file).then(setCategoryImage, () => setError("Could not read that image. Please try another file."));
-              }} /></label>
-            </div>
-            <div className="editor-media-fields category-sort-field">
-              <div className="menu-upload-preview category-upload-preview category-order-preview">
-                <div className="menu-image-empty"><span className="menu-upload-plus" aria-hidden="true">+</span><strong>Add image</strong><small>PNG, JPG or WEBP · Max 5 MB</small></div>
-              </div>
-            </div>
+              }} />
+            </label>
           </div>
         </div>
       </div>
