@@ -627,7 +627,9 @@ function MenuManagement() {
               }} /></label>
             </div>
             <div className="editor-media-fields category-sort-field">
-              <div className="category-order-hint"><strong>Order is managed from the Categories table.</strong><small>Drag and drop a category row to change its position.</small></div>
+              <div className="menu-upload-preview category-upload-preview category-order-preview">
+                <div className="menu-image-empty"><span className="menu-upload-plus" aria-hidden="true">+</span><strong>Add image</strong><small>PNG, JPG or WEBP · Max 5 MB</small></div>
+              </div>
             </div>
           </div>
         </div>
