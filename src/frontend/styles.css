@@ -1470,3 +1470,25 @@ button {
   position: relative;
   z-index: 1;
 }
+
+/* Menu editor: keep the modal vertically scrollable while hiding scrollbar UI. */
+.menu-management .modal-backdrop {
+  align-items: start;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.menu-management .modal-card {
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+  overflow-x: visible;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 650px) {
+  .menu-management .modal-card {
+    max-height: calc(100vh - 16px);
+  }
+}
