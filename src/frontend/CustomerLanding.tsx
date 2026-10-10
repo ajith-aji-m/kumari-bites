@@ -65,7 +65,7 @@ export function CustomerLanding() {
           <span className="customer-primary-cta">Let’s find your flavour <span>↓</span></span>
         </div>
         <div className="customer-order-taker order-taker-visible"><img src="/assets/order-taker.png" alt="Your Kumari Bites order taker" /></div>
-        <div className={"customer-story-bubble " + (stage === 0 ? "story-bubble-visible" : "")}>
+        <div className={"customer-story-bubble " + (stage === 0 && !categoryIntroPlaying ? "story-bubble-visible" : "")}>
           <img className="customer-story-cloud-image" src="/assets/welcome-cloud.png" alt="" aria-hidden="true" />
           <div className="customer-story-bubble-content">
             <strong>{stage === 0 ? "Vanakkam, food lover!" : "Choose your favourites!"}</strong>
