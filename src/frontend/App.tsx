@@ -569,8 +569,8 @@ function CustomSelect({ value, onChange, options, placeholder = "Select...", por
   }, [open, portalMenu, options.length]);
 
   const menu = open && <div
-    className={`custom-select-menu${statusTone ? " order-status-menu" : ""}`}
-    style={portalMenu ? { position: "fixed", top: menuPosition.top, left: menuPosition.left, width: menuPosition.width, zIndex: 10000 } : undefined}
+    className={`custom-select-menu${portalMenu ? " custom-select-menu-portal" : ""}${statusTone ? " order-status-menu" : ""}`}
+    style={portalMenu ? { position: "fixed", top: menuPosition.top, left: menuPosition.left, width: menuPosition.width, maxHeight: 220, overflowY: "auto", overscrollBehavior: "contain", zIndex: 10000 } : undefined}
     role="listbox"
   >
     {options.map(option => <button
