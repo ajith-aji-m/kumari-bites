@@ -23,7 +23,7 @@ export function CustomerLanding() {
         if (!root) return;
         const distance = Math.max(1, root.offsetHeight - window.innerHeight);
         const progress = Math.min(1, Math.max(0, -root.getBoundingClientRect().top / distance));
-        setStage(Math.min(3, Math.floor(progress * 4.001)));
+        setStage(Math.min(3, Math.floor(progress * 3.001)));
       });
     };
     update();
@@ -53,7 +53,7 @@ export function CustomerLanding() {
     const root = document.querySelector<HTMLElement>(".customer-story");
     if (!root) return;
     const distance = Math.max(1, root.offsetHeight - window.innerHeight);
-    window.scrollTo({ top: window.scrollY + root.getBoundingClientRect().top + distance * target / 4, behavior: "smooth" });
+    window.scrollTo({ top: window.scrollY + root.getBoundingClientRect().top + distance * target / 3, behavior: "smooth" });
   };
   const add = (id: number) => setCart(c => ({ ...c, [id]: (c[id] ?? 0) + 1 }));
   const change = (id: number, delta: number) => setCart(c => { const n = { ...c, [id]: Math.max(0, (c[id] ?? 0) + delta) }; if (!n[id]) delete n[id]; return n; });
@@ -72,15 +72,15 @@ export function CustomerLanding() {
           <p className="customer-hero-subtitle">A little scroll. A lot of flavour.</p>
           <span className="customer-primary-cta">Let’s find your flavour <span>↓</span></span>
         </div>
-        <div className={"customer-order-taker " + (stage >= 1 ? "order-taker-visible" : "")}><img src="/assets/order-taker.png" alt="Your Kumari Bites order taker" /></div>
-        <div className={"customer-story-bubble " + (stage >= 1 ? "story-bubble-visible" : "")}>
+        <div className="customer-order-taker order-taker-visible"><img src="/assets/order-taker.png" alt="Your Kumari Bites order taker" /></div>
+        <div className={"customer-story-bubble " + (stage === 0 ? "story-bubble-visible" : "")}>
           <img className="customer-story-cloud-image" src="/assets/welcome-cloud.png" alt="" aria-hidden="true" />
           <div className="customer-story-bubble-content">
-            <strong>{stage >= 2 ? "Your feast starts here!" : "Vanakkam, food lover!"}</strong>
-            <p>{stage >= 2 ? "What are you craving today? Choose a category below and let’s find your favourites." : "Welcome to Kumari Bites! 🍽️ What’s your feast today? Scroll down to explore our menu, pick your favourites, and let’s get your order started!"}</p>
+            <strong>{stage === 0 ? "Vanakkam, food lover!" : "Choose your favourites!"}</strong>
+            <p>{stage === 0 ? "Welcome to Kumari Bites! 🍽️ What’s your feast today? Scroll down to explore our menu, pick your favourites, and let’s get your order started!" : "Tap a category to explore our freshly made favourites."}</p>
           </div>
         </div>
-        <div className={"customer-story-categories " + (stage >= 2 ? "story-categories-visible" : "")}>
+        <div className={"customer-story-categories " + (stage >= 1 && stage < 2 ? "story-categories-visible" : "")}>
           <div className="story-panel-heading"><small>STEP 01 · PICK YOUR MOOD</small><h2>What are you <em>craving?</em></h2><p>Tap a category to help me find your favourites.</p></div>
           {loading ? <div className="customer-story-loading">Getting the menu ready…</div> : error ? <div className="customer-story-loading">{error}</div> : <div className="customer-category-bubbles">
             {categories.map((c, i) => <button key={c.id} className={"customer-category-bubble category-tone-" + (i % 5) + (selectedCategory === c.id ? " selected" : "")} onClick={() => { setSelectedCategory(c.id); goToStage(3); }}>
@@ -89,14 +89,14 @@ export function CustomerLanding() {
           </div>}
           <span className="story-scroll-hint">SCROLL TO MEET THE MENU <b>↓</b></span>
         </div>
-        <div className={"customer-story-items " + (stage >= 3 ? "story-items-visible" : "")}>
-          <div className="story-items-topline"><button className="story-back-button" onClick={() => goToStage(2)}>← Categories</button><small>STEP 02 · MADE FOR YOU</small></div>
+        <div className={"customer-story-items " + (stage >= 2 ? "story-items-visible" : "")}>
+          <div className="story-items-topline"><button className="story-back-button" onClick={() => goToStage(1)}>← Categories</button><small>STEP 02 · MADE FOR YOU</small></div>
           <div className="story-items-title"><div><h2>{categories.find(c => c.id === selectedCategory)?.name ?? "All the good stuff"}</h2><p>Fresh picks, just a tap away.</p></div><span>{visibleItems.length} items</span></div>
           {visibleItems.length ? <div className="customer-food-grid">{visibleItems.map((item, i) => <article className={"customer-food-card food-card-" + (i % 4)} key={item.id}>
             <div className="customer-food-image">{item.imageUrl ? <img src={item.imageUrl} alt={item.name} loading="lazy" /> : <span>{["🥟", "🌯", "🍔", "🍗"][i % 4]}</span>}<span className={"customer-veg-mark " + (item.isVeg ? "veg" : "nonveg")} /></div>
             <div className="customer-food-info"><div><h4>{item.name}</h4><strong>{money(item.price)}</strong></div>{item.description && <p>{item.description}</p>}<button onClick={() => add(item.id)}>{cart[item.id] ? "Added · " + cart[item.id] : "+ Add to order"}</button>{cart[item.id] ? <div className="customer-quantity-controls"><button onClick={() => change(item.id, -1)}>−</button><span>{cart[item.id]} in your order</span><button onClick={() => add(item.id)}>+</button></div> : null}</div>
           </article>)}</div> : <div className="customer-empty">{loading ? "Loading menu…" : error || "No items in this category yet. Go back and choose another category."}</div>}
-          <button className="story-change-category" onClick={() => { setSelectedCategory(null); goToStage(2); }}>Explore another category</button>
+          <button className="story-change-category" onClick={() => { setSelectedCategory(null); goToStage(1); }}>Explore another category</button>
         </div>
         <div className="customer-story-progress"><span className={stage >= 0 ? "active" : ""}/><span className={stage >= 1 ? "active" : ""}/><span className={stage >= 2 ? "active" : ""}/><span className={stage >= 3 ? "active" : ""}/></div>
         <div className="customer-story-bottom"><span className="story-bottom-line" /> SCROLL TO CONTINUE <span className="story-bottom-arrow">↓</span></div>
