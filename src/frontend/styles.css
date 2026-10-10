@@ -460,32 +460,76 @@ input:not([type="checkbox"]):focus { border-color: #b85c38; box-shadow: 0 0 0 3p
 }
 
 
-/* Chef validation guide */
+
+
+/* Animated cartoon chef validation guide */
 .chef-guide {
   display:flex;
-  align-items:center;
-  gap:9px;
-  margin:-2px 0 0;
-  animation: chefGuideIn .28s ease-out both;
+  align-items:flex-end;
+  gap:10px;
+  margin:-1px 0 2px;
+  animation:chefGuideIn .32s cubic-bezier(.2,.8,.2,1) both;
 }
-.chef-avatar {
-  width:34px;
-  height:34px;
-  flex:0 0 34px;
+.chef-character {
+  position:relative;
+  width:42px;
+  height:52px;
+  flex:0 0 42px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:flex-end;
+  filter:drop-shadow(0 5px 8px rgba(0,0,0,.22));
+  animation:chefBob 1.8s ease-in-out infinite;
+}
+.chef-hat {
+  position:absolute;
+  top:0;
+  z-index:2;
+  width:28px;
+  height:20px;
   display:grid;
   place-items:center;
-  border:1px solid rgba(255,255,255,.18);
+  border-radius:14px 14px 7px 7px;
+  background:#fff7ef;
+  color:#ff6b1a;
+  font-size:13px;
+  font-weight:800;
+  box-shadow:0 2px 5px rgba(0,0,0,.12);
+}
+.chef-face {
+  position:relative;
+  z-index:1;
+  width:29px;
+  height:25px;
+  display:grid;
+  place-items:center;
   border-radius:50%;
-  background:rgba(255,107,26,.18);
-  font-size:18px;
-  box-shadow:0 5px 14px rgba(0,0,0,.2);
+  background:#f2b27f;
+  color:#4a2115;
+  font-size:9px;
+  font-weight:800;
+}
+.chef-body {
+  width:35px;
+  height:19px;
+  margin-top:-2px;
+  display:grid;
+  place-items:center;
+  border-radius:9px 9px 5px 5px;
+  background:#fff7ef;
+  font-size:12px;
 }
 .chef-bubble {
   position:relative;
   flex:1;
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  gap:2px;
   padding:9px 11px;
   border:1px solid rgba(255,160,104,.3);
-  border-radius:10px 10px 10px 3px;
+  border-radius:11px 11px 11px 3px;
   background:rgba(255,107,26,.12);
   color:#ffd8c2;
   font-size:10px;
@@ -495,7 +539,7 @@ input:not([type="checkbox"]):focus { border-color: #b85c38; box-shadow: 0 0 0 3p
   content:"";
   position:absolute;
   left:-6px;
-  bottom:8px;
+  bottom:9px;
   width:10px;
   height:10px;
   background:rgba(255,107,26,.12);
@@ -503,7 +547,17 @@ input:not([type="checkbox"]):focus { border-color: #b85c38; box-shadow: 0 0 0 3p
   border-bottom:1px solid rgba(255,160,104,.3);
   transform:rotate(45deg);
 }
+.chef-bubble strong {
+  color:#ff9a62;
+  font-size:9px;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+}
 @keyframes chefGuideIn {
-  from { opacity:0; transform:translateY(-5px) scale(.98); }
+  from { opacity:0; transform:translateY(-6px) scale(.96); }
   to { opacity:1; transform:translateY(0) scale(1); }
+}
+@keyframes chefBob {
+  0%,100% { transform:translateY(0) rotate(0deg); }
+  50% { transform:translateY(-2px) rotate(-1deg); }
 }
