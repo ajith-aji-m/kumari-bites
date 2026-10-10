@@ -414,14 +414,41 @@ function MenuManagement() {
 
     {itemDefaults && <div className="modal-backdrop" onMouseDown={e => e.currentTarget === e.target && setItemModal(null)}><form className="modal-card" onSubmit={saveItem}>
       <div className="modal-head"><div><p className="eyebrow">MENU ITEM</p><h2>{itemModal === "new" ? "Add menu item" : "Edit menu item"}</h2></div><button type="button" className="icon-button" onClick={() => setItemModal(null)}>×</button></div>
-      <div className="form-grid"><label>Item name *<input name="name" defaultValue={itemDefaults.name} required placeholder="e.g. Masala Dosa" /></label><label>Category *<select name="categoryId" defaultValue={itemDefaults.categoryId} required>{categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
-      <label>Price (₹) *<input name="price" type="number" min="0" step="0.01" defaultValue={itemDefaults.price ?? ""} required /></label><label>SKU<input name="sku" defaultValue={itemDefaults.sku ?? ""} placeholder="Optional" /></label>
-      <label>Slug *<input name="slug" defaultValue={itemDefaults.slug} required placeholder="masala-dosa" /></label><label>Sort order<input name="sortOrder" type="number" min="0" defaultValue={itemDefaults.sortOrder} /></label>
-      <label className="full-field">Image URL<input name="imageUrl" defaultValue={itemDefaults.imageUrl ?? ""} placeholder="https://..." /></label>
-      <label className="full-field">Description<textarea name="description" defaultValue={itemDefaults.description ?? ""} placeholder="Short description for the menu..." /></label>
+      <div className="menu-item-editor">
+        <div className="editor-section">
+          <div className="editor-section-head"><span className="editor-step">01</span><div><strong>Basic details</strong><small>Name the dish and place it in the right menu category.</small></div></div>
+          <div className="form-grid">
+            <label className="field-wide">Item name *<input name="name" defaultValue={itemDefaults.name} required placeholder="e.g. Chicken Kathi Roll" /></label>
+            <label>Category *<select name="categoryId" defaultValue={itemDefaults.categoryId} required>{categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
+            <label>Price *<div className="price-input"><span>₹</span><input name="price" type="number" min="0" step="0.01" defaultValue={itemDefaults.price ?? ""} required placeholder="0" /></div></label>
+          </div>
+        </div>
+        <div className="editor-section">
+          <div className="editor-section-head"><span className="editor-step">02</span><div><strong>Dish presentation</strong><small>Add the image and short description customers should see.</small></div></div>
+          <div className="editor-media-grid">
+            <div className="menu-image-preview">
+              {itemDefaults.imageUrl ? <img src={itemDefaults.imageUrl} alt="" /> : <div><span>🍽️</span><strong>Dish image</strong><small>Paste an image URL</small></div>}
+            </div>
+            <div className="editor-media-fields">
+              <label>Image URL<input name="imageUrl" defaultValue={itemDefaults.imageUrl ?? ""} placeholder="https://..." /></label>
+              <label>Description<textarea name="description" defaultValue={itemDefaults.description ?? ""} placeholder="Short description for the menu..." /></label>
+            </div>
+          </div>
+        </div>
+        <div className="editor-section editor-advanced">
+          <div className="editor-section-head"><span className="editor-step">03</span><div><strong>Menu settings</strong><small>Optional internal details and availability.</small></div></div>
+          <div className="form-grid">
+            <label>SKU<input name="sku" defaultValue={itemDefaults.sku ?? ""} placeholder="Optional" /></label>
+            <label>Slug *<input name="slug" defaultValue={itemDefaults.slug} required placeholder="chicken-kathi-roll" /></label>
+            <label>Sort order<input name="sortOrder" type="number" min="0" defaultValue={itemDefaults.sortOrder} /></label>
+          </div>
+          <div className="toggle-row">
+            <label className="toggle-check"><input name="isVeg" type="checkbox" defaultChecked={itemDefaults.isVeg} /> <span><strong>Vegetarian</strong><small>Mark this dish as vegetarian</small></span></label>
+            <label className="toggle-check"><input name="isAvailable" type="checkbox" defaultChecked={itemDefaults.isAvailable} /> <span><strong>Available</strong><small>Show this item as orderable</small></span></label>
+          </div>
+        </div>
       </div>
-      <div className="toggle-row"><label className="toggle-check"><input name="isVeg" type="checkbox" defaultChecked={itemDefaults.isVeg} /> <span>Vegetarian</span></label><label className="toggle-check"><input name="isAvailable" type="checkbox" defaultChecked={itemDefaults.isAvailable} /> <span>Available in menu</span></label></div>
-      <div className="modal-actions"><button type="button" className="secondary-button" onClick={() => setItemModal(null)}>Cancel</button><button className="primary-button" disabled={saving}>{saving ? "Saving..." : itemModal === "new" ? "Save item" : "Update item"}</button></div>
+      <div className="modal-actions"><button type="button" className="secondary-button" onClick={() => setItemModal(null)}>Cancel</button><button className="primary-button editor-save" disabled={saving}>{saving ? "Saving..." : itemModal === "new" ? "Add menu item" : "Save changes"}</button></div>
     </form></div>}
 
     {categoryDefaults && <div className="modal-backdrop" onMouseDown={e => e.currentTarget === e.target && setCategoryModal(null)}><form className="modal-card small-modal" onSubmit={saveCategory}>
