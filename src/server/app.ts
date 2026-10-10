@@ -9,6 +9,7 @@ import { registerOrderRoutes } from "../orders/routes.js";
 import { registerMenuRoutes } from "../menu/routes.js";
 import { registerOfferRoutes } from "../offers/routes.js";
 import { registerDashboardRoutes } from "../dashboard/routes.js";
+import { registerReportRoutes } from "../reports/routes.js";
 
 export function buildApp() {
   const app = Fastify({ logger: true, bodyLimit: 6 * 1024 * 1024 });
@@ -34,6 +35,7 @@ export function buildApp() {
   app.register(registerMenuRoutes);
   app.register(registerOfferRoutes);
   app.register(registerDashboardRoutes);
+  app.register(registerReportRoutes);
 
   return app;
 }
