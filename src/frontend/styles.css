@@ -4525,3 +4525,103 @@ button {
     right:6px!important;
   }
 }
+
+
+/* Story stage 1: show waiter + cloud immediately; stage 2: compact category bubbles. */
+.customer-story-stage .customer-nav{
+  opacity:1!important;
+  transform:translateY(0)!important;
+}
+.customer-order-taker.order-taker-visible{
+  opacity:1!important;
+  visibility:visible!important;
+  transform:translateY(0) scale(1)!important;
+}
+.customer-story-bubble.story-bubble-visible{
+  opacity:1!important;
+  visibility:visible!important;
+  transform:translateY(0) scale(1)!important;
+}
+.customer-story-categories.story-categories-visible{
+  left:auto!important;
+  right:clamp(22px,5vw,76px)!important;
+  top:19%!important;
+  width:min(56vw,760px)!important;
+  transform:none!important;
+  text-align:center;
+}
+.customer-story-categories.story-categories-visible .story-panel-heading{
+  margin:0 auto 14px;
+  max-width:560px;
+}
+.customer-story-categories.story-categories-visible .story-panel-heading small{
+  font-size:9px;
+}
+.customer-story-categories.story-categories-visible .story-panel-heading h2{
+  margin:7px 0;
+  font-size:clamp(26px,3vw,40px);
+}
+.customer-story-categories.story-categories-visible .story-panel-heading p{
+  font-size:12px;
+}
+.customer-story-categories.story-categories-visible .customer-category-bubbles{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:center;
+  gap:12px;
+  padding:4px 0;
+}
+.customer-story-categories.story-categories-visible .customer-category-bubble{
+  width:clamp(100px,10vw,132px);
+  min-height:clamp(105px,10vw,132px);
+  padding:10px 8px;
+  border-radius:24px;
+}
+.customer-story-categories.story-categories-visible .customer-category-bubble img,
+.customer-story-categories.story-categories-visible .category-bubble-art{
+  width:48px;
+  height:48px;
+  font-size:26px;
+}
+.customer-story-categories.story-categories-visible .customer-category-bubble strong{
+  font-size:11px;
+  text-align:center;
+}
+.customer-story-categories.story-categories-visible .customer-category-bubble small{
+  font-size:9px;
+}
+.customer-story-categories.story-categories-visible .story-scroll-hint{
+  margin-top:12px;
+}
+@media(max-width:760px){
+  .customer-story-categories.story-categories-visible{
+    left:auto!important;
+    right:8px!important;
+    top:16%!important;
+    width:64vw!important;
+    max-height:70%;
+    overflow-y:auto;
+    padding:4px;
+  }
+  .customer-story-categories.story-categories-visible .story-panel-heading{
+    margin-bottom:10px;
+  }
+  .customer-story-categories.story-categories-visible .story-panel-heading h2{
+    font-size:clamp(21px,5vw,30px);
+  }
+  .customer-story-categories.story-categories-visible .story-panel-heading p{
+    font-size:10px;
+  }
+  .customer-story-categories.story-categories-visible .customer-category-bubbles{
+    gap:8px;
+  }
+  .customer-story-categories.story-categories-visible .customer-category-bubble{
+    width:calc(50% - 6px);
+    min-height:98px;
+    padding:8px 5px;
+  }
+  .customer-story-categories.story-categories-visible .customer-category-bubble img,
+  .customer-story-categories.story-categories-visible .category-bubble-art{
+    width:38px;height:38px;font-size:22px;
+  }
+}
