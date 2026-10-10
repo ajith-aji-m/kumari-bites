@@ -123,10 +123,10 @@ function Login({ onLogin }: { onLogin: () => void }) {
               <button disabled={loginSuccess} type="button" className="link-button">Forgot password?</button>
             </div>
 
-            <div className={`chef-guide${error ? " has-error" : ""}`} aria-hidden={!error}>
-              <div className="chef-character"><img src="/assets/kumari-bites-chef.png" alt="" /></div>
-              {error && <div className="chef-bubble" role="alert"><strong>Chef says</strong><span>{error.replace(/^👨‍🍳 Chef says: /, "")}</span></div>}
-            </div>
+            {error && <div className="chef-guide has-error" role="alert">
+              <div className="chef-character" aria-hidden="true"><img src="/assets/kumari-bites-chef.png" alt="" /></div>
+              <div className="chef-bubble"><strong>Chef says</strong><span>{error.replace(/^👨‍🍳 Chef says: /, "")}</span></div>
+            </div>}
 
             <button className="primary-button login-submit" disabled={loading || loginSuccess}>
               <span>{loading ? "…" : ""}</span>
