@@ -4676,3 +4676,150 @@ button {
     font-size:10px;
   }
 }
+
+
+/* Animated hand-off from the welcome cloud to a platter of category bubbles. */
+.customer-story.category-intro-playing .customer-story-stage{
+  animation: kbMenuBackdropReveal 1.1s cubic-bezier(.2,.75,.25,1) both;
+}
+.customer-story.category-intro-playing .customer-order-taker img{
+  animation: kbChefWelcomeMove 1.1s cubic-bezier(.2,.75,.25,1) both;
+}
+.customer-story.category-intro-playing .customer-story-bubble{
+  animation: kbCloudExit .55s ease-in both;
+  pointer-events:none;
+}
+@keyframes kbMenuBackdropReveal{
+  0%{background-size:100% 100%;filter:brightness(1)}
+  45%{background-size:108% 108%;filter:brightness(.78)}
+  100%{background-size:104% 104%;filter:brightness(.92)}
+}
+@keyframes kbChefWelcomeMove{
+  0%{transform:scale(1.08) translateX(0);filter:brightness(1)}
+  45%{transform:scale(1.02) translateX(-12px);filter:brightness(.84)}
+  100%{transform:scale(1.04) translateX(-5px);filter:brightness(.96)}
+}
+@keyframes kbCloudExit{
+  0%{opacity:1;filter:blur(0);transform:translateY(0) scale(1)}
+  100%{opacity:0;filter:blur(8px);transform:translateY(-18px) scale(.94)}
+}
+
+/* Categories sit on a warm ceramic platter; each dish is its own small round bubble. */
+.customer-story-categories.story-categories-visible{
+  isolation:isolate;
+}
+.customer-story-categories.story-categories-visible:before{
+  content:"";
+  position:absolute;
+  z-index:0;
+  pointer-events:none;
+  left:50%;
+  top:30%;
+  width:112%;
+  height:76%;
+  transform:translate(-50%,-8%);
+  border-radius:50%;
+  background:
+    radial-gradient(ellipse at 50% 38%,rgba(255,255,255,.94) 0%,rgba(255,248,233,.98) 52%,rgba(228,196,157,.96) 75%,rgba(135,76,43,.7) 78%,rgba(255,241,217,.92) 81%,rgba(255,248,236,.1) 86%);
+  box-shadow:0 25px 50px rgba(12,7,4,.3),inset 0 3px 8px rgba(255,255,255,.9);
+}
+.customer-story-categories.story-categories-visible .story-panel-heading,
+.customer-story-categories.story-categories-visible .customer-category-bubbles,
+.customer-story-categories.story-categories-visible .story-scroll-hint{
+  position:relative;
+  z-index:1;
+}
+.customer-story-categories.story-categories-visible .story-panel-heading{
+  color:#fff8ee;
+  text-shadow:0 2px 14px rgba(0,0,0,.42);
+}
+.customer-story-categories.story-categories-visible .story-panel-heading p{
+  color:#fff2df;
+}
+.customer-story-categories.story-categories-visible .customer-category-bubbles{
+  gap:clamp(8px,1.15vw,16px);
+  padding:16px 3% 26px;
+}
+.customer-story-categories.story-categories-visible .customer-category-bubble{
+  position:relative;
+  width:clamp(76px,7.5vw,108px);
+  height:clamp(76px,7.5vw,108px);
+  min-height:0;
+  flex:0 0 auto;
+  padding:8px 5px;
+  gap:5px;
+  border:2px solid rgba(255,255,255,.96);
+  border-radius:50%;
+  background:linear-gradient(145deg,#fffdf7,#f5dfc7);
+  box-shadow:0 7px 0 rgba(145,86,45,.18),0 12px 18px rgba(68,35,17,.2);
+  animation:kbPlateBubblePop .45s cubic-bezier(.2,.8,.2,1) both;
+}
+.customer-story-categories.story-categories-visible .customer-category-bubble:nth-child(2n){transform:translateY(8px)}
+.customer-story-categories.story-categories-visible .customer-category-bubble:nth-child(3n){animation-delay:.06s}
+.customer-story-categories.story-categories-visible .customer-category-bubble:nth-child(4n){animation-delay:.12s}
+.customer-story-categories.story-categories-visible .customer-category-bubble img,
+.customer-story-categories.story-categories-visible .category-bubble-art{
+  width:clamp(34px,3.2vw,47px);
+  height:clamp(34px,3.2vw,47px);
+  flex:0 0 auto;
+  display:grid;
+  place-items:center;
+  object-fit:cover;
+  border-radius:50%;
+  font-size:clamp(20px,2.1vw,29px);
+  box-shadow:0 3px 8px rgba(69,37,20,.14);
+}
+.customer-story-categories.story-categories-visible .customer-category-bubble strong{
+  max-width:100%;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  font-size:clamp(9px,.85vw,12px);
+  line-height:1.1;
+  color:#59301c;
+  text-align:center;
+}
+.customer-story-categories.story-categories-visible .customer-category-bubble small{display:none}
+.customer-story-categories.story-categories-visible .customer-category-bubble:hover,
+.customer-story-categories.story-categories-visible .customer-category-bubble.selected{
+  transform:translateY(-5px) scale(1.07);
+  border-color:#e8a45e;
+  box-shadow:0 8px 0 rgba(145,86,45,.16),0 15px 24px rgba(68,35,17,.24);
+}
+@keyframes kbPlateBubblePop{
+  0%{opacity:0;transform:translateY(15px) scale(.65)}
+  75%{opacity:1;transform:translateY(-3px) scale(1.04)}
+  100%{opacity:1;transform:translateY(0) scale(1)}
+}
+@media(max-width:760px){
+  .customer-story-categories.story-categories-visible:before{
+    top:28%;
+    width:125%;
+    height:78%;
+  }
+  .customer-story-categories.story-categories-visible .customer-category-bubbles{
+    gap:8px;
+    padding:10px 2% 18px;
+  }
+  .customer-story-categories.story-categories-visible .customer-category-bubble{
+    width:clamp(66px,18vw,90px);
+    height:clamp(66px,18vw,90px);
+    padding:6px 3px;
+    gap:4px;
+  }
+  .customer-story-categories.story-categories-visible .customer-category-bubble img,
+  .customer-story-categories.story-categories-visible .category-bubble-art{
+    width:clamp(29px,8vw,38px);
+    height:clamp(29px,8vw,38px);
+    font-size:20px;
+  }
+  .customer-story-categories.story-categories-visible .customer-category-bubble strong{font-size:9px}
+}
+@media(prefers-reduced-motion:reduce){
+  .customer-story.category-intro-playing .customer-story-stage,
+  .customer-story.category-intro-playing .customer-order-taker img,
+  .customer-story.category-intro-playing .customer-story-bubble,
+  .customer-story-categories.story-categories-visible .customer-category-bubble{
+    animation:none!important;
+  }
+}
