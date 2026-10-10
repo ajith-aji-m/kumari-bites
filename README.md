@@ -285,3 +285,13 @@ The admin Orders page now supports:
 - Order listing includes saved line-item snapshots and shows the newest orders first.
 
 The order/customer information remains order-centric; no separate customer CRM module was added. Invoice generation, payment collection/reconciliation, and WhatsApp delivery remain separate follow-up work.
+
+## Site Settings and Customer QR
+
+- Admin Settings stores the site name, motto/tagline, logo, favicon, and public customer landing-page URL in the existing `app_settings` table.
+- Branding values are managed through the authenticated `GET /api/v1/settings` and `PUT /api/v1/settings` endpoints, protected by the `settings.manage` permission.
+- `GET /api/v1/public/settings` exposes only the non-secret branding fields for the future customer-facing landing page.
+- Logo and favicon uploads are stored as optimized image data in MySQL. The `app_settings.value` column uses `MEDIUMTEXT`; apply the new migration with `npm run migrate` before using image uploads.
+- The Settings page generates a QR image from the exact customer URL entered and provides a print flow. The QR image preview uses the QR Server image endpoint, so generating/printing the QR requires an internet connection.
+- The QR destination is configurable now; the customer-facing ordering/landing page remains a separate implementation phase.
+
