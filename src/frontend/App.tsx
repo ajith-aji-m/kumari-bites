@@ -251,6 +251,19 @@ function Orders() {
   </section>;
 }
 
+function CustomSelect({ value, onChange, options, placeholder = "Select..." }: { value: string; onChange: (value: string) => void; options: { value: string; label: string }[]; placeholder?: string }) {
+  const [open, setOpen] = useState(false);
+  const selected = options.find(option => option.value === value);
+  return <div className="custom-select">
+    <button type="button" className="custom-select-trigger" onClick={() => setOpen(current => !current)} aria-expanded={open}>
+      <span>{selected?.label ?? placeholder}</span><span className="custom-select-chevron">⌄</span>
+    </button>
+    {open && <div className="custom-select-menu">
+      {options.map(option => <button type="button" key={option.value} className={option.value === value ? "custom-select-option selected" : "custom-select-option"} onClick={() => { onChange(option.value); setOpen(false); }}>{option.label}</button>)}
+    </div>}
+  </div>;
+}
+
 function MenuManagement() {
   const [tab, setTab] = useState<"items" | "categories">("items");
   const [categories, setCategories] = useState<Category[]>([]);
@@ -394,8 +407,8 @@ function MenuManagement() {
     {tab === "items" ? <article className="panel menu-panel">
       <div className="menu-toolbar">
         <input className="search-input" value={query} onChange={e => setQuery(e.target.value)} placeholder="Search menu items..." />
-        <select className="filter-select" value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)}><option value="all">All categories</option>{categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select>
-        <select className="filter-select" value={statusFilter} onChange={e => setStatusFilter(e.target.value)}><option value="all">All status</option><option value="available">Available</option><option value="unavailable">Unavailable</option></select>
+        <CustomSelect value={categoryFilter} onChange={setCategoryFilter} options={[{ value: "all", label: "All categories" }, ...categories.map(c => ({ value: String(c.id), label: c.name }))]} />
+        <CustomSelect value={statusFilter} onChange={setStatusFilter} options={[{ value: "all", label: "All status" }, { value: "available", label: "Available" }, { value: "unavailable", label: "Unavailable" }]} />
       </div>
       {loading ? <p className="muted">Loading menu...</p> : <div className="menu-table-wrap"><table className="menu-table"><thead><tr><th>Item</th><th>Category</th><th>Price</th><th>Type</th><th>Availability</th><th></th></tr></thead><tbody>
         {visibleItems.map(item => <tr key={item.id}>
@@ -419,7 +432,7 @@ function MenuManagement() {
           <div className="editor-section-head"><span className="editor-step">01</span><div><strong>Basic details</strong><small>Name the dish and place it in the right menu category.</small></div></div>
           <div className="form-grid">
             <label className="field-wide">Item name *<input name="name" defaultValue={itemDefaults.name} required placeholder="e.g. Chicken Kathi Roll" /></label>
-            <label>Category *<select name="categoryId" defaultValue={itemDefaults.categoryId} required>{categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
+            <label>Category *<div className="native-select-wrap"><select name="categoryId" defaultValue={itemDefaults.categoryId} required>{categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div></label>
             <label>Price *<div className="price-input"><span>₹</span><input name="price" type="number" min="0" step="0.01" defaultValue={itemDefaults.price ?? ""} required placeholder="0" /></div></label>
           </div>
         </div>
