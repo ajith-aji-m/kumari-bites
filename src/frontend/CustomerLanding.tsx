@@ -69,19 +69,17 @@ export function CustomerLanding() {
     setCart(c => ({ ...c, [id]: (c[id] ?? 0) + 1 }));
     const item = items.find(entry => entry.id === id);
     const imageBox = event?.currentTarget.closest(".customer-menu-bubble-image") as HTMLElement | null;
-    const packingBox = document.querySelector(".customer-packing-box") as HTMLElement | null;
-    if (item && imageBox && packingBox) {
+    if (item && imageBox) {
       const rect = imageBox.getBoundingClientRect();
-      const target = packingBox.getBoundingClientRect();
-      setFlyingBite({
-        id,
-        imageUrl: item.imageUrl,
-        x: rect.left + rect.width / 2,
-        y: rect.top + rect.height / 2,
-        dx: target.left + target.width * 0.55 - (rect.left + rect.width / 2),
-        dy: target.top + target.height * 0.58 - (rect.top + rect.height / 2)
-      });
-      window.setTimeout(() => setFlyingBite(current => current?.id === id ? null : current), 760);
+      const startX = rect.left + rect.width / 2;
+      const startY = rect.top + rect.height / 2;
+      window.setTimeout(() => {
+        const packingBox = document.querySelector(".customer-packing-box") as HTMLElement | null;
+        if (!packingBox) return;
+        const target = packingBox.getBoundingClientRect();
+        setFlyingBite({ id, imageUrl: item.imageUrl, x: startX, y: startY, dx: target.left + target.width * 0.55 - startX, dy: target.top + target.height * 0.58 - startY });
+        window.setTimeout(() => setFlyingBite(current => current?.id === id ? null : current), 760);
+      }, 0);
     }
   };
   const change = (id: number, delta: number) => setCart(c => { const n = { ...c, [id]: Math.max(0, (c[id] ?? 0) + delta) }; if (!n[id]) delete n[id]; return n; });
@@ -92,7 +90,6 @@ export function CustomerLanding() {
         <div className="customer-hero-shade" />
         <header className="customer-nav">
           <a className="customer-brand" href="#customer-order"><span className="customer-brand-mark">KB</span><span>Kumari <em>Bites</em></span></a>
-          <span className="customer-live-tag"><i /> FRESHLY MADE · FULL OF FLAVOUR</span>
         </header>
         <div className={"customer-hero-copy story-copy " + (stage === 0 ? "story-copy-visible" : "")}>
           <p className="customer-kicker"><span /> YOUR NEXT FAVOURITE BITE</p>
@@ -150,12 +147,12 @@ export function CustomerLanding() {
       </div>
     </section>
     {flyingBite && <div key={flyingBite.id + "-" + flyingBite.x} className="customer-flying-bite" style={{ left: flyingBite.x, top: flyingBite.y, ["--fly-dx" as string]: String(flyingBite.dx) + "px", ["--fly-dy" as string]: String(flyingBite.dy) + "px" } as React.CSSProperties} aria-hidden="true">{flyingBite.imageUrl ? <img src={flyingBite.imageUrl} alt="" /> : <span>🍽️</span>}</div>}
-    <button type="button" className={"customer-packing-box " + (cartCount ? "has-bites" : "") + (flyingBite ? " receiving-bite" : "")} onClick={() => setCartOpen(v => !v)} aria-label="Open your order packing area">
+    {cartCount > 0 && <button type="button" className={"customer-packing-box has-bites" + (flyingBite ? " receiving-bite" : "")} onClick={() => setCartOpen(v => !v)} aria-label="Open your order packing area">
       <span className="packing-box-label"><span className="packing-box-icon">▱</span><span><small>YOUR ORDER</small><strong>Packing area</strong></span></span>
       <span className="packing-box-status">{cartCount ? String(cartCount) + (cartCount === 1 ? " bite" : " bites") : "Ready for your bites"}</span>
       <strong className="packing-box-total">{money(total)}</strong>
       <span className="packing-box-open">{cartOpen ? "−" : "+"}</span>
-    </button>
+    </button>}
     {cartOpen && <aside className="customer-cart-panel" aria-label="Your cart"><div className="customer-cart-title"><div><small>YOUR ORDER</small><h3>Your bites</h3></div><button onClick={() => setCartOpen(false)} aria-label="Close cart">×</button></div>
       {items.filter(i => cart[i.id]).map(i => <div className="customer-cart-line" key={i.id}><div><strong>{i.name}</strong><small>{money(i.price)} each</small></div><div className="customer-quantity-controls"><button onClick={() => change(i.id, -1)}>−</button><span>{cart[i.id]}</span><button onClick={() => add(i.id)}>+</button></div><button className="customer-cart-remove" onClick={() => setCart(c => { const n = { ...c }; delete n[i.id]; return n; })}>Remove</button><strong>{money(Number(i.price ?? 0) * cart[i.id])}</strong></div>)}
       <div className="customer-cart-total"><span>Subtotal</span><strong>{money(total)}</strong></div><p className="customer-cart-note">Cart preview only — checkout integration comes next.</p>
