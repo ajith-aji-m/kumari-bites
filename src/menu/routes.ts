@@ -8,7 +8,7 @@ import { requirePermission } from "../auth/authorization.js";
 
 const categorySchema = z.object({
   name: z.string().trim().min(1).max(100),
-  slug: z.string().trim().min(1).max(120),
+  slug: z.string().trim().min(1).max(120).optional(),
   description: z.string().trim().max(2000).optional(),
   imageUrl: z.string().trim().max(5000000).optional(),
   sortOrder: z.number().int().min(0).default(0)
@@ -43,7 +43,8 @@ export async function registerMenuRoutes(app: FastifyInstance) {
     if (!user) return;
 
     const input = categorySchema.parse(request.body);
-    const result = await db.insert(categories).values(input);
+    const slug = input.slug || input.name.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+    const result = await db.insert(categories).values({ ...input, slug });
     return reply.code(201).send({ id: Number(result[0].insertId) });
   });
 
@@ -55,6 +56,7 @@ export async function registerMenuRoutes(app: FastifyInstance) {
     if (!Number.isInteger(id) || id <= 0) return reply.code(400).send({ message: "Invalid category id" });
 
     const input = categorySchema.partial().parse(request.body);
+    if (input.name !== undefined && input.slug === undefined) input.slug = input.name.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
     const result = await db.update(categories).set(input).where(eq(categories.id, id));
     return result[0].affectedRows ? { ok: true } : reply.code(404).send({ message: "Category not found" });
   });
