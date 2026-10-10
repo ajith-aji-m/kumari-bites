@@ -33,7 +33,7 @@ input:not([type="checkbox"]):focus { border-color: #b85c38; box-shadow: 0 0 0 3p
 .nav-item { width: 100%; border: 0; background: transparent; color: #806b5f; display: flex; gap: 12px; align-items: center; padding: 12px 13px; border-radius: 10px; cursor: pointer; text-align: left; font-weight: 650; }
 .nav-item.active { background: #f2ddd0; color: #9f492c; }
 .nav-item:hover { background: #f7e9de; }
-.logout { margin-top: auto; }
+.logout { margin-top: 0; }
 .dashboard { flex: 1; min-width: 0; padding: 30px 38px 50px; }
 .topbar { display: flex; justify-content: space-between; align-items: center; padding-bottom: 30px; }
 .admin-chip { display: flex; align-items: center; gap: 9px; padding: 7px 12px 7px 7px; border: 1px solid #eadbcd; background: #fffaf4; border-radius: 99px; font-size: 13px; font-weight: 700; }
