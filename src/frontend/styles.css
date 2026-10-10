@@ -472,23 +472,23 @@ input:not([type="checkbox"]):focus { border-color: #b85c38; box-shadow: 0 0 0 3p
 }
 .chef-character {
   position:relative;
-  width:52px;
-  height:62px;
-  flex:0 0 52px;
+  width:70px;
+  height:78px;
+  flex:0 0 70px;
+  display:flex;
+  align-items:flex-end;
+  justify-content:center;
   overflow:visible;
   filter:drop-shadow(0 7px 10px rgba(0,0,0,.24));
   animation:chefBob 1.8s ease-in-out infinite;
 }
 .chef-character img {
-  position:absolute;
-  left:50%;
-  bottom:0;
-  width:92px;
-  height:92px;
+  display:block;
+  width:78px;
+  height:auto;
   max-width:none;
   object-fit:contain;
   object-position:center bottom;
-  transform:translateX(-50%);
 }
 .chef-bubble {
   position:relative;
