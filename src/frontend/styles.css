@@ -4390,3 +4390,91 @@ button {
   .customer-story-bubble strong{font-size:17px!important}
   .customer-story-bubble p{font-size:11px!important}
 }
+
+
+/* Use the committed PNG as the cloud silhouette; render copy independently above it. */
+.customer-story-bubble{
+  left:auto!important;
+  right:clamp(24px,6vw,92px)!important;
+  top:17%!important;
+  width:min(650px,49vw)!important;
+  aspect-ratio:1.55 / 1;
+  min-height:0!important;
+  height:auto;
+  padding:0!important;
+  display:grid!important;
+  place-items:center;
+  gap:0!important;
+  isolation:isolate;
+  overflow:visible!important;
+  background:transparent!important;
+  border:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+  filter:none!important;
+}
+.customer-story-bubble:before,
+.customer-story-bubble:after{
+  content:none!important;
+  display:none!important;
+}
+.customer-story-cloud-image{
+  position:absolute;
+  inset:0;
+  z-index:-1;
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:fill;
+  pointer-events:none;
+  user-select:none;
+}
+.customer-story-bubble-content{
+  position:relative;
+  z-index:1;
+  width:69%;
+  margin:-1% 0 0;
+  text-align:center;
+  color:#392217;
+}
+.customer-story-bubble-content strong{
+  display:block;
+  margin:0 0 12px!important;
+  padding:0!important;
+  color:#392217!important;
+  font-size:clamp(24px,2.05vw,32px)!important;
+  font-weight:800;
+  line-height:1.18!important;
+  letter-spacing:-.035em!important;
+}
+.customer-story-bubble-content p{
+  margin:0!important;
+  max-width:none!important;
+  color:#76513d!important;
+  font-size:clamp(14px,1.12vw,17px)!important;
+  line-height:1.58!important;
+}
+.customer-story-bubble .bubble-spark,
+.customer-story-bubble .bubble-tail{display:none!important}
+@media(max-width:760px){
+  .customer-story-bubble{
+    top:13%!important;
+    right:4px!important;
+    width:min(78vw,410px)!important;
+  }
+  .customer-story-bubble-content{width:68%}
+  .customer-story-bubble-content strong{
+    margin-bottom:7px!important;
+    font-size:clamp(17px,4.3vw,24px)!important;
+  }
+  .customer-story-bubble-content p{
+    font-size:clamp(11px,2.8vw,14px)!important;
+    line-height:1.48!important;
+  }
+}
+@media(max-width:390px){
+  .customer-story-bubble{top:12%!important;width:79vw!important;right:1px!important}
+  .customer-story-bubble-content{width:67%}
+  .customer-story-bubble-content strong{font-size:17px!important}
+  .customer-story-bubble-content p{font-size:11px!important}
+}
