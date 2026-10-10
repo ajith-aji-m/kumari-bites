@@ -272,6 +272,8 @@ function MenuManagement() {
   const [query, setQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [categoryQuery, setCategoryQuery] = useState("");
+  const [categoryStatusFilter, setCategoryStatusFilter] = useState<"all" | "active" | "inactive">("all");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [itemModal, setItemModal] = useState<MenuItem | null | "new">(null);
@@ -328,6 +330,14 @@ function MenuManagement() {
   }), [items, query, categoryFilter, statusFilter]);
 
   const categoryName = (id: number) => categories.find(category => category.id === id)?.name ?? "Unassigned";
+
+  const visibleCategories = useMemo(() => categories.filter(category => {
+    const matchesQuery = category.name.toLowerCase().includes(categoryQuery.toLowerCase()) ||
+      (category.description ?? "").toLowerCase().includes(categoryQuery.toLowerCase());
+    const matchesStatus = categoryStatusFilter === "all" ||
+      (categoryStatusFilter === "active" ? category.isActive : !category.isActive);
+    return matchesQuery && matchesStatus;
+  }), [categories, categoryQuery, categoryStatusFilter]);
 
   async function saveItem(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -452,10 +462,25 @@ function MenuManagement() {
           <td><button className="table-action menu-action-edit" onClick={() => setItemModal(item)}><span className="button-icon">✎</span><span>Edit</span></button></td>
         </tr>)}
       </tbody></table>{!visibleItems.length && <div className="empty-state"><span>🍛</span><strong>No menu items found</strong><p className="muted">Add your first menu item to get started.</p></div>}</div>}
-    </article> : <article className="panel menu-panel">
-      {loading ? <p className="muted">Loading categories...</p> : <div className="menu-table-wrap"><table className="menu-table"><thead><tr><th>Category</th><th>Description</th><th>Items</th><th>Status</th><th></th></tr></thead><tbody>
-        {categories.map(category => <tr key={category.id}><td><strong>{category.name}</strong><small>/{category.slug}</small></td><td>{category.description || "—"}</td><td>{items.filter(item => item.categoryId === category.id).length}</td><td><span className={`category-status ${category.isActive ? "active" : "inactive"}`}>{category.isActive ? "Active" : "Inactive"}</span></td><td className="action-group"><button className="table-action menu-action-edit" onClick={() => setCategoryModal(category)}><span className="button-icon">✎</span><span>Edit</span></button><button className="text-action menu-action-toggle" onClick={() => toggleCategory(category)}><span>{category.isActive ? "Disable" : "Enable"}</span></button></td></tr>)}
-      </tbody></table>{!categories.length && <div className="empty-state"><span>🗂️</span><strong>No categories yet</strong><p className="muted">Create a category before adding menu items.</p></div>}</div>}
+    </article> : <article className="panel menu-panel category-management-panel">
+      <div className="category-overview">
+        <div className="category-stat"><span>Total</span><strong>{categories.length}</strong><small>All menu categories</small></div>
+        <div className="category-stat"><span>Active</span><strong>{categories.filter(category => category.isActive).length}</strong><small>Available for new dishes</small></div>
+        <div className="category-stat"><span>Inactive</span><strong>{categories.filter(category => !category.isActive).length}</strong><small>Can be enabled anytime</small></div>
+      </div>
+      <div className="category-toolbar">
+        <input className="search-input" value={categoryQuery} onChange={e => setCategoryQuery(e.target.value)} placeholder="Search categories..." />
+        <CustomSelect value={categoryStatusFilter} onChange={value => setCategoryStatusFilter(value as "all" | "active" | "inactive")} options={[{ value: "all", label: "All status" }, { value: "active", label: "Active" }, { value: "inactive", label: "Inactive" }]} />
+      </div>
+      {loading ? <p className="muted">Loading categories...</p> : <div className="menu-table-wrap"><table className="menu-table category-table"><thead><tr><th>Category</th><th>Description</th><th>Items</th><th>Status</th><th>Actions</th></tr></thead><tbody>
+        {visibleCategories.map(category => <tr key={category.id}>
+          <td><div className="category-name-cell"><div className="category-avatar">{category.imageUrl ? <img src={category.imageUrl} alt="" /> : <span>🍽️</span>}</div><div><strong>{category.name}</strong><small>/{category.slug}</small></div></div></td>
+          <td>{category.description || "No description added"}</td>
+          <td><span className="category-item-count">{items.filter(item => item.categoryId === category.id).length}</span></td>
+          <td><span className={`category-status ${category.isActive ? "active" : "inactive"}`}><span className="status-dot" />{category.isActive ? "Active" : "Inactive"}</span></td>
+          <td><div className="action-group"><button className="table-action menu-action-edit" onClick={() => setCategoryModal(category)}><span className="button-icon">✎</span><span>Edit</span></button><button className={`category-enable-button ${category.isActive ? "disable" : "enable"}`} onClick={() => toggleCategory(category)}><span>{category.isActive ? "Disable" : "Enable"}</span></button></div></td>
+        </tr>)}
+      </tbody></table>{!visibleCategories.length && <div className="empty-state"><span>🗂️</span><strong>No matching categories</strong><p className="muted">{categories.length ? "Try another search or status filter." : "Create a category before adding menu items."}</p></div>}</div>}
     </article>}
 
     {itemDefaults && <div className="modal-backdrop" onMouseDown={e => e.currentTarget === e.target && setItemModal(null)}><form className="modal-card" onSubmit={saveItem}>
