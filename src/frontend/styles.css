@@ -5910,3 +5910,58 @@ button {
 .customer-story-categories.story-categories-visible .customer-category-bubble:nth-child(10n),
 .customer-story-categories.menu-items-on-plate.story-categories-visible .customer-menu-bubble:nth-child(10n){translate:15px -25px}
 }
+
+/* Top packing-area destination for the existing order/cart preview. */
+.customer-packing-box{
+  position:fixed!important;
+  top:18px!important;
+  right:clamp(18px,3vw,44px)!important;
+  z-index:10070!important;
+  width:min(360px,calc(100vw - 36px))!important;
+  min-height:78px!important;
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto auto 24px!important;
+  align-items:center!important;
+  gap:14px!important;
+  padding:12px 16px!important;
+  border:1px solid rgba(255,218,178,.65)!important;
+  border-radius:12px 12px 18px 18px!important;
+  background:linear-gradient(180deg,#6e3927 0%,#482316 100%)!important;
+  color:#fff5e8!important;
+  text-align:left!important;
+  box-shadow:0 10px 28px rgba(18,8,3,.35),inset 0 1px rgba(255,255,255,.16)!important;
+  cursor:pointer!important;
+  transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease!important;
+}
+.customer-packing-box:before{
+  content:"";position:absolute;left:10px;right:10px;top:-7px;height:9px;
+  border:1px solid rgba(255,218,178,.55);border-bottom:0;border-radius:8px 8px 0 0;
+  background:#875139;
+}
+.customer-packing-box:hover{transform:translateY(2px)!important;box-shadow:0 6px 18px rgba(18,8,3,.32),inset 0 1px rgba(255,255,255,.16)!important}
+.customer-packing-box.receiving-bite{border-color:#ffc08f!important;box-shadow:0 0 0 3px rgba(255,176,109,.2),0 10px 28px rgba(18,8,3,.35)!important}
+.packing-box-label{display:flex;align-items:center;gap:10px;min-width:0}
+.packing-box-icon{display:grid;place-items:center;width:34px;height:34px;border:1px solid rgba(255,220,184,.35);border-radius:8px;font-size:25px;line-height:1;color:#ffc08f}
+.packing-box-label>span:last-child{display:flex;flex-direction:column;gap:3px}
+.packing-box-label small{font-size:8px;letter-spacing:.18em;font-weight:900;color:#ffc08f}
+.packing-box-label strong{font-size:13px;white-space:nowrap}
+.packing-box-status{font-size:10px;color:#e9cbb8;white-space:nowrap}
+.packing-box-total{font-size:13px;color:#ffb16d;white-space:nowrap}
+.packing-box-open{display:grid;place-items:center;width:23px;height:23px;border-radius:50%;background:#f6d8b8;color:#6b321d;font-size:18px;line-height:1;font-weight:800}
+.customer-flying-bite{
+  z-index:10090!important;
+  animation:kbBiteIntoPackingBox .76s cubic-bezier(.18,.72,.18,1) forwards!important;
+}
+@keyframes kbBiteIntoPackingBox{
+  0%{transform:translate3d(0,0,0) scale(1);opacity:1}
+  62%{transform:translate3d(calc(var(--fly-dx)*.88),calc(var(--fly-dy)*.88),0) scale(.62);opacity:1}
+  84%{transform:translate3d(var(--fly-dx),var(--fly-dy),0) scale(.52);opacity:1}
+  100%{transform:translate3d(var(--fly-dx),var(--fly-dy),0) scale(.08);opacity:0}
+}
+@media(max-width:760px){
+  .customer-packing-box{top:12px!important;right:12px!important;width:min(310px,calc(100vw - 24px))!important;min-height:64px!important;gap:8px!important;padding:10px 12px!important}
+  .packing-box-icon{width:28px;height:28px;font-size:21px}
+  .packing-box-label strong{font-size:11px}
+  .packing-box-status{font-size:9px}
+  .packing-box-total{font-size:11px}
+}
