@@ -2829,3 +2829,43 @@ button {
     margin: 18px 18px 24px;
   }
 }
+
+
+/* Menu success toast spotlight: blur the page while keeping Chef crisp */
+.category-success-toast {
+  position: fixed;
+  top: 22px;
+  right: 22px;
+  z-index: 120;
+  width: min(390px, calc(100vw - 44px));
+  pointer-events: none;
+  animation: chefSuccessToastIn .38s cubic-bezier(.2,.8,.2,1) both;
+}
+.category-success-toast::before {
+  content: "";
+  position: fixed;
+  inset: -22px calc(-100vw + 100%) -100vh -100vw;
+  z-index: -1;
+  pointer-events: none;
+  background: rgba(12, 7, 5, .16);
+  backdrop-filter: blur(6px) saturate(108%);
+  -webkit-backdrop-filter: blur(6px) saturate(108%);
+}
+.category-success-toast .chef-success-bubble {
+  border-color: rgba(255, 173, 87, .62);
+  background: linear-gradient(135deg, rgba(93, 43, 20, .96), rgba(48, 27, 19, .96));
+  box-shadow: 0 12px 34px rgba(0,0,0,.34), 0 0 0 1px rgba(255,173,87,.10), 0 0 24px rgba(255,128,45,.12);
+}
+.category-success-toast .chef-success-bubble strong { color: #ffc078; }
+.category-success-toast .chef-success-bubble span { color: #fff1e5; }
+.category-success-toast .chef-success-character {
+  filter: drop-shadow(0 7px 12px rgba(0,0,0,.38));
+}
+@media (max-width: 600px) {
+  .category-success-toast {
+    top: 14px;
+    right: 14px;
+    width: calc(100vw - 28px);
+  }
+  .category-success-toast::before { inset: -14px calc(-100vw + 100%) -100vh -100vw; }
+}
