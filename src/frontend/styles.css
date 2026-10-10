@@ -228,3 +228,8 @@ input:not([type="checkbox"]):focus { border-color: #b85c38; box-shadow: 0 0 0 3p
 .login-field .password-icon::after { content:""; position:absolute; width:7px; height:5px; left:1.5px; top:-5px; border:1.5px solid #aa9285; border-bottom:0; border-radius:7px 7px 0 0; }
 .login-field .password-toggle { z-index:2; line-height:1; white-space:nowrap; }
 .login-form-panel form label { margin:0; }
+
+
+/* Clean login fields: no decorative icons */
+.login-field .input-wrap input { padding-left:13px; }
+.login-field .field-icon { display:none; }
