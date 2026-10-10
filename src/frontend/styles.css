@@ -4903,3 +4903,10 @@ button {
     animation:none!important;
   }
 }
+
+/* Keep the cloud visible for the duration of its exit animation (the visible-state class is removed while transitioning). */
+.customer-story.category-intro-playing .customer-story-bubble{
+  opacity:1;
+  visibility:visible;
+  animation:kbCloudExitSmooth .42s cubic-bezier(.4,0,.2,1) both!important;
+}
