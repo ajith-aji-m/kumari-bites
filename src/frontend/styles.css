@@ -200,23 +200,26 @@ input:not([type="checkbox"]):focus { border-color: #b85c38; box-shadow: 0 0 0 3p
   box-shadow:0 18px 45px rgba(40,24,17,.18); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
 }
 .custom-select-option { width:100%; border:0; background:transparent; text-align:left; padding:9px 10px; border-radius:8px; color:#5d4539; cursor:pointer; font:inherit; font-size:11px; }
-/* Portal dropdowns keep the same warm menu styling and scroll within the option list. */
+/* Portal dropdowns mirror the dark menu-editor Category dropdown while retaining internal scrolling. */
 .custom-select-menu-portal {
   max-height:220px;
   overflow-y:auto;
   overflow-x:hidden;
   overscroll-behavior:contain;
   scrollbar-width:thin;
-  scrollbar-color:#c88b6c #fff3e9;
-  background:#fffaf4;
-  border-color:#eadbcd;
+  scrollbar-color:rgba(255,239,227,.32) rgba(24,20,18,.97);
+  background:rgba(24,20,18,.97);
+  border-color:rgba(255,255,255,.13);
+  box-shadow:0 20px 50px rgba(0,0,0,.45);
+  backdrop-filter:blur(22px);
+  -webkit-backdrop-filter:blur(22px);
 }
 .custom-select-menu-portal::-webkit-scrollbar { width:7px; }
-.custom-select-menu-portal::-webkit-scrollbar-track { background:#fff3e9; border-radius:8px; }
-.custom-select-menu-portal::-webkit-scrollbar-thumb { background:#c88b6c; border-radius:8px; }
-.custom-select-menu-portal .custom-select-option { color:#5d4539; }
+.custom-select-menu-portal::-webkit-scrollbar-track { background:rgba(24,20,18,.97); border-radius:8px; }
+.custom-select-menu-portal::-webkit-scrollbar-thumb { background:rgba(255,239,227,.32); border-radius:8px; }
+.custom-select-menu-portal .custom-select-option { color:rgba(255,239,227,.78); }
 .custom-select-menu-portal .custom-select-option:hover,
-.custom-select-menu-portal .custom-select-option.selected { background:#f2ddd0; color:#9f492c; }
+.custom-select-menu-portal .custom-select-option.selected { background:rgba(255,255,255,.09); color:#fff4eb; }
 
 .custom-select-option:hover,.custom-select-option.selected { background:#f2ddd0; color:#9f492c; font-weight:750; }
 .native-select-wrap select { width:100%; }
