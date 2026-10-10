@@ -224,6 +224,22 @@ function DashboardHome() {
   </>;
 }
 
+function Pagination({ currentPage, totalPages, totalItems, pageSize, onPageChange }: { currentPage: number; totalPages: number; totalItems: number; pageSize: number; onPageChange: (page: number) => void }) {
+  if (totalItems <= pageSize) return null;
+  const start = (currentPage - 1) * pageSize + 1;
+  const end = Math.min(currentPage * pageSize, totalItems);
+  return <div className="table-pagination">
+    <span>Showing {start}–{end} of {totalItems}</span>
+    <div className="table-pagination-controls">
+      <button type="button" disabled={currentPage === 1} onClick={() => onPageChange(currentPage - 1)} aria-label="Previous page">‹</button>
+      {Array.from({ length: totalPages }, (_, index) => index + 1).map(page =>
+        <button type="button" key={page} className={page === currentPage ? "active" : ""} onClick={() => onPageChange(page)}>{page}</button>
+      )}
+      <button type="button" disabled={currentPage === totalPages} onClick={() => onPageChange(currentPage + 1)} aria-label="Next page">›</button>
+    </div>
+  </div>;
+}
+
 function Orders() {
   const [status, setStatus] = useState("all");
   const [query, setQuery] = useState("");
@@ -251,8 +267,8 @@ function Orders() {
       <select aria-label="Filter orders by kitchen status" className="filter-select" value={status} onChange={e => setStatus(e.target.value)}><option value="all">All kitchen statuses</option>{["new","confirmed","preparing","ready","completed","cancelled"].map(s => <option key={s} value={s}>{statusLabel(s)}</option>)}</select>
     </div>
     <div style={{ overflowX: "auto" }}>{loading ? <p className="muted" style={{ padding: 25 }}>Loading orders...</p> : <table className="orders-table"><thead><tr><th>Order</th><th>Customer</th><th>Kitchen status</th><th>Total</th></tr></thead><tbody>
-      {filtered.map(o => <tr key={o.id}><td className="order-number">{o.orderNumber}</td><td><div className="order-customer"><strong>{o.customerName ?? "Walk-in customer"}</strong><small>{o.placedAt ? new Date(o.placedAt).toLocaleString("en-IN") : "—"}</small></div></td><td><span className={`order-status ${o.status}`}>{statusLabel(o.status)}</span></td><td><strong>{money(o.totalAmount)}</strong></td></tr>)}
-    </tbody></table>}{!loading && !filtered.length && <p className="muted" style={{ padding: 25, textAlign: "center" }}>No orders found.</p>}</div>
+      {pagedOrders.map(o => <tr key={o.id}><td className="order-number">{o.orderNumber}</td><td><div className="order-customer"><strong>{o.customerName ?? "Walk-in customer"}</strong><small>{o.placedAt ? new Date(o.placedAt).toLocaleString("en-IN") : "—"}</small></div></td><td><span className={`order-status ${o.status}`}>{statusLabel(o.status)}</span></td><td><strong>{money(o.totalAmount)}</strong></td></tr>)}
+    </tbody></table><Pagination currentPage={ordersPage} totalPages={ordersTotalPages} totalItems={filtered.length} pageSize={pageSize} onPageChange={setOrdersPage} /></div>}{!loading && !filtered.length && <p className="muted" style={{ padding: 25, textAlign: "center" }}>No orders found.</p>}</div>
   </section>;
 }
 
@@ -281,7 +297,7 @@ function MenuManagement() {
   const [draggedCategoryId, setDraggedCategoryId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [itemModal, setItemModal] = useState<MenuItem | null | "new">(null);
+  const [itemsPage, setItemsPage] = useState(1);\n  const [categoriesPage, setCategoriesPage] = useState(1);\n  const pageSize = 5;\n  const [itemModal, setItemModal] = useState<MenuItem | null | "new">(null);
   const [categoryModal, setCategoryModal] = useState<Category | "new" | null>(null);
   const [saving, setSaving] = useState(false);
   const [itemImage, setItemImage] = useState("");
@@ -338,6 +354,9 @@ function MenuManagement() {
     return matchesQuery && matchesCategory && matchesStatus;
   }), [items, query, categoryFilter, statusFilter]);
 
+  const itemsTotalPages = Math.max(1, Math.ceil(visibleItems.length / pageSize));
+  const pagedItems = visibleItems.slice((itemsPage - 1) * pageSize, itemsPage * pageSize);
+
   const categoryName = (id: number) => categories.find(category => category.id === id)?.name ?? "Unassigned";
 
   const visibleCategories = useMemo(() => categories.filter(category => {
@@ -347,6 +366,9 @@ function MenuManagement() {
       (categoryStatusFilter === "active" ? category.isActive : !category.isActive);
     return matchesQuery && matchesStatus;
   }), [categories, categoryQuery, categoryStatusFilter]);
+
+  const categoriesTotalPages = Math.max(1, Math.ceil(visibleCategories.length / pageSize));
+  const pagedCategories = visibleCategories.slice((categoriesPage - 1) * pageSize, categoriesPage * pageSize);
 
   async function saveItem(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -512,14 +534,14 @@ function MenuManagement() {
         <CustomSelect value={statusFilter} onChange={setStatusFilter} options={[{ value: "all", label: "All status" }, { value: "available", label: "Available" }, { value: "unavailable", label: "Unavailable" }]} />
       </div>
       {loading ? <p className="muted">Loading menu...</p> : <div className="menu-table-wrap"><table className="menu-table"><thead><tr><th>Item</th><th>Category</th><th>Price</th><th>Type</th><th>Availability</th><th></th></tr></thead><tbody>
-        {visibleItems.map(item => <tr key={item.id}>
+        {pagedItems.map(item => <tr key={item.id}>
           <td><div className="item-cell">{item.imageUrl ? <img src={item.imageUrl} alt="" /> : <div className="image-placeholder">🍽️</div>}<div><strong>{item.name}</strong><small>{item.stockQuantity} in stock</small></div></div></td>
           <td>{categoryName(item.categoryId)}</td><td className="price-cell">{money(item.price)}</td>
           <td><span className={item.isVeg ? "veg-badge" : "nonveg-badge"}>{item.isVeg ? "VEG" : "NON-VEG"}</span></td>
           <td><button className={`switch ${item.isAvailable ? "on" : ""}`} onClick={() => toggleItem(item)} aria-label={item.isAvailable ? "Disable item" : "Enable item"}><span /></button></td>
           <td><button className="table-action menu-action-edit" onClick={() => setItemModal(item)}><span className="button-icon">✎</span><span>Edit</span></button></td>
         </tr>)}
-      </tbody></table>{!visibleItems.length && <div className="empty-state"><span>🍛</span><strong>No menu items found</strong><p className="muted">Add your first menu item to get started.</p></div>}</div>}
+      </tbody></table><Pagination currentPage={itemsPage} totalPages={itemsTotalPages} totalItems={visibleItems.length} pageSize={pageSize} onPageChange={setItemsPage} />{!visibleItems.length && <div className="empty-state"><span>🍛</span><strong>No menu items found</strong><p className="muted">Add your first menu item to get started.</p></div>}</div>}
     </article> : <article className="panel menu-panel category-management-panel">
       <div className="category-overview">
         <div className="category-stat"><span>Total</span><strong>{categories.length}</strong><small>All menu categories</small></div>
@@ -531,14 +553,14 @@ function MenuManagement() {
         <CustomSelect value={categoryStatusFilter} onChange={value => setCategoryStatusFilter(value as "all" | "active" | "inactive")} options={[{ value: "all", label: "All status" }, { value: "active", label: "Active" }, { value: "inactive", label: "Inactive" }]} />
       </div>
       {loading ? <p className="muted">Loading categories...</p> : <div className="menu-table-wrap"><table className="menu-table category-table"><thead><tr><th>Category</th><th>Description</th><th>Items</th><th>Status</th><th>Actions</th></tr></thead><tbody>
-        {visibleCategories.map(category => <tr key={category.id} draggable onDragStart={() => setDraggedCategoryId(category.id)} onDragOver={event => event.preventDefault()} onDrop={() => draggedCategoryId !== null && reorderCategories(draggedCategoryId, category.id)} className={draggedCategoryId === category.id ? "category-dragging" : ""}>
+        {pagedCategories.map(category => <tr key={category.id} draggable onDragStart={() => setDraggedCategoryId(category.id)} onDragOver={event => event.preventDefault()} onDrop={() => draggedCategoryId !== null && reorderCategories(draggedCategoryId, category.id)} className={draggedCategoryId === category.id ? "category-dragging" : ""}>
           <td><div className="category-name-cell"><button type="button" className="category-drag-handle" draggable aria-label={`Drag ${category.name} to reorder`} title="Drag to reorder">⠿</button><div className="category-avatar">{category.imageUrl ? <img src={category.imageUrl} alt="" /> : <span>🍽️</span>}</div><div><strong>{category.name}</strong><small>/{category.slug}</small></div></div></td>
           <td>{category.description || "No description added"}</td>
           <td><span className="category-item-count">{items.filter(item => item.categoryId === category.id).length}</span></td>
           <td><span className={`category-status ${category.isActive ? "active" : "inactive"}`}><span className="status-dot" />{category.isActive ? "Active" : "Inactive"}</span></td>
           <td><div className="action-group"><button className="table-action menu-action-edit" onClick={() => setCategoryModal(category)}><span className="button-icon">✎</span><span>Edit</span></button><button className={`category-enable-button ${category.isActive ? "disable" : "enable"}`} onClick={() => toggleCategory(category)}><span>{category.isActive ? "Disable" : "Enable"}</span></button></div></td>
         </tr>)}
-      </tbody></table>{!visibleCategories.length && <div className="empty-state"><span>🗂️</span><strong>No matching categories</strong><p className="muted">{categories.length ? "Try another search or status filter." : "Create a category before adding menu items."}</p></div>}</div>}
+      </tbody></table><Pagination currentPage={categoriesPage} totalPages={categoriesTotalPages} totalItems={visibleCategories.length} pageSize={pageSize} onPageChange={setCategoriesPage} />{!visibleCategories.length && <div className="empty-state"><span>🗂️</span><strong>No matching categories</strong><p className="muted">{categories.length ? "Try another search or status filter." : "Create a category before adding menu items."}</p></div>}</div>}
     </article>}
 
     {itemDefaults && <div className="modal-backdrop" onMouseDown={e => e.currentTarget === e.target && setItemModal(null)}><form className="modal-card" onSubmit={saveItem}>
@@ -608,7 +630,7 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
     <aside className="sidebar">
       <div className="sidebar-brand"><span className="brand-mark small">KB</span><span>Kumari Bites</span></div>
       <nav>{menuItems.map(item => <button key={item.label} className={active === item.label ? "nav-item active" : "nav-item"} onClick={() => setActive(item.label)}><span>{item.icon}</span>{item.label}</button>)}</nav>
-      <button className="nav-item logout" onClick={async () => { await fetch("/api/v1/auth/logout", { method: "POST", credentials: "include" }); onLogout(); }}><span>↪</span> Sign out</button>
+      <div className="sidebar-admin"><span className="avatar">A</span><div><strong>Admin</strong><small>Kumari Bites</small></div></div>\n      <button className="nav-item logout" onClick={async () => { await fetch("/api/v1/auth/logout", { method: "POST", credentials: "include" }); onLogout(); }}><span>↪</span> Sign out</button>
     </aside>
     <main className="dashboard">
       <header className="topbar"><div><p className="eyebrow">KUMARI BITES ADMIN</p><h2>{active === "Menu" ? "Menu Management" : active}</h2></div><div className="admin-chip"><span className="avatar">A</span><span>Admin</span></div></header>
