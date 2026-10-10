@@ -2432,18 +2432,14 @@ button {
 .menu-management .category-modal-card .modal-actions {
   border-top-color:rgba(255,255,255,.08);
 }
-.menu-management .category-modal-card .menu-action-secondary {
-  background:rgba(255,255,255,.055);
-  border-color:rgba(255,255,255,.12);
-  color:#f8e9df;
-}
-.menu-management .category-modal-card .menu-action-primary {
-  background:#ff6b1a;
-  color:#fff;
-  border-color:#ff6b1a;
-}
 @media (max-width:650px) {
   .menu-management .category-modal-card {
     background:rgba(18,18,18,.98);
   }
+}
+
+/* Category buttons use the same global button presentation as Add Menu Item. */
+.menu-management .category-modal-card .menu-action-secondary,
+.menu-management .category-modal-card .menu-action-primary {
+  min-height: 42px;
 }
