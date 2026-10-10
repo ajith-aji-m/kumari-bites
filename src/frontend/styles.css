@@ -2992,6 +2992,23 @@ button {
 }
 
 
+/* Add Order is rendered on the Orders page too, so style its controls without relying on .menu-management ancestry. */
+.order-modal .custom-select-trigger {
+  color:#fff4eb;
+  border-color:rgba(255,255,255,.14);
+  background:rgba(255,255,255,.075);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.045);
+}
+.order-modal .custom-select-trigger:hover,
+.order-modal .custom-select-trigger:focus {
+  color:#fff4eb;
+  border-color:rgba(255,194,155,.45);
+  background:rgba(255,255,255,.09);
+  box-shadow:0 0 0 3px rgba(255,166,111,.10),inset 0 1px 0 rgba(255,255,255,.05);
+}
+.order-modal .custom-select-chevron { color:#f3c4a8; }
+.order-modal .custom-select-trigger span:first-child { color:#fff4eb; }
+
 /* Orders create dialog follows the same dark cinematic glass theme as Menu */
 .menu-management .order-modal-backdrop {
   background:
