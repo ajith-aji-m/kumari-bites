@@ -2459,3 +2459,6 @@ button {
 .category-single-upload { position: relative; cursor: pointer; display: flex; align-items: center; justify-content: center; overflow: hidden; }
 .category-single-upload input[type="file"] { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
 .category-single-upload img { width: 100%; height: 100%; object-fit: cover; border-radius: inherit; display: block; }
+
+.category-image-remove { position: absolute; top: 10px; right: 10px; z-index: 3; width: 30px; height: 30px; border: 0; border-radius: 50%; background: rgba(0,0,0,.78); color: #fff; font-size: 21px; line-height: 1; display: grid; place-items: center; cursor: pointer; }
+.category-image-remove:hover { background: rgba(190,45,45,.95); }
