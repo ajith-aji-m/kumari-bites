@@ -4164,3 +4164,101 @@ button {
   .customer-story-bubble{right:10px;top:17%;width:70vw;padding:18px 19px}
   .customer-order-taker{left:-7%;width:88vw;height:61%}
 }
+
+
+/* Real fluffy cloud conversation treatment — no rectangular chat-bubble silhouette. */
+.customer-story-bubble{
+  isolation:isolate;
+  overflow:visible;
+  background:transparent;
+  border:0;
+  border-radius:0;
+  box-shadow:none;
+  padding:clamp(36px,4vw,54px) clamp(36px,4vw,56px);
+  filter:drop-shadow(0 16px 24px rgba(18,9,4,.2));
+}
+.customer-story-bubble:before{
+  content:"";
+  position:absolute;
+  z-index:-1;
+  inset:18% 4% 13%;
+  display:block;
+  background:#fffaf1;
+  border-radius:48px;
+  box-shadow:
+    -18px 1px 0 2px #fffaf1,
+    10px -23px 0 7px #fffaf1,
+    57px -36px 0 2px #fffaf1,
+    103px -28px 0 8px #fffaf1,
+    151px -20px 0 3px #fffaf1,
+    190px -4px 0 6px #fffaf1,
+    205px 17px 0 0 #fffaf1,
+    178px 32px 0 5px #fffaf1,
+    126px 37px 0 4px #fffaf1,
+    73px 35px 0 5px #fffaf1,
+    23px 28px 0 4px #fffaf1,
+    -2px 16px 0 2px #fffaf1;
+}
+.customer-story-bubble:after{
+  content:"";
+  position:absolute;
+  z-index:-1;
+  display:block;
+  left:20%;
+  bottom:2%;
+  width:34px;
+  height:28px;
+  background:#fffaf1;
+  border-radius:50%;
+  box-shadow:14px 14px 0 -5px #fffaf1,27px 23px 0 -10px #fffaf1;
+}
+.customer-story-bubble strong{
+  color:#392217;
+  font-size:clamp(19px,2vw,25px);
+  line-height:1.2;
+  letter-spacing:-.035em;
+  margin-bottom:10px;
+}
+.customer-story-bubble p{
+  color:#765b49;
+  font-size:clamp(13px,1.15vw,15px);
+  line-height:1.65;
+  max-width:34ch;
+}
+.customer-story-bubble .bubble-tail{display:none!important}
+@media(max-width:760px){
+  .customer-story-bubble{
+    top:17%;
+    right:12px;
+    width:min(70vw,340px);
+    padding:28px 29px 34px;
+    filter:drop-shadow(0 10px 15px rgba(18,9,4,.18));
+  }
+  .customer-story-bubble:before{
+    inset:18% 3% 14%;
+    border-radius:32px;
+    box-shadow:
+      -10px 0 0 2px #fffaf1,
+      7px -15px 0 5px #fffaf1,
+      39px -23px 0 2px #fffaf1,
+      71px -20px 0 5px #fffaf1,
+      104px -14px 0 2px #fffaf1,
+      132px -2px 0 4px #fffaf1,
+      126px 16px 0 2px #fffaf1,
+      91px 25px 0 3px #fffaf1,
+      53px 23px 0 3px #fffaf1,
+      19px 18px 0 2px #fffaf1;
+  }
+  .customer-story-bubble:after{
+    left:18%;bottom:3%;
+    width:24px;height:20px;
+    box-shadow:10px 10px 0 -4px #fffaf1,20px 17px 0 -8px #fffaf1;
+  }
+  .customer-story-bubble strong{font-size:15px;margin-bottom:7px}
+  .customer-story-bubble p{font-size:11px;line-height:1.5}
+}
+@media(max-width:390px){
+  .customer-story-bubble{padding:24px 25px 30px}
+  .customer-story-bubble strong{font-size:14px}
+  .customer-story-bubble p{font-size:10px}
+}
