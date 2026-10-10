@@ -341,6 +341,8 @@ function Orders() {
   const [ordersPage, setOrdersPage] = useState(1);
   const [showCreate, setShowCreate] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [pendingStatusChange, setPendingStatusChange] = useState<{ orderId: number; orderNumber: string; status: string } | null>(null);
+  const [statusSaving, setStatusSaving] = useState(false);
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [source, setSource] = useState("walk_in");
@@ -438,16 +440,15 @@ function Orders() {
     }
   }
 
-  async function updateStatus(orderId: number, nextStatus: string) {
+  async function updateStatus(orderId: number, nextStatus: string, confirmed = false) {
     const current = orders.find(order => order.id === orderId);
-    if (!current || current.status === nextStatus || current.status === "completed") return;
-    if (nextStatus === "completed") {
-      const approved = window.confirm(
-        `Complete order ${current.orderNumber}? Once completed, this order will be locked and its status cannot be changed.`
-      );
-      if (!approved) return;
+    if (!current || current.status === nextStatus || current.status === "completed" || statusSaving) return;
+    if (!confirmed && (nextStatus === "completed" || nextStatus === "cancelled")) {
+      setPendingStatusChange({ orderId, orderNumber: current.orderNumber, status: nextStatus });
+      return;
     }
     setError("");
+    setStatusSaving(true);
     try {
       await api("/api/v1/orders/" + orderId + "/status", {
         method: "PATCH",
@@ -455,10 +456,13 @@ function Orders() {
         body: JSON.stringify({ status: nextStatus })
       });
       setOrders(currentOrders => currentOrders.map(order => order.id === orderId ? { ...order, status: nextStatus } : order));
-      setSuccess("Order status updated.");
+      setPendingStatusChange(null);
+      setSuccess(nextStatus === "completed" ? "Order completed and locked." : nextStatus === "cancelled" ? "Order cancelled." : "Order status updated.");
       window.setTimeout(() => setSuccess(""), 3200);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to update order status");
+    } finally {
+      setStatusSaving(false);
     }
   }
 
@@ -488,6 +492,23 @@ function Orders() {
     </article>
 
     <button type="button" className="menu-add-fab" aria-label="Create order" title="Create order" onClick={() => { resetCreateForm(); setShowCreate(true); }}><span aria-hidden="true">+</span></button>
+
+    {pendingStatusChange && <div className="order-confirm-backdrop" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget && !statusSaving) setPendingStatusChange(null); }}>
+      <section className={`order-confirm-modal ${pendingStatusChange.status === "cancelled" ? "is-danger" : "is-success"}`} role="dialog" aria-modal="true" aria-labelledby="order-confirm-title" aria-describedby="order-confirm-description">
+        <div className="order-confirm-icon" aria-hidden="true">{pendingStatusChange.status === "cancelled" ? "!" : "✓"}</div>
+        <p className="eyebrow">{pendingStatusChange.status === "cancelled" ? "CANCEL ORDER" : "FINAL STEP"}</p>
+        <h2 id="order-confirm-title">{pendingStatusChange.status === "cancelled" ? "Cancel this order?" : "Complete this order?"}</h2>
+        <p id="order-confirm-description">{pendingStatusChange.status === "cancelled"
+          ? `Are you sure you want to cancel ${pendingStatusChange.orderNumber}? This action will update the order status.`
+          : `Confirm ${pendingStatusChange.orderNumber} is fulfilled. Once completed, its status will be locked and cannot be changed.`}</p>
+        <div className="order-confirm-actions">
+          <button type="button" className="secondary-button" disabled={statusSaving} onClick={() => setPendingStatusChange(null)}>Go back</button>
+          <button type="button" className={`order-confirm-action ${pendingStatusChange.status === "cancelled" ? "order-confirm-action-danger" : "order-confirm-action-success"}`} disabled={statusSaving} onClick={() => updateStatus(pendingStatusChange.orderId, pendingStatusChange.status, true)}>
+            {statusSaving ? "Please wait…" : pendingStatusChange.status === "cancelled" ? "Yes, cancel order" : "Confirm completion"}
+          </button>
+        </div>
+      </section>
+    </div>}
 
     {showCreate && <div className="order-modal-backdrop" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget && !saving) setShowCreate(false); }}>
       <section className="order-modal" role="dialog" aria-modal="true" aria-labelledby="add-order-title">
