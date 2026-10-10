@@ -224,6 +224,28 @@ function DashboardHome() {
   </>;
 }
 
+function ImagePreviewModal({ imageUrl, alt, onClose }: { imageUrl: string; alt: string; onClose: () => void }) {
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKeyDown);
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = "";
+    };
+  }, [onClose]);
+
+  return <div className="image-preview-backdrop" role="dialog" aria-modal="true" aria-label={`${alt} image preview`} onMouseDown={event => event.currentTarget === event.target && onClose()}>
+    <div className="image-preview-modal">
+      <button type="button" className="image-preview-close" onClick={onClose} aria-label="Close image preview">×</button>
+      <img src={imageUrl} alt={alt} className="image-preview-image" />
+      <div className="image-preview-caption">{alt}</div>
+    </div>
+  </div>;
+}
+
 function Pagination({ currentPage, totalPages, totalItems, pageSize, onPageChange }: { currentPage: number; totalPages: number; totalItems: number; pageSize: number; onPageChange: (page: number) => void }) {
   if (totalItems <= pageSize) return null;
   const start = (currentPage - 1) * pageSize + 1;
@@ -321,6 +343,7 @@ function MenuManagement() {
   const [lowStockAlert, setLowStockAlert] = useState<{ itemName: string; quantity: number; threshold: number } | null>(null);
   const [categorySuccess, setCategorySuccess] = useState("");
   const [itemCategoryId, setItemCategoryId] = useState("");
+  const [previewImage, setPreviewImage] = useState<{ url: string; alt: string } | null>(null);
 
   useEffect(() => {
     if (!itemModal) {
@@ -550,7 +573,7 @@ function MenuManagement() {
       </div>
       {loading ? <p className="muted">Loading menu...</p> : <div className="menu-table-wrap"><table className="menu-table"><thead><tr><th>Item</th><th>Category</th><th>Price</th><th>Type</th><th>Availability</th><th></th></tr></thead><tbody>
         {pagedItems.map(item => <tr key={item.id}>
-          <td><div className="item-cell">{item.imageUrl ? <img src={item.imageUrl} alt="" /> : <div className="image-placeholder">🍽️</div>}<div><strong>{item.name}</strong><small>{item.stockQuantity} in stock</small></div></div></td>
+          <td><div className="item-cell">{item.imageUrl ? <button type="button" className="table-image-button" onClick={() => setPreviewImage({ url: item.imageUrl!, alt: item.name })} aria-label={`Preview ${item.name} image`}><img src={item.imageUrl} alt="" /></button> : <div className="image-placeholder">🍽️</div>}<div><strong>{item.name}</strong><small>{item.stockQuantity} in stock</small></div></div></td>
           <td>{categoryName(item.categoryId)}</td><td className="price-cell">{money(item.price)}</td>
           <td><span className={item.isVeg ? "veg-badge" : "nonveg-badge"}>{item.isVeg ? "VEG" : "NON-VEG"}</span></td>
           <td><button className={`switch ${item.isAvailable ? "on" : ""}`} onClick={() => toggleItem(item)} aria-label={item.isAvailable ? "Disable item" : "Enable item"}><span /></button></td>
@@ -569,7 +592,7 @@ function MenuManagement() {
       </div>
       {loading ? <p className="muted">Loading categories...</p> : <div className="menu-table-wrap"><table className="menu-table category-table"><thead><tr><th>Category</th><th>Description</th><th>Items</th><th>Status</th><th>Actions</th></tr></thead><tbody>
         {pagedCategories.map(category => <tr key={category.id} draggable onDragStart={() => setDraggedCategoryId(category.id)} onDragOver={event => event.preventDefault()} onDrop={() => draggedCategoryId !== null && reorderCategories(draggedCategoryId, category.id)} className={draggedCategoryId === category.id ? "category-dragging" : ""}>
-          <td><div className="category-name-cell"><button type="button" className="category-drag-handle" draggable aria-label={`Drag ${category.name} to reorder`} title="Drag to reorder">⠿</button><div className="category-avatar">{category.imageUrl ? <img src={category.imageUrl} alt="" /> : <span>🍽️</span>}</div><div><strong>{category.name}</strong><small>/{category.slug}</small></div></div></td>
+          <td><div className="category-name-cell"><button type="button" className="category-drag-handle" draggable aria-label={`Drag ${category.name} to reorder`} title="Drag to reorder">⠿</button><div className="category-avatar">{category.imageUrl ? <button type="button" className="table-image-button category-table-image-button" onClick={() => setPreviewImage({ url: category.imageUrl!, alt: category.name })} aria-label={`Preview ${category.name} image`}><img src={category.imageUrl} alt="" /></button> : <span>🍽️</span>}</div><div><strong>{category.name}</strong><small>/{category.slug}</small></div></div></td>
           <td>{category.description || "No description added"}</td>
           <td><span className="category-item-count">{items.filter(item => item.categoryId === category.id).length}</span></td>
           <td><span className={`category-status ${category.isActive ? "active" : "inactive"}`}><span className="status-dot" />{category.isActive ? "Active" : "Inactive"}</span></td>
@@ -624,6 +647,8 @@ function MenuManagement() {
       </div>
       <div className="modal-actions"><button type="button" className="secondary-button menu-action-secondary" onClick={() => setItemModal(null)}><span className="button-icon">×</span><span>Cancel</span></button><button className="primary-button editor-save menu-action-primary" disabled={saving}><span className="button-icon">{saving ? "…" : "＋"}</span><span>{saving ? "Saving..." : itemModal === "new" ? "Add menu item" : "Save changes"}</span></button></div>
     </form></div>}
+
+    {previewImage && <ImagePreviewModal imageUrl={previewImage.url} alt={previewImage.alt} onClose={() => setPreviewImage(null)} />}
 
     {categoryDefaults && <div className="modal-backdrop" onMouseDown={e => e.currentTarget === e.target && setCategoryModal(null)}><form className="modal-card category-modal-card" onSubmit={saveCategory}>
       <div className="modal-head"><div><p className="eyebrow">CATEGORY</p><h2>{categoryModal === "new" ? "Add category" : "Edit category"}</h2><p className="modal-subtitle">Create a clean category for your menu and keep it easy to recognise.</p></div><button type="button" className="icon-button menu-action-close" onClick={() => setCategoryModal(null)} aria-label="Close category editor">×</button></div>
