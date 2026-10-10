@@ -531,3 +531,11 @@ input:not([type="checkbox"]):focus { border-color: #b85c38; box-shadow: 0 0 0 3p
   0%,100% { transform:translateY(0) rotate(0deg); }
   50% { transform:translateY(-2px) rotate(-1deg); }
 }
+
+
+/* Chef validation positioning fix */
+.chef-guide {
+  margin-top: 9px;
+  margin-bottom: 0;
+  transform: translateY(8px);
+}
