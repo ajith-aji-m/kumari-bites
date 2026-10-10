@@ -164,7 +164,9 @@ function useRealtimeRefresh(onEvent: (event: { type: string; payload?: unknown }
 function DashboardHome() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [orders, setOrders] = useState<Array<DashboardData["recentOrders"][number]>>([]);
+  const [ordersLoaded, setOrdersLoaded] = useState(false);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [menuLoaded, setMenuLoaded] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
 
@@ -184,6 +186,7 @@ function DashboardHome() {
     try {
       const result = await api<Array<DashboardData["recentOrders"][number]>>("/api/v1/orders");
       setOrders(result);
+      setOrdersLoaded(true);
     } catch {
       // Keep the dashboard's main metrics available if the order list endpoint is temporarily unavailable.
     }
@@ -193,6 +196,7 @@ function DashboardHome() {
     try {
       const result = await api<MenuItem[]>("/api/v1/menu-items");
       setMenuItems(result);
+      setMenuLoaded(true);
     } catch {
       // Menu metrics are supplementary; don't block the dashboard if they fail to load.
     }
@@ -233,8 +237,8 @@ function DashboardHome() {
       <article className="dashboard-metric-card"><span className="dashboard-metric-label">Today's sales</span><strong>{money(data?.today.sales)}</strong><small>Revenue recorded today</small></article>
       <article className="dashboard-metric-card"><span className="dashboard-metric-label">Orders today</span><strong>{data?.today.orders ?? 0}</strong><small>{data?.today.cancelledOrders ?? 0} cancelled</small></article>
       <article className="dashboard-metric-card dashboard-completed-metric"><span className="dashboard-metric-label">Completed today</span><strong>{data?.today.completedOrders ?? 0}</strong><small>Orders successfully completed</small></article>
-      <article className="dashboard-metric-card"><span className="dashboard-metric-label">Preparing now</span><strong>{preparingOrders}</strong><small>Orders in preparation</small></article>
-      <article className="dashboard-metric-card"><span className="dashboard-metric-label">Ready for pickup</span><strong>{readyOrders}</strong><small>Awaiting collection</small></article>
+      <article className="dashboard-metric-card"><span className="dashboard-metric-label">Preparing now</span><strong>{ordersLoaded ? preparingOrders : "—"}</strong><small>Orders in preparation</small></article>
+      <article className="dashboard-metric-card"><span className="dashboard-metric-label">Ready for pickup</span><strong>{ordersLoaded ? readyOrders : "—"}</strong><small>Awaiting collection</small></article>
     </section>
 
     <section className="dashboard-home-grid">
@@ -245,15 +249,15 @@ function DashboardHome() {
           <span className={`badge ${order.status}`}>{statusLabel(order.status)}</span>
           <strong className="dashboard-order-total">{money(order.totalAmount)}</strong>
         </div>)}</div> : <div className="dashboard-empty-state"><strong>No orders yet</strong><span>New orders will appear here.</span></div>}
-        <div className="dashboard-active-summary"><span>Active orders</span><strong>{activeOrders}</strong></div>
+        <div className="dashboard-active-summary"><span>Active orders</span><strong>{ordersLoaded ? activeOrders : "—"}</strong></div>
       </article>
 
       <article className="dashboard-clean-panel dashboard-menu-panel">
         <div className="dashboard-section-heading"><div><h2>Menu overview</h2><p>Live figures from Menu Management</p></div></div>
         <div className="dashboard-menu-stats">
-          <div><span>Available items</span><strong>{menuItems.length ? availableItems.length : "—"}</strong></div>
-          <div><span>Low stock</span><strong className={lowStockItems.length ? "dashboard-warning-value" : ""}>{menuItems.length ? lowStockItems.length : "—"}</strong></div>
-          <div><span>Unavailable</span><strong>{menuItems.length ? unavailableItems.length : "—"}</strong></div>
+          <div><span>Available items</span><strong>{menuLoaded ? availableItems.length : "—"}</strong></div>
+          <div><span>Low stock</span><strong className={lowStockItems.length ? "dashboard-warning-value" : ""}>{menuLoaded ? lowStockItems.length : "—"}</strong></div>
+          <div><span>Unavailable</span><strong>{menuLoaded ? unavailableItems.length : "—"}</strong></div>
         </div>
         <div className="dashboard-section-subheading"><h3>Top sellers today</h3><span>Items sold</span></div>
         {popular.length ? <div className="dashboard-top-sellers">{popular.slice(0, 5).map((item, index) => <div className="dashboard-top-seller" key={item.itemName}><span className="dashboard-rank">{index + 1}</span><span>{item.itemName}</span><strong>{item.quantity}</strong></div>)}</div> : <div className="dashboard-empty-state compact"><span>No sales data yet.</span></div>}
