@@ -97,6 +97,33 @@ export function CustomerLanding() {
     setStage(1);
   };
   const goToStage = (target: number) => setStage(Math.max(0, Math.min(2, target)));
+  const hasPendingOrder = !!placedOrder && placedOrder.status !== "completed" && placedOrder.status !== "cancelled";
+  const startFreshOrder = () => {
+    if (hasPendingOrder) {
+      setStage(0);
+      return;
+    }
+    window.localStorage.removeItem("kb-active-order");
+    setPlacedOrder(null);
+    setTrackerMinimized(false);
+    setCart({});
+    setCartOpen(false);
+    setCustomerPhone("");
+    setCheckoutError("");
+    setSelectedCategory(null);
+    setMenuPage(0);
+    setCategoryIntroPlaying(false);
+    setStage(0);
+  };
+  const handleWelcome = () => {
+    if (placedOrder && !hasPendingOrder) {
+      startFreshOrder();
+      return;
+    }
+    setSelectedCategory(null);
+    setMenuPage(0);
+    setStage(0);
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -200,7 +227,7 @@ export function CustomerLanding() {
           <p>Your order status will be tracked here. Updates appear automatically.</p>
           <div className={"customer-live-order-status status-" + placedOrder.status}><span className="customer-live-status-icon">{placedOrder.status === "completed" ? "✓" : placedOrder.status === "cancelled" ? "!" : "•"}</span><span><small>LIVE ORDER STATUS</small><strong>{({placed:"Order placed",preparing:"Preparing your order",ready:"Your order is ready",completed:"Order completed",cancelled:"Order cancelled"} as Record<string,string>)[placedOrder.status] ?? "Order placed"}</strong></span><span className="customer-live-status-pulse" /></div>
           <div className="customer-order-progress" aria-label="Order progress">{["placed","preparing","ready","completed"].map((status, index) => <span key={status} className={( ["placed","preparing","ready","completed"].indexOf(placedOrder.status) >= index ? "reached " : "") + (placedOrder.status === status ? "current" : "")} />)}</div>
-          <button type="button" className="customer-order-again" onClick={() => { setTrackerMinimized(true); setCart({}); setCartOpen(false); setCustomerPhone(""); setSelectedCategory(null); setMenuPage(0); setStage(1); }}>Order something else <span aria-hidden="true">↗</span></button>
+          <button type="button" className="customer-order-again" onClick={() => { if (!hasPendingOrder) { startFreshOrder(); } else { setTrackerMinimized(true); setCart({}); setCartOpen(false); setCustomerPhone(""); setSelectedCategory(null); setMenuPage(0); setStage(1); } }}>{hasPendingOrder ? "Explore more" : "Start a fresh order"} <span aria-hidden="true">↗</span></button>
         </div>}
         {placedOrder && trackerMinimized && <button type="button" className="customer-order-tracker-mini" onClick={() => setTrackerMinimized(false)} aria-label={"Open tracking for " + placedOrder.orderNumber}>
           <span className="customer-tracker-mini-pulse" /><span><small>{placedOrder.orderNumber} · LIVE TRACKING</small><strong>{({placed:"Order placed",preparing:"Preparing your order",ready:"Your order is ready",completed:"Order completed",cancelled:"Order cancelled"} as Record<string,string>)[placedOrder.status] ?? "Order placed"}</strong></span><span className="customer-tracker-mini-open">↗</span>
@@ -237,7 +264,7 @@ export function CustomerLanding() {
           </div>}
           <div className="customer-plate-links">
             {selectedCategory !== null && <button type="button" className="customer-story-link" onClick={() => { setSelectedCategory(null); setMenuPage(0); }}>← All categories</button>}
-            <button type="button" className="story-scroll-hint customer-story-link" onClick={() => { setSelectedCategory(null); setMenuPage(0); goToStage(0); }}>← Welcome</button>
+            <button type="button" className="story-scroll-hint customer-story-link" onClick={handleWelcome}>← Welcome</button>
           </div>
         </div>
         <div className={"customer-story-items " + (stage === 2 ? "story-items-visible" : "")}>
