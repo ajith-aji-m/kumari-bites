@@ -98,7 +98,7 @@ export function CustomerLanding() {
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
-          customerPhone: customerPhone.trim(),
+          customerPhone: customerPhone.trim() || undefined,
           source: "qr",
           paymentMethod: "cash",
           items: Object.entries(cart).filter(([, quantity]) => quantity > 0).map(([menuItemId, quantity]) => ({ menuItemId: Number(menuItemId), quantity }))
@@ -197,7 +197,7 @@ export function CustomerLanding() {
         <div className="customer-cart-total"><span>Subtotal</span><strong>{money(total)}</strong></div>
         <form className="customer-checkout-form" onSubmit={placeOrder}>
           <h4>Contact details</h4>
-          <label>Phone number<input type="tel" value={customerPhone} onChange={e => setCustomerPhone(e.target.value)} autoComplete="tel" required minLength={7} maxLength={30} placeholder="For order updates" /></label>
+          <label>Phone number (optional)<input type="tel" value={customerPhone} onChange={e => setCustomerPhone(e.target.value)} autoComplete="tel" minLength={7} maxLength={30} placeholder="For WhatsApp order PDF" /></label>
           <div className="customer-cod-option"><span className="customer-cod-radio">✓</span><span><strong>Cash on Delivery</strong><small>Pay when your order arrives</small></span><span className="customer-cod-tag">COD</span></div>
           {checkoutError && <p className="customer-checkout-error" role="alert">{checkoutError}</p>}
           <button className="customer-place-order" type="submit" disabled={placingOrder || cartCount === 0}>{placingOrder ? "Placing order…" : "Place Order · " + money(total)}</button>
