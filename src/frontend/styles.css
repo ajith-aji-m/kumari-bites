@@ -3976,3 +3976,14 @@ button {
 .customer-story-stage:has(.order-taker-visible) .customer-nav{opacity:1;transform:translateY(0)}
 .story-copy{display:none!important}
 @media(max-width:760px){.customer-story-stage .story-copy h1{font-size:clamp(53px,14vw,78px)}}
+
+
+/* Sticky story fix: overflow:hidden on the landing wrapper breaks position:sticky.
+   Keep the wrapper non-scrolling and constrain only the fixed hero stage. */
+.customer-story-page{overflow:clip!important}
+.customer-story{position:relative;height:400vh;overflow:visible}
+.customer-story-stage{position:sticky;top:0;height:100vh;height:100svh;min-height:0;overflow:hidden}
+@media(max-width:760px){
+  .customer-story{height:400svh}
+  .customer-story-stage{height:100vh;height:100svh;min-height:0}
+}
