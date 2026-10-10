@@ -3465,8 +3465,8 @@ button {
 
 
 /* Custom Reports date-range picker — replaces browser-native date inputs */
-.reports-filter { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 18px; }
-.reports-date-picker { position: relative; z-index: 30; }
+.reports-filter { position: relative; z-index: 100; overflow: visible !important; display: flex; align-items: center; justify-content: space-between; gap: 18px; }
+.reports-date-picker { position: relative; z-index: 101; }
 .reports-date-trigger { display: flex; align-items: center; gap: 12px; min-width: 285px; min-height: 54px; padding: 9px 13px; border: 1px solid rgba(255,177,126,.24); border-radius: 12px; background: linear-gradient(145deg,rgba(255,153,91,.09),rgba(10,8,7,.42)); color: #fff0e4; text-align: left; cursor: pointer; transition: border-color .18s ease,background .18s ease; }
 .reports-date-trigger:hover, .reports-date-trigger.is-open { border-color: rgba(255,177,126,.58); background: rgba(255,138,76,.1); }
 .reports-date-trigger-icon { display: grid; place-items: center; flex: 0 0 34px; width: 34px; height: 34px; border: 1px solid rgba(255,177,126,.2); border-radius: 9px; background: rgba(255,138,76,.1); color: #ffb17e; font-size: 17px; }
@@ -3476,7 +3476,7 @@ button {
 .reports-date-trigger-copy i { color: #ffad79; font-style: normal; }
 .reports-date-trigger-chevron { margin-left: auto; color: rgba(255,239,227,.6); font-size: 18px; }
 .reports-date-dismiss { position: fixed; inset: 0; z-index: 1; border: 0; background: transparent; cursor: default; }
-.reports-date-popover { position: absolute; top: calc(100% + 10px); right: 0; z-index: 2; width: min(620px,calc(100vw - 32px)); overflow: hidden; border: 1px solid rgba(255,177,126,.22); border-radius: 17px; background: linear-gradient(145deg,#241a15,#11100f 72%); color: #fff0e4; box-shadow: 0 24px 80px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.035); animation: reportsDateEnter .16s ease-out both; }
+.reports-date-popover { position: absolute; top: calc(100% + 10px); right: 0; z-index: 102; width: min(620px,calc(100vw - 32px)); overflow: hidden; border: 1px solid rgba(255,177,126,.22); border-radius: 17px; background: linear-gradient(145deg,#241a15,#11100f 72%); color: #fff0e4; box-shadow: 0 24px 80px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.035); animation: reportsDateEnter .16s ease-out both; }
 .reports-date-popover-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; padding: 17px 18px; border-bottom: 1px solid rgba(255,239,227,.08); }
 .reports-date-popover-heading > div { display: grid; gap: 5px; }
 .reports-date-popover-heading strong { color: #fff0e4; font-size: 14px; }
