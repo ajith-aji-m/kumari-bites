@@ -1689,3 +1689,39 @@ button {
     grid-template-columns:1fr;
   }
 }
+
+/* Menu editor scroll layout: keep only the title bar and actions fixed. */
+.menu-management .modal-card {
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
+
+.menu-management .modal-head {
+  position:relative;
+  top:auto;
+  flex:0 0 auto;
+  z-index:20;
+}
+
+.menu-management .menu-item-editor {
+  min-height:0;
+  flex:1 1 auto;
+  overflow-y:auto;
+  overflow-x:visible;
+  overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+}
+
+.menu-management .modal-actions {
+  position:relative;
+  bottom:auto;
+  flex:0 0 auto;
+  z-index:20;
+}
+
+@media (max-width:650px) {
+  .menu-management .modal-card {
+    overflow:hidden;
+  }
+}
