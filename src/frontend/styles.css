@@ -1250,3 +1250,173 @@ body::-webkit-scrollbar,
   width: 0;
   height: 0;
 }
+
+
+/* Application-wide button language — one dark glass system across every screen */
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.primary-button,
+.secondary-button,
+.table-action,
+.text-action,
+.icon-button,
+.link-button,
+.password-toggle,
+.inline-error button {
+  transition:transform .18s ease, background .22s ease, border-color .22s ease, box-shadow .22s ease, color .22s ease, opacity .22s ease;
+}
+
+/* Primary actions */
+.app-shell .primary-button,
+.modal-backdrop .primary-button {
+  border:1px solid rgba(255,196,150,.34);
+  border-radius:13px;
+  background:linear-gradient(135deg,rgba(255,153,82,.23),rgba(255,255,255,.085));
+  color:#fff8f2;
+  box-shadow:0 10px 28px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.10);
+  backdrop-filter:blur(14px) saturate(125%);
+  -webkit-backdrop-filter:blur(14px) saturate(125%);
+}
+.app-shell .primary-button:hover:not(:disabled),
+.modal-backdrop .primary-button:hover:not(:disabled) {
+  transform:translateY(-2px);
+  border-color:rgba(255,202,161,.58);
+  background:linear-gradient(135deg,rgba(255,153,82,.32),rgba(255,255,255,.13));
+  box-shadow:0 15px 34px rgba(0,0,0,.28),0 0 24px rgba(255,145,74,.11),inset 0 1px 0 rgba(255,255,255,.15);
+}
+.app-shell .primary-button:active:not(:disabled),
+.modal-backdrop .primary-button:active:not(:disabled) { transform:translateY(0); }
+.app-shell .primary-button:disabled,
+.modal-backdrop .primary-button:disabled { opacity:.58; cursor:wait; }
+
+/* Secondary / neutral actions */
+.app-shell .secondary-button,
+.modal-backdrop .secondary-button {
+  border:1px solid rgba(255,255,255,.14);
+  border-radius:13px;
+  background:rgba(255,255,255,.065);
+  color:#f3e7de;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.06);
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+}
+.app-shell .secondary-button:hover,
+.modal-backdrop .secondary-button:hover {
+  transform:translateY(-1px);
+  border-color:rgba(255,255,255,.25);
+  background:rgba(255,255,255,.11);
+  color:#fffaf5;
+}
+
+/* Compact table / inline actions */
+.app-shell .table-action,
+.app-shell .text-action {
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:10px;
+  background:rgba(255,255,255,.055);
+  color:#f1ddd0;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.045);
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+}
+.app-shell .table-action:hover {
+  transform:translateY(-1px);
+  border-color:rgba(174,205,255,.34);
+  background:rgba(92,139,220,.14);
+  color:#dceaff;
+  box-shadow:0 7px 18px rgba(0,0,0,.18);
+}
+.app-shell .text-action {
+  border-color:transparent;
+  background:transparent;
+  color:rgba(255,239,227,.62);
+}
+.app-shell .text-action:hover {
+  border-color:rgba(255,255,255,.12);
+  background:rgba(255,255,255,.06);
+  color:#fff0e5;
+}
+
+/* Icon / close actions */
+.app-shell .icon-button,
+.modal-backdrop .icon-button {
+  border:1px solid rgba(255,255,255,.14);
+  border-radius:12px;
+  background:rgba(255,255,255,.07);
+  color:#f5e7dd;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.06);
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+}
+.app-shell .icon-button:hover,
+.modal-backdrop .icon-button:hover {
+  transform:scale(1.03);
+  border-color:rgba(255,180,140,.32);
+  background:rgba(255,132,75,.12);
+  color:#fff8f3;
+}
+
+/* Tabs and navigation keep their layout role but inherit the same tactile states */
+.menu-tabs button,
+.nav-item {
+  transition:transform .18s ease, background .22s ease, border-color .22s ease, box-shadow .22s ease, color .22s ease;
+}
+.menu-tabs button:hover:not(.active),
+.nav-item:hover:not(.active) {
+  transform:translateY(-1px);
+  background:rgba(255,255,255,.065);
+  color:#f4dfd0;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.05);
+}
+.menu-tabs button.active,
+.nav-item.active {
+  background:linear-gradient(135deg,rgba(255,153,82,.16),rgba(255,255,255,.055));
+  border:1px solid rgba(255,196,150,.18);
+  color:#ffe7d7;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.07);
+}
+
+/* Login and utility controls use the same interaction grammar without changing behavior */
+.login-submit,
+.password-toggle,
+.link-button {
+  transition:transform .18s ease, background .22s ease, border-color .22s ease, box-shadow .22s ease, color .22s ease;
+}
+.password-toggle {
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(255,255,255,.06);
+  color:inherit;
+  border-radius:10px;
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+}
+.password-toggle:hover:not(:disabled) {
+  transform:translateY(-1px);
+  background:rgba(255,255,255,.10);
+  border-color:rgba(255,255,255,.22);
+}
+.link-button:hover:not(:disabled) { transform:translateY(-1px); color:#fff0e5; }
+.inline-error button:hover { transform:translateY(-1px); }
+
+/* Preserve switch/select semantics while giving their controls the same glass surface */
+.custom-select-trigger:hover,
+.custom-select-trigger:focus {
+  transform:translateY(-1px);
+}
+.switch { box-shadow:inset 0 1px 0 rgba(255,255,255,.16); }
+.switch:hover { transform:translateY(-1px); }
+
+@media (prefers-reduced-motion: reduce) {
+  button,
+  .primary-button,
+  .secondary-button,
+  .table-action,
+  .text-action,
+  .icon-button,
+  .link-button,
+  .password-toggle,
+  .menu-tabs button,
+  .nav-item { transition:none !important; }
+}
