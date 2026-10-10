@@ -575,15 +575,15 @@ input:not([type="checkbox"]):focus { border-color: #b85c38; box-shadow: 0 0 0 3p
   display:flex;
   align-items:flex-end;
   gap:8px;
-  padding:9px 11px 9px 8px;
-  border:1px solid rgba(245, 146, 38, .38);
-  border-radius:13px;
-  background:rgba(58, 36, 22, .96);
-  color:#fff1e3;
-  box-shadow:0 14px 35px rgba(0,0,0,.30);
-  backdrop-filter:blur(10px);
-  -webkit-backdrop-filter:blur(10px);
-  overflow:hidden;
+  padding:0;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  color:inherit;
+  box-shadow:none;
+  backdrop-filter:none;
+  -webkit-backdrop-filter:none;
+  overflow:visible;
 }
 .login-success-toast-top {
   position:fixed;
