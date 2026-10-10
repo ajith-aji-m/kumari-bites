@@ -286,6 +286,7 @@ function MenuManagement() {
   const [categoryImage, setCategoryImage] = useState("");
   const [lowStockAlert, setLowStockAlert] = useState<{ itemName: string; quantity: number; threshold: number } | null>(null);
   const [categorySuccess, setCategorySuccess] = useState("");
+  const [itemCategoryId, setItemCategoryId] = useState("");
 
   useEffect(() => {
     if (!itemModal) {
@@ -293,6 +294,8 @@ function MenuManagement() {
       return;
     }
     setItemImage(itemModal === "new" ? "" : itemModal.imageUrl ?? "");
+    const initialCategoryId = itemModal === "new" ? (categories.find(category => category.isActive)?.id ?? 0) : itemModal?.categoryId ?? 0;
+    setItemCategoryId(initialCategoryId ? String(initialCategoryId) : "");
   }, [itemModal]);
 
   useEffect(() => {
@@ -348,7 +351,7 @@ function MenuManagement() {
     setError("");
     const form = new FormData(event.currentTarget);
     const name = String(form.get("name") ?? "").trim();
-    const categoryId = String(form.get("categoryId") ?? "");
+    const categoryId = itemCategoryId;
     const price = Number(form.get("price"));
     if (!name) { setError("Please enter the menu item name."); return; }
     if (!categoryId || categoryId === "0") { setError("Please choose a menu category."); return; }
@@ -446,8 +449,10 @@ function MenuManagement() {
     }
   }
 
+  const activeCategories = useMemo(() => categories.filter(category => category.isActive), [categories]);
+
   const itemDefaults = itemModal === "new" ? {
-    name: "", categoryId: categories[0]?.id ?? 0, price: "", description: "", imageUrl: "", isVeg: false, isAvailable: true, stockQuantity: 0, lowStockThreshold: 5, lowStockAlertEnabled: true
+    name: "", categoryId: activeCategories[0]?.id ?? 0, price: "", description: "", imageUrl: "", isVeg: false, isAvailable: true, stockQuantity: 0, lowStockThreshold: 5, lowStockAlertEnabled: true
   } : itemModal ? itemModal : null;
 
   const categoryDefaults = categoryModal === "new" ? { name: "", slug: "", description: "", imageUrl: "", sortOrder: 0 } : categoryModal;
@@ -515,7 +520,7 @@ function MenuManagement() {
           <div className="editor-section-head"><span className="editor-step">01</span><div><strong>Basic details</strong><small>Name the dish and place it in the right menu category.</small></div></div>
           <div className="form-grid">
             <label className="field-wide">Item name *<input name="name" defaultValue={itemDefaults.name} placeholder="e.g. Momos" /></label>
-            <label>Category *<div className="custom-form-select"><CustomSelect value={String(itemDefaults.categoryId)} onChange={value => { const input = document.querySelector('input[name="categoryId"]') as HTMLInputElement | null; if (input) input.value = value; }} options={categories.map(c => ({ value: String(c.id), label: c.name }))} /></div><input className="visually-hidden-field" name="categoryId" defaultValue={itemDefaults.categoryId} /></label>
+            <label>Category *<div className="custom-form-select"><CustomSelect value={itemCategoryId} onChange={value => setItemCategoryId(value)} options={activeCategories.map(c => ({ value: String(c.id), label: c.name }))} placeholder="Select category" /></div><input className="visually-hidden-field" name="categoryId" value={itemCategoryId} readOnly /></label>
             <label>Price *<div className="price-input"><span>₹</span><input name="price" type="number" min="0" step="0.01" defaultValue={itemDefaults.price ?? ""} placeholder="0" /></div></label>
           </div>
         </div>
