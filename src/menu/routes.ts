@@ -10,7 +10,7 @@ const categorySchema = z.object({
   name: z.string().trim().min(1).max(100),
   slug: z.string().trim().min(1).max(120),
   description: z.string().trim().max(2000).optional(),
-  imageUrl: z.string().url().max(500).optional(),
+  imageUrl: z.string().trim().max(5000000).optional(),
   sortOrder: z.number().int().min(0).default(0)
 });
 
