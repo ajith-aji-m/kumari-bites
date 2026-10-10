@@ -550,20 +550,20 @@ input:not([type="checkbox"]):focus { border-color: #b85c38; box-shadow: 0 0 0 3p
   align-items: flex-end;
 }
 .chef-character {
-  width: 48px;
-  height: 58px;
-  flex: 0 0 48px;
+  width: 52px;
+  height: 63px;
+  flex: 0 0 52px;
   overflow: hidden;
 }
 .chef-character img {
-  width: 48px;
-  height: 58px;
-  max-width: 48px;
+  width: 52px;
+  height: 63px;
+  max-width: 52px;
   object-fit: contain;
   object-position: center bottom;
 }
 @media (max-width: 600px) {
   .chef-guide { margin-top: 4px; }
-  .chef-character { width: 42px; height: 52px; flex-basis: 42px; }
-  .chef-character img { width: 42px; height: 52px; max-width: 42px; }
+  .chef-character { width: 46px; height: 57px; flex-basis: 46px; }
+  .chef-character img { width: 46px; height: 57px; max-width: 46px; }
 }
