@@ -3248,6 +3248,37 @@ button {
 
 
 
+/* Per-order receipt actions */
+.order-document-actions {
+  display:flex;
+  align-items:center;
+  gap:7px;
+  white-space:nowrap;
+}
+.order-document-button {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:5px;
+  min-height:34px;
+  padding:0 10px;
+  border:1px solid #e5d3c4;
+  border-radius:9px;
+  background:#fffaf5;
+  color:#6b4030;
+  font:inherit;
+  font-size:11px;
+  font-weight:800;
+  cursor:pointer;
+  transition:background .16s ease,border-color .16s ease,transform .16s ease;
+}
+.order-document-button > span:first-child { font-size:14px; line-height:1; }
+.order-document-button:hover { transform:translateY(-1px); border-color:#c98a66; background:#fff0e5; }
+.order-pdf-button { border-color:#e7c5b8; background:#fff4ef; color:#a3442f; }
+.order-pdf-button:hover { border-color:#cb7d65; background:#ffe9df; }
+.order-document-button:focus-visible { outline:2px solid #c8754c; outline-offset:2px; }
+.order-document-button:active { transform:translateY(0); }
+
 /* Completed orders are terminal and visibly locked in the Orders table */
 .order-status-lock {
   display:inline-flex;
