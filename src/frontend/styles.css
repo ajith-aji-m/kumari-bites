@@ -6046,3 +6046,32 @@ button {
 @media(prefers-reduced-motion:reduce){
   .customer-order-confirmation,.customer-order-confirmation-spark,.customer-order-waiting-dot,.customer-order-waiting-dots i{animation:none!important}
 }
+
+
+/* Live order tracking states and compact/minimized tracker. */
+.customer-order-confirmation{padding-top:28px!important}
+.customer-order-minimize{position:absolute;top:13px;right:48px;display:grid;place-items:center;width:28px;height:28px;border:1px solid #e9cdb6;border-radius:9px;background:#fff7ed;color:#754027;font-size:20px;line-height:1;cursor:pointer}
+.customer-live-order-status{display:flex;align-items:center;gap:11px;width:100%;box-sizing:border-box;padding:13px;border:1px solid #e9cfb6;border-radius:13px;background:rgba(255,255,255,.72);color:#70412b}
+.customer-live-status-icon{display:grid;place-items:center;width:31px;height:31px;flex:0 0 31px;border-radius:50%;background:#f5e0ca;color:#98542d;font-size:22px;font-weight:900}
+.customer-live-order-status>span:nth-child(2){display:flex;flex:1;flex-direction:column;gap:4px}
+.customer-live-order-status small{font-size:8px;letter-spacing:.14em;font-weight:900;color:#a2643e}
+.customer-live-order-status strong{font-size:12px;line-height:1.35;color:#59331f}
+.customer-live-status-pulse{width:8px;height:8px;flex:0 0 8px;border-radius:50%;background:#d58a42;box-shadow:0 0 0 4px rgba(213,138,66,.13);animation:kbWaitingPulse 1.6s ease-in-out infinite}
+.customer-live-order-status.status-ready .customer-live-status-icon,.customer-live-order-status.status-completed .customer-live-status-icon{background:#dff0df;color:#2f7b43}
+.customer-live-order-status.status-ready .customer-live-status-pulse,.customer-live-order-status.status-completed .customer-live-status-pulse{background:#3c9955;animation:none;box-shadow:0 0 0 4px rgba(60,153,85,.12)}
+.customer-live-order-status.status-cancelled .customer-live-status-icon{background:#fbe1dd;color:#a53327}
+.customer-live-order-status.status-cancelled .customer-live-status-pulse{background:#b63b30;animation:none}
+.customer-order-progress{display:flex;gap:5px;width:100%;margin:0 0 2px}
+.customer-order-progress span{height:4px;flex:1;border-radius:99px;background:#ead8c9;transition:background .25s ease}
+.customer-order-progress span.reached{background:#c37a45}
+.customer-order-progress span.current{background:#733a20;box-shadow:0 0 0 2px rgba(115,58,32,.12)}
+.customer-order-tracker-mini{position:fixed!important;z-index:10030!important;right:clamp(18px,4vw,56px)!important;bottom:24px!important;display:flex!important;align-items:center!important;gap:12px!important;width:min(340px,calc(100vw - 32px))!important;box-sizing:border-box!important;padding:14px 16px!important;border:1px solid rgba(255,226,195,.85)!important;border-radius:16px 16px 16px 6px!important;background:linear-gradient(145deg,#fffaf1,#f8e5d1)!important;color:#57301e!important;text-align:left!important;box-shadow:0 14px 36px rgba(43,20,10,.24)!important;cursor:pointer!important;animation:kbOrderConfirmationIn .35s ease both!important}
+.customer-order-tracker-mini>span:nth-child(2){display:flex;flex:1;flex-direction:column;gap:5px;min-width:0}
+.customer-order-tracker-mini small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:8px;letter-spacing:.12em;font-weight:900;color:#a45a31}
+.customer-order-tracker-mini strong{font-size:12px;color:#60331f}
+.customer-tracker-mini-pulse{width:9px;height:9px;flex:0 0 9px;border-radius:50%;background:#d77d38;box-shadow:0 0 0 5px rgba(215,125,56,.13);animation:kbWaitingPulse 1.6s ease-in-out infinite}
+.customer-tracker-mini-open{display:grid;place-items:center;width:28px;height:28px;flex:0 0 28px;border-radius:9px;background:#733a20;color:#fff8ef;font-size:16px}
+@media(max-width:760px){
+ .customer-order-confirmation{bottom:82px!important}
+ .customer-order-tracker-mini{right:12px!important;bottom:14px!important;width:min(320px,calc(100vw - 24px))!important;padding:12px 13px!important}
+}
