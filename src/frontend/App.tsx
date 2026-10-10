@@ -1,6 +1,7 @@
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { ImageUpload } from "./components/ImageUpload";
+import { CustomerLanding } from "./CustomerLanding";
 
 type DashboardData = {
   today: { orders: number; sales: number; averageOrder: number; activeOrders: number; completedOrders: number; cancelledOrders: number };
@@ -1527,6 +1528,8 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
 }
 
 export function App() {
+  if (window.location.pathname === "/order" || window.location.pathname === "/customer") return <CustomerLanding />;
+
   const [loggedIn, setLoggedIn] = useState<boolean | null>(null);
 
   useEffect(() => {
