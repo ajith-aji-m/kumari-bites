@@ -2937,34 +2937,37 @@ button {
 }
 
 
-/* Orders follows the same compact Menu Management layout */
+/* Orders follows the same Menu Management layout and floating action pattern */
 .orders-page { display:grid; gap:18px; }
 .orders-panel { min-width:0; }
-.orders-toolbar { display:grid; grid-template-columns:minmax(220px,1fr) minmax(160px,210px) 42px; align-items:center; gap:10px; margin-bottom:18px; }
-.order-add-icon-button { width:42px; height:42px; padding:0 !important; display:grid; place-items:center; border-radius:12px; }
-.order-add-icon-button svg { width:19px; height:19px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; }
+.menu-management .menu-index-controls.orders-toolbar {
+  grid-template-columns:minmax(220px,1fr) minmax(160px,210px);
+  align-items:center;
+  gap:10px;
+  margin-bottom:18px;
+}
 .orders-table-wrap { overflow-x:auto; }
 .orders-table { min-width:900px; }
 .orders-table td { vertical-align:middle; }
 .order-main-cell,.order-items-cell { display:grid; gap:5px; min-width:110px; }
-.order-main-cell strong { color:#3c2118; }
-.order-main-cell small,.order-items-cell small { color:#9b897d; font-size:11px; }
+.order-main-cell strong { color:inherit; }
+.order-main-cell small,.order-items-cell small { color:rgba(255,239,227,.5); font-size:11px; }
 .order-items-cell { gap:4px; max-width:230px; }
 .order-items-cell span { font-size:12px; }
 .order-items-cell small { display:inline; }
 .orders-empty-state { padding:42px 20px; }
-.orders-empty-icon { display:grid; place-items:center; width:48px; height:48px; margin-bottom:13px; border:1px solid rgba(184,92,56,.24); border-radius:14px; background:rgba(184,92,56,.09); color:#b85c38; }
+.orders-empty-icon { display:grid; place-items:center; width:48px; height:48px; margin-bottom:13px; border:1px solid rgba(255,153,82,.24); border-radius:14px; background:rgba(255,153,82,.09); color:#ff9b62; }
 .orders-empty-icon svg { width:23px; height:23px; fill:none; stroke:currentColor; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round; }
-.orders-empty-state strong { font-size:14px; }
-.orders-empty-state p { font-size:12px; }
 @media(max-width:850px) {
- .orders-toolbar { grid-template-columns:minmax(0,1fr) minmax(145px,1fr) 42px; }
+  .menu-management .menu-index-controls.orders-toolbar {
+    grid-template-columns:minmax(0,1fr) minmax(145px,1fr);
+  }
 }
 @media(max-width:600px) {
- .orders-toolbar { grid-template-columns:minmax(0,1fr) 42px; }
- .orders-toolbar .search-input { grid-column:1/-1; }
- .orders-toolbar .custom-select { min-width:0; }
- .orders-table { min-width:760px; }
+  .menu-management .menu-index-controls.orders-toolbar { grid-template-columns:1fr; }
+  .menu-management .menu-index-controls.orders-toolbar .search-input { grid-column:auto; }
+  .menu-management .menu-index-controls.orders-toolbar .custom-select { min-width:0; }
+  .orders-table { min-width:760px; }
 }
 
 
