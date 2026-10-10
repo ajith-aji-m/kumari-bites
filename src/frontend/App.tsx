@@ -371,12 +371,13 @@ function printOrderReceipt(order: PrintableOrder): boolean {
   '<table><thead><tr><th>Item</th><th class="amount">Amount</th></tr></thead><tbody>' + (itemRows || '<tr><td colspan="2">Order item details unavailable</td></tr>') + '</tbody></table>' +
   '<section class="totals"><div class="total-line"><span>Subtotal</span><strong>' + escapeReceiptHtml(money(order.subtotal ?? order.totalAmount)) + '</strong></div><div class="total-line grand"><span>Total</span><strong>' + escapeReceiptHtml(money(order.totalAmount)) + '</strong></div></section>' +
   (order.notes ? '<div class="notes"><strong>Order notes</strong><br>' + escapeReceiptHtml(order.notes) + '</div>' : '') +
-  '<p class="footer">Thank you for choosing Kumari Bites.</p><script>window.onload=function(){setTimeout(function(){window.print()},250)};<\\/script></body></html>';
+  '<p class="footer">Thank you for choosing Kumari Bites.</p><script>window.onload=function(){setTimeout(function(){window.print()},250)};</script></body></html>';
   printWindow.document.open(); printWindow.document.write(html); printWindow.document.close();
   return true;
 }
 
 function downloadOrderPdf(order: PrintableOrder) {
+  const pdfMoney = (value: string | number | null | undefined) => "Rs. " + Number(value ?? 0).toLocaleString("en-IN", { maximumFractionDigits: 0 });
   const clean = (value: unknown) => String(value ?? "").normalize("NFKD").replace(/[\u0300-\u036f]/g, "").replace(/[^\x20-\x7E]/g, "?");
   const wrap = (value: unknown, max = 78) => {
     const words = clean(value).split(/\s+/); const lines: string[] = []; let line = "";
@@ -394,10 +395,10 @@ function downloadOrderPdf(order: PrintableOrder) {
     "", "ITEMS", "---------------------------------------------------------------"];
   for (const item of order.items ?? []) {
     lines.push(...wrap(item.itemName));
-    lines.push(...wrap("  " + item.quantity + " x " + money(item.unitPrice) + "                         " + money(item.lineTotal)));
+    lines.push(...wrap("  " + item.quantity + " x " + pdfMoney(item.unitPrice) + "                         " + pdfMoney(item.lineTotal)));
   }
   if (!order.items?.length) lines.push("Order item details unavailable");
-  lines.push("---------------------------------------------------------------", ...wrap("Subtotal: " + money(order.subtotal ?? order.totalAmount)), ...wrap("TOTAL: " + money(order.totalAmount)));
+  lines.push("---------------------------------------------------------------", ...wrap("Subtotal: " + pdfMoney(order.subtotal ?? order.totalAmount)), ...wrap("TOTAL: " + pdfMoney(order.totalAmount)));
   if (order.notes) lines.push("", ...wrap("Notes: " + order.notes));
   lines.push("", "Thank you for choosing Kumari Bites.");
   const pageLines: string[][] = [];
