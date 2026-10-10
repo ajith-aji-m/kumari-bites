@@ -515,7 +515,7 @@ function MenuManagement() {
           <div className="editor-section-head"><span className="editor-step">01</span><div><strong>Basic details</strong><small>Name the dish and place it in the right menu category.</small></div></div>
           <div className="form-grid">
             <label className="field-wide">Item name *<input name="name" defaultValue={itemDefaults.name} placeholder="e.g. Momos" /></label>
-            <label>Category *<div className="custom-form-select"><CustomSelect value={String(itemDefaults.categoryId)} onChange={value => { const input = document.querySelector<HTMLInputElement>('input[name="categoryId"]'); if (input) input.value = value; }} options={categories.map(c => ({ value: String(c.id), label: c.name }))} /></div><input className="visually-hidden-field" name="categoryId" defaultValue={itemDefaults.categoryId} /></label>
+            <label>Category *<div className="custom-form-select"><CustomSelect value={String(itemDefaults.categoryId)} onChange={value => { const input = document.querySelector('input[name="categoryId"]') as HTMLInputElement | null; if (input) input.value = value; }} options={categories.map(c => ({ value: String(c.id), label: c.name }))} /></div><input className="visually-hidden-field" name="categoryId" defaultValue={itemDefaults.categoryId} /></label>
             <label>Price *<div className="price-input"><span>₹</span><input name="price" type="number" min="0" step="0.01" defaultValue={itemDefaults.price ?? ""} placeholder="0" /></div></label>
           </div>
         </div>
