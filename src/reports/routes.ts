@@ -14,7 +14,30 @@ const reportQuerySchema = z.object({
 });
 
 function rowsOf<T extends Record<string, unknown>>(result: unknown): T[] {
-  return result as T[];
+  // Drizzle's MySQL raw-query result can expose rows directly, inside a
+  // mysql2-style tuple, or under a rows property depending on the adapter.
+  if (Array.isArray(result)) {
+    if (result.length === 2 && Array.isArray(result[0])) return result[0] as T[];
+    return result as T[];
+  }
+
+  if (result && typeof result === "object" && "rows" in result) {
+    const rows = (result as { rows?: unknown }).rows;
+    if (Array.isArray(rows)) return rows as T[];
+  }
+
+  return [];
+}
+
+function normalizeSqlDate(value: unknown): string {
+  if (value instanceof Date) {
+    const year = value.getFullYear();
+    const month = String(value.getMonth() + 1).padStart(2, "0");
+    const day = String(value.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  }
+
+  return String(value ?? "").slice(0, 10);
 }
 
 export async function registerReportRoutes(app: FastifyInstance) {
@@ -88,7 +111,7 @@ export async function registerReportRoutes(app: FastifyInstance) {
 
     const summary = rowsOf<Record<string, unknown>>(summaryResult)[0] ?? {};
     const dailySales = rowsOf<Record<string, unknown>>(dailyResult).map(row => ({
-      date: String(row.sale_date).slice(0, 10),
+      date: normalizeSqlDate(row.sale_date),
       orders: Number(row.order_count ?? 0),
       sales: Number(row.sales ?? 0)
     }));
