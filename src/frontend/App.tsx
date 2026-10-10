@@ -122,7 +122,7 @@ function Login({ onLogin }: { onLogin: () => void }) {
               <button type="button" className="link-button">Forgot password?</button>
             </div>
 
-            {error && <p className="login-error" role="alert">{error}</p>}
+            {error && <div className="chef-guide" role="alert"><div className="chef-avatar" aria-hidden="true">👨‍🍳</div><div className="chef-bubble">{error.replace(/^👨‍🍳 Chef says: /, "")}</div></div>}
 
             <button className={`primary-button login-submit ${loginSuccess ? "unlocked" : ""}`} disabled={loading || loginSuccess}>
               <span>{loginSuccess ? "✓" : loading ? "…" : ""}</span>
