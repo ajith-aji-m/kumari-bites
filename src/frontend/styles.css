@@ -567,3 +567,35 @@ input:not([type="checkbox"]):focus { border-color: #b85c38; box-shadow: 0 0 0 3p
   .chef-character { width: 46px; height: 57px; flex-basis: 46px; }
   .chef-character img { width: 46px; height: 57px; max-width: 46px; }
 }
+
+
+/* Mirrored chef success state */
+.chef-guide.success {
+  flex-direction: row-reverse;
+  animation: chefSuccessIn .38s cubic-bezier(.2,.8,.2,1) both;
+}
+.chef-guide.success .chef-character img {
+  transform: scaleX(-1);
+}
+.chef-guide.success .chef-bubble {
+  border-radius: 11px 11px 3px 11px;
+  border-color: rgba(106, 204, 139, .28);
+  background: rgba(52,112,76,.16);
+  color: #d6f2df;
+}
+.chef-guide.success .chef-bubble::before {
+  left: auto;
+  right: -6px;
+  border-left: 0;
+  border-bottom: 1px solid rgba(106, 204, 139, .28);
+  border-right: 1px solid rgba(106, 204, 139, .28);
+  transform: rotate(-45deg);
+  background: rgba(52,112,76,.16);
+}
+.chef-guide.success .chef-bubble strong {
+  color: #8fe0a8;
+}
+@keyframes chefSuccessIn {
+  from { opacity: 0; transform: translateX(18px) scale(.96); }
+  to { opacity: 1; transform: translateX(0) scale(1); }
+}
