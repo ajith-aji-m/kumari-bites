@@ -20,9 +20,67 @@ export function CustomerLanding() {
   const [customerPhone, setCustomerPhone] = useState("");
   const [placingOrder, setPlacingOrder] = useState(false);
   const [checkoutError, setCheckoutError] = useState("");
-  const [placedOrder, setPlacedOrder] = useState<{ orderId: number; orderNumber: string; totalAmount?: string } | null>(null);
+  const [placedOrder, setPlacedOrder] = useState<{ orderId: number; orderNumber: string; totalAmount?: string; trackingToken: string; status: string } | null>(() => {
+    try {
+      const saved = window.sessionStorage.getItem("kb-active-order");
+      return saved ? JSON.parse(saved) : null;
+    } catch { return null; }
+  });
+  const [trackerMinimized, setTrackerMinimized] = useState(false);
   const [addingItemId, setAddingItemId] = useState<number | null>(null);
   const [flyingBite, setFlyingBite] = useState<{ id: number; imageUrl: string | null; x: number; y: number; dx: number; dy: number } | null>(null);
+
+  useEffect(() => {
+    if (!placedOrder) return;
+    let stopped = false;
+    let socket: WebSocket | null = null;
+    let reconnectTimer: number | undefined;
+    const refreshStatus = async () => {
+      try {
+        const response = await fetch(`/api/v1/public/orders/${placedOrder.orderId}/status?token=${encodeURIComponent(placedOrder.trackingToken)}`);
+        if (!response.ok) return;
+        const data = await response.json() as { status?: string };
+        if (!stopped && data.status) {
+          setPlacedOrder(current => {
+            if (!current || current.orderId !== placedOrder.orderId || current.status === data.status) return current;
+            const next = { ...current, status: data.status! };
+            window.sessionStorage.setItem("kb-active-order", JSON.stringify(next));
+            return next;
+          });
+        }
+      } catch { /* A temporary network failure is recovered on the next WebSocket reconnect. */ }
+    };
+    const connect = () => {
+      if (stopped) return;
+      const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+      socket = new WebSocket(`${protocol}//${window.location.host}/ws`);
+      socket.onopen = () => { void refreshStatus(); };
+      socket.onmessage = event => {
+        try {
+          const message = JSON.parse(event.data) as { type?: string; payload?: { orderId?: number; status?: string } };
+          if (message.type === "order.status_changed" && message.payload?.orderId === placedOrder.orderId && message.payload.status) {
+            setPlacedOrder(current => {
+              if (!current || current.orderId !== placedOrder.orderId) return current;
+              const next = { ...current, status: message.payload!.status! };
+              window.sessionStorage.setItem("kb-active-order", JSON.stringify(next));
+              return next;
+            });
+          }
+        } catch { /* Ignore malformed WebSocket messages. */ }
+      };
+      socket.onclose = () => {
+        if (!stopped) reconnectTimer = window.setTimeout(connect, 1800);
+      };
+      socket.onerror = () => socket?.close();
+    };
+    void refreshStatus();
+    connect();
+    return () => {
+      stopped = true;
+      if (reconnectTimer !== undefined) window.clearTimeout(reconnectTimer);
+      socket?.close();
+    };
+  }, [placedOrder?.orderId, placedOrder?.trackingToken]);
 
   // The landing experience is click-driven; native page scrolling no longer changes stages.
   const openCategories = () => {
@@ -106,7 +164,10 @@ export function CustomerLanding() {
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.message || data.error || "We couldn't place your order. Please try again.");
-      setPlacedOrder({ orderId: Number(data.orderId), orderNumber: String(data.orderNumber), totalAmount: data.totalAmount });
+      const order = { orderId: Number(data.orderId), orderNumber: String(data.orderNumber), totalAmount: data.totalAmount, trackingToken: String(data.trackingToken), status: String(data.status ?? "new") };
+      setPlacedOrder(order);
+      setTrackerMinimized(false);
+      window.sessionStorage.setItem("kb-active-order", JSON.stringify(order));
       setCart({});
       setCartOpen(false);
       setStage(0);
@@ -131,22 +192,27 @@ export function CustomerLanding() {
           <span className="customer-primary-cta">Let’s find your flavour <span>↓</span></span>
         </div>
         <div className="customer-order-taker order-taker-visible"><img src="/assets/order-taker.png" alt="Your Kumari Bites order taker" /></div>
-        {placedOrder && <div className="customer-order-confirmation" role="status" aria-live="polite">
+        {placedOrder && !trackerMinimized && <div className="customer-order-confirmation" role="status" aria-live="polite">
+          <button type="button" className="customer-order-minimize" aria-label="Minimize order tracker" onClick={() => setTrackerMinimized(true)}>−</button>
           <span className="customer-order-confirmation-spark">✦</span>
           <small>ORDER RECEIVED · {placedOrder.orderNumber}</small>
           <h2>Thank you for your order!</h2>
-          <p>Your order is placed. Please wait while we get things ready for you.</p>
-          <div className="customer-order-waiting"><span className="customer-order-waiting-dot" /><span>Our kitchen is getting ready</span><span className="customer-order-waiting-dots"><i /><i /><i /></span></div>
-          <button type="button" className="customer-order-again" onClick={() => { setPlacedOrder(null); setCart({}); setCartOpen(false); setCustomerPhone(""); setSelectedCategory(null); setMenuPage(0); setStage(1); }}>Order something else <span aria-hidden="true">↗</span></button>
+          <p>Your order status will be tracked here. Updates appear automatically.</p>
+          <div className={"customer-live-order-status status-" + placedOrder.status}><span className="customer-live-status-icon">{placedOrder.status === "completed" ? "✓" : placedOrder.status === "cancelled" ? "!" : "•"}</span><span><small>LIVE ORDER STATUS</small><strong>{({new:"Order received",confirmed:"Order confirmed",preparing:"Preparing your order",ready:"Your order is ready",completed:"Order completed",cancelled:"Order cancelled"} as Record<string,string>)[placedOrder.status] ?? "Order received"}</strong></span><span className="customer-live-status-pulse" /></div>
+          <div className="customer-order-progress" aria-label="Order progress">{["new","confirmed","preparing","ready","completed"].map((status, index) => <span key={status} className={( ["new","confirmed","preparing","ready","completed"].indexOf(placedOrder.status) >= index ? "reached " : "") + (placedOrder.status === status ? "current" : "")} />)}</div>
+          <button type="button" className="customer-order-again" onClick={() => { setTrackerMinimized(true); setCart({}); setCartOpen(false); setCustomerPhone(""); setSelectedCategory(null); setMenuPage(0); setStage(1); }}>Order something else <span aria-hidden="true">↗</span></button>
         </div>}
-        <div className={"customer-story-bubble " + (stage === 0 && !categoryIntroPlaying ? "story-bubble-visible" : "")}>
+        {placedOrder && trackerMinimized && <button type="button" className="customer-order-tracker-mini" onClick={() => setTrackerMinimized(false)} aria-label={"Open tracking for " + placedOrder.orderNumber}>
+          <span className="customer-tracker-mini-pulse" /><span><small>{placedOrder.orderNumber} · LIVE TRACKING</small><strong>{({new:"Order received",confirmed:"Order confirmed",preparing:"Preparing your order",ready:"Your order is ready",completed:"Order completed",cancelled:"Order cancelled"} as Record<string,string>)[placedOrder.status] ?? "Order received"}</strong></span><span className="customer-tracker-mini-open">↗</span>
+        </button>}
+        {!placedOrder && <div className={"customer-story-bubble " + (stage === 0 && !categoryIntroPlaying ? "story-bubble-visible" : "")}>
           <img className="customer-story-cloud-image" src="/assets/welcome-cloud.png" alt="" aria-hidden="true" />
           <div className="customer-story-bubble-content">
             <strong>{stage === 0 ? "Vanakkam, food lover!" : "Choose your favourites!"}</strong>
             <p>{stage === 0 ? "Welcome to Kumari Bites! 🍽️ Ready to discover your next favourite?" : "Tap a category to explore our freshly made favourites."}</p>
             {stage === 0 && <button type="button" className="customer-story-link" onClick={openCategories}>Explore the menu <span aria-hidden="true">↗</span></button>}
           </div>
-        </div>
+        </div>}
         <div className={"customer-story-categories " + (stage === 1 ? "story-categories-visible" : "") + (selectedCategory !== null ? " menu-items-on-plate" : "")}>
           <div className="story-panel-heading">
             <small>{selectedCategory === null ? "STEP 01 · PICK YOUR MOOD" : "FRESH FROM OUR KITCHEN"}</small>
