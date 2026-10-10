@@ -495,16 +495,21 @@ function Orders() {
 
     {pendingStatusChange && <div className="order-confirm-backdrop" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget && !statusSaving) setPendingStatusChange(null); }}>
       <section className={`order-confirm-modal ${pendingStatusChange.status === "cancelled" ? "is-danger" : "is-success"}`} role="dialog" aria-modal="true" aria-labelledby="order-confirm-title" aria-describedby="order-confirm-description">
-        <div className="order-confirm-icon" aria-hidden="true">{pendingStatusChange.status === "cancelled" ? "!" : "✓"}</div>
-        <p className="eyebrow">{pendingStatusChange.status === "cancelled" ? "CANCEL ORDER" : "FINAL STEP"}</p>
-        <h2 id="order-confirm-title">{pendingStatusChange.status === "cancelled" ? "Cancel this order?" : "Complete this order?"}</h2>
-        <p id="order-confirm-description">{pendingStatusChange.status === "cancelled"
-          ? `Are you sure you want to cancel ${pendingStatusChange.orderNumber}? This action will update the order status.`
-          : `Confirm ${pendingStatusChange.orderNumber} is fulfilled. Once completed, its status will be locked and cannot be changed.`}</p>
+        <div className="order-confirm-heading">
+          <div className="order-confirm-icon" aria-hidden="true">{pendingStatusChange.status === "cancelled" ? "!" : "✓"}</div>
+          <div className="order-confirm-heading-copy">
+            <p className="eyebrow">{pendingStatusChange.status === "cancelled" ? "CANCEL ORDER" : "CONFIRM COMPLETION"}</p>
+            <h2 id="order-confirm-title">{pendingStatusChange.status === "cancelled" ? "Cancel this order?" : "Complete this order?"}</h2>
+          </div>
+        </div>
+        <p id="order-confirm-description" className="order-confirm-description">{pendingStatusChange.status === "cancelled"
+          ? "This order will be marked as cancelled."
+          : "After completion, this order’s status can’t be changed."}</p>
+        <div className="order-confirm-order-ref"><span>Order</span><strong>{pendingStatusChange.orderNumber}</strong></div>
         <div className="order-confirm-actions">
           <button type="button" className="secondary-button" disabled={statusSaving} onClick={() => setPendingStatusChange(null)}>Go back</button>
           <button type="button" className={`primary-button order-confirm-action ${pendingStatusChange.status === "cancelled" ? "order-confirm-action-danger" : "order-confirm-action-success"}`} disabled={statusSaving} onClick={() => updateStatus(pendingStatusChange.orderId, pendingStatusChange.status, true)}>
-            {statusSaving ? "Please wait…" : pendingStatusChange.status === "cancelled" ? "Yes, cancel order" : "Confirm completion"}
+            {statusSaving ? "Please wait…" : pendingStatusChange.status === "cancelled" ? "Cancel order" : "Complete order"}
           </button>
         </div>
       </section>
