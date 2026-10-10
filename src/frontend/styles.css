@@ -2098,3 +2098,136 @@ button {
     grid-template-columns: 1fr;
   }
 }
+
+
+/* Category management interaction polish */
+.menu-management .category-table .action-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+.menu-management .category-table .action-group .table-action,
+.menu-management .category-table .action-group .category-enable-button {
+  min-width: 78px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  margin: 0;
+  box-sizing: border-box;
+}
+.menu-management .category-table .action-group .category-enable-button {
+  padding: 7px 11px;
+}
+
+/* Category editor follows the same visual language and spacing as Add Menu Item. */
+.menu-management .category-modal-card {
+  width: min(720px, 100%);
+  max-height: calc(100vh - 40px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.menu-management .category-modal-card .modal-head {
+  flex: 0 0 auto;
+  margin-bottom: 0;
+  padding: 2px 2px 18px;
+}
+.menu-management .category-modal-card .modal-subtitle {
+  margin: 5px 0 0;
+  color: #9b897d;
+  font-size: 10px;
+  line-height: 1.45;
+}
+.menu-management .category-modal-card .category-editor {
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0 2px 2px;
+}
+.menu-management .category-modal-card .editor-section {
+  overflow: visible;
+}
+.menu-management .category-modal-card .editor-section .form-grid {
+  grid-template-columns: 1fr 1fr;
+}
+.menu-management .category-modal-card .category-media-grid {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+.menu-management .category-modal-card .category-sort-field {
+  min-height: 190px;
+  justify-content: center;
+}
+.menu-management .category-modal-card .category-sort-field > label {
+  height: auto;
+}
+.menu-management .category-modal-card .category-sort-field input {
+  min-height: 42px;
+}
+.menu-management .category-modal-card .category-upload-preview {
+  min-height: 190px;
+}
+.menu-management .category-modal-card .category-upload-preview > img {
+  min-height: 164px;
+}
+.menu-management .category-modal-card .category-upload-preview .menu-image-empty small {
+  color: rgba(255,239,227,.55);
+  font-size: 9px;
+}
+.menu-management .category-modal-card .modal-actions {
+  flex: 0 0 auto;
+  margin-top: 14px;
+}
+.menu-management .category-modal-card .menu-upload-preview .menu-image-upload-button.has-image {
+  opacity: 0;
+}
+.menu-management .category-modal-card .menu-upload-preview:hover .menu-image-upload-button.has-image,
+.menu-management .category-modal-card .menu-upload-preview .menu-image-upload-button.has-image:hover,
+.menu-management .category-modal-card .menu-upload-preview .menu-image-upload-button.has-image:focus-within {
+  opacity: 0;
+}
+
+/* Category success feedback stays at the top-right without affecting page layout. */
+.menu-management .category-success-toast {
+  position: fixed;
+  z-index: 60;
+  top: 22px;
+  right: 22px;
+  width: min(390px, calc(100vw - 44px));
+  pointer-events: none;
+  animation: chefSuccessToastIn .38s cubic-bezier(.2,.8,.2,1) both;
+}
+.menu-management .category-success-toast .chef-success-bubble {
+  pointer-events: auto;
+}
+
+@media (max-width: 650px) {
+  .menu-management .category-modal-card {
+    max-height: calc(100vh - 16px);
+  }
+  .menu-management .category-modal-card .category-editor {
+    padding-left: 0;
+    padding-right: 0;
+  }
+  .menu-management .category-modal-card .editor-section .form-grid,
+  .menu-management .category-modal-card .category-media-grid {
+    grid-template-columns: 1fr;
+  }
+  .menu-management .category-modal-card .category-sort-field {
+    min-height: auto;
+  }
+  .menu-management .category-modal-card .category-upload-preview {
+    min-height: 155px;
+  }
+  .menu-management .category-modal-card .category-upload-preview > img {
+    min-height: 130px;
+  }
+  .menu-management .category-success-toast {
+    top: 14px;
+    right: 14px;
+    width: calc(100vw - 28px);
+  }
+}
