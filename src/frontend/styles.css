@@ -5965,3 +5965,8 @@ button {
   .packing-box-status{font-size:9px}
   .packing-box-total{font-size:11px}
 }
+
+/* Compact packing area; only render it when the cart contains at least one item. */
+.customer-packing-box{width:min(290px,calc(100vw - 36px))!important;min-height:66px!important;grid-template-columns:minmax(0,1fr) auto 24px!important;gap:10px!important;padding:10px 12px!important}
+.packing-box-status{display:none!important}
+@media(max-width:760px){.customer-packing-box{width:min(260px,calc(100vw - 24px))!important;min-height:58px!important;gap:7px!important;padding:8px 10px!important}}
