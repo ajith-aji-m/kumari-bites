@@ -2,7 +2,7 @@ import type { FastifyInstance } from "fastify";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "../db/index.js";
-import { orderItems, orders } from "../db/schema.js";
+import { menuItems, orderItems, orders } from "../db/schema.js";
 import { requirePermission } from "../auth/authorization.js";
 import { broadcast } from "../realtime/socket.js";
 
@@ -60,6 +60,36 @@ export async function registerOrderRoutes(app: FastifyInstance) {
       });
 
       const orderId = Number(orderResult[0].insertId);
+
+      for (const item of input.items) {
+        if (!item.menuItemId) continue;
+
+        const menuItem = (await tx.select().from(menuItems).where(eq(menuItems.id, item.menuItemId)).limit(1))[0];
+        if (!menuItem) throw new Error(`Menu item ${item.itemName} was not found.`);
+        if (!menuItem.isAvailable) throw new Error(`${menuItem.name} is currently unavailable.`);
+        if (menuItem.stockQuantity < item.quantity) {
+          throw new Error(`${menuItem.name} has only ${menuItem.stockQuantity} left in stock.`);
+        }
+
+        const remaining = menuItem.stockQuantity - item.quantity;
+        const crossesThreshold = menuItem.lowStockAlertEnabled && remaining <= menuItem.lowStockThreshold;
+        await tx.update(menuItems).set({
+          stockQuantity: remaining,
+          isAvailable: crossesThreshold ? false : menuItem.isAvailable
+        }).where(eq(menuItems.id, menuItem.id));
+
+        if (crossesThreshold) {
+          broadcast({
+            type: "menu.low_stock",
+            payload: {
+              menuItemId: menuItem.id,
+              itemName: menuItem.name,
+              quantity: remaining,
+              threshold: menuItem.lowStockThreshold
+            }
+          });
+        }
+      }
 
       await tx.insert(orderItems).values(
         input.items.map((item) => ({
