@@ -1495,3 +1495,197 @@ button {
     max-height: calc(100vh - 16px);
   }
 }
+
+/* Add Menu Item — final form presentation polish */
+.menu-management .menu-item-editor {
+  padding:22px 24px 4px;
+  gap:16px;
+}
+
+.menu-management .editor-section {
+  padding:0;
+  overflow:visible;
+  border-radius:18px;
+}
+
+.menu-management .editor-section-head {
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:16px 18px 13px;
+  border-bottom:1px solid rgba(255,255,255,.08);
+}
+
+.menu-management .editor-section-head > div {
+  display:grid;
+  gap:3px;
+}
+
+.menu-management .editor-section-head strong {
+  font-size:13px;
+  letter-spacing:.01em;
+}
+
+.menu-management .editor-section-head small {
+  font-size:10px;
+  line-height:1.45;
+}
+
+.menu-management .editor-step {
+  width:30px;
+  height:30px;
+  display:grid;
+  place-items:center;
+  flex:0 0 30px;
+  border-radius:10px;
+  font-size:10px;
+  font-weight:850;
+}
+
+.menu-management .editor-section > .form-grid,
+.menu-management .editor-media-grid,
+.menu-management .editor-section > .toggle-row {
+  margin:0;
+  padding:17px 18px 18px;
+}
+
+.menu-management .editor-section > .form-grid {
+  column-gap:12px;
+  row-gap:13px;
+}
+
+.menu-management .editor-section label {
+  gap:7px;
+  font-size:11px;
+  letter-spacing:.01em;
+}
+
+.menu-management .editor-section input:not([type="checkbox"]),
+.menu-management .editor-section textarea,
+.menu-management .editor-section .custom-select-trigger {
+  min-height:42px;
+  border-radius:11px;
+  font-size:12px;
+}
+
+.menu-management .editor-section textarea {
+  min-height:112px;
+  resize:vertical;
+  line-height:1.5;
+}
+
+.menu-management .editor-media-grid {
+  display:grid;
+  grid-template-columns:minmax(190px,.72fr) minmax(0,1.28fr);
+  gap:16px;
+  align-items:stretch;
+}
+
+.menu-management .menu-image-preview {
+  min-height:188px;
+  border-radius:15px;
+  position:relative;
+}
+
+.menu-management .menu-image-preview > div {
+  display:grid;
+  justify-items:center;
+  gap:5px;
+  padding:18px;
+}
+
+.menu-management .menu-image-preview > div > span {
+  font-size:30px;
+  margin-bottom:2px;
+  filter:drop-shadow(0 5px 10px rgba(0,0,0,.18));
+}
+
+.menu-management .menu-image-preview strong {
+  font-size:11px;
+}
+
+.menu-management .menu-image-preview small {
+  font-size:9px;
+}
+
+.menu-management .editor-media-fields {
+  display:grid;
+  gap:12px;
+  align-content:start;
+}
+
+.menu-management .editor-advanced > .form-grid {
+  padding-bottom:14px;
+}
+
+.menu-management .editor-advanced .toggle-row {
+  padding-top:14px;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+
+.menu-management .editor-advanced .toggle-check {
+  min-height:54px;
+  padding:11px 12px;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:12px;
+  background:rgba(255,255,255,.035);
+}
+
+.menu-management .editor-advanced .toggle-check span {
+  display:grid;
+  gap:3px;
+}
+
+.menu-management .editor-advanced .toggle-check strong {
+  font-size:11px;
+}
+
+.menu-management .editor-advanced .toggle-check small {
+  font-size:9px;
+  line-height:1.35;
+}
+
+.menu-management .price-input {
+  position:relative;
+}
+
+.menu-management .price-input > span {
+  left:13px;
+  color:rgba(255,239,227,.62);
+  font-size:12px;
+}
+
+.menu-management .price-input input {
+  padding-left:29px;
+}
+
+@media (max-width:650px) {
+  .menu-management .menu-item-editor {
+    padding:16px 15px 2px;
+    gap:13px;
+  }
+
+  .menu-management .editor-section-head {
+    padding:14px 14px 12px;
+  }
+
+  .menu-management .editor-section > .form-grid,
+  .menu-management .editor-media-grid,
+  .menu-management .editor-section > .toggle-row {
+    padding:14px;
+  }
+
+  .menu-management .editor-media-grid {
+    grid-template-columns:1fr;
+  }
+
+  .menu-management .menu-image-preview {
+    min-height:150px;
+  }
+
+  .menu-management .editor-advanced .toggle-row {
+    grid-template-columns:1fr;
+  }
+}
