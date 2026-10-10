@@ -1849,3 +1849,20 @@ button {
     min-height:130px;
   }
 }
+
+/* Keep selected dish images clean: no duplicate hover layer over the preview. */
+.menu-management .menu-image-upload-button.has-image {
+  inset:0;
+  border:0;
+  border-radius:11px;
+  background:transparent;
+}
+.menu-management .menu-upload-preview:hover .menu-image-upload-button.has-image,
+.menu-management .menu-image-upload-button.has-image:focus-within {
+  background:transparent;
+  border-color:transparent;
+  opacity:1;
+}
+.menu-management .menu-image-upload-button.has-image .menu-upload-plus {
+  display:none;
+}
