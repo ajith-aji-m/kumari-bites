@@ -3767,3 +3767,106 @@ button {
   line-height:1.25;
   white-space:nowrap;
 }
+
+
+/* Customer-facing animated menu landing page */
+.customer-landing{min-height:100vh;background:#fbf4eb;color:#342017;overflow:hidden;font-family:Inter,ui-sans-serif,system-ui,sans-serif}
+.customer-landing *{box-sizing:border-box}
+.customer-hero{position:relative;isolation:isolate;min-height:760px;height:min(100vh,940px);padding:28px clamp(22px,6vw,96px) 70px;color:#fff8ee;background:#28170f url("/assets/customer-landing-bg.png") center/cover no-repeat;display:flex;flex-direction:column}
+.customer-hero-shade{position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,rgba(25,14,9,.83) 0%,rgba(32,17,10,.58) 43%,rgba(28,15,9,.1) 100%),linear-gradient(0deg,rgba(24,13,8,.42),transparent 36%)}
+.customer-nav{display:flex;align-items:center;justify-content:space-between;gap:20px;position:relative;z-index:2}
+.customer-brand{display:inline-flex;align-items:center;gap:11px;color:inherit;text-decoration:none;font-size:19px;font-weight:850;letter-spacing:-.04em}
+.customer-brand em{font-style:normal;color:#ffb16d}
+.customer-brand-mark{display:grid;place-items:center;width:42px;height:42px;border-radius:14px;background:#f17b3d;color:#fff;font-size:14px;font-weight:900;box-shadow:0 8px 24px #a3452650}
+.customer-nav-cta{display:inline-flex;align-items:center;gap:20px;padding:12px 17px;border:1px solid #ffffff65;border-radius:999px;color:#fff7ed;text-decoration:none;font-size:13px;font-weight:750;background:#ffffff0d;backdrop-filter:blur(12px)}
+.customer-nav-cta span{font-size:18px;color:#ffb16d}
+.customer-hero-copy{position:relative;z-index:1;width:min(610px,70%);margin:auto 0;transform:translateY(-6px);animation:customer-copy-in .8s ease both}
+.customer-kicker{display:flex;align-items:center;gap:9px;margin:0 0 18px;color:#f8b17b;font-size:10px;font-weight:850;letter-spacing:.2em}
+.customer-kicker>span{width:7px;height:7px;border-radius:50%;background:#ff9a50;box-shadow:0 0 0 5px #ff9a5024}
+.customer-hero h1{font-size:clamp(54px,8vw,108px);line-height:.95;letter-spacing:-.075em;margin:0 0 23px;font-weight:900}
+.customer-hero h1 em,.customer-section-heading h2 em{font-style:normal;color:#ffad69}
+.customer-hero-subtitle{max-width:390px;color:#f4e3d4;font-size:clamp(15px,1.5vw,19px);line-height:1.7;margin:0 0 30px}
+.customer-primary-cta{display:inline-flex;align-items:center;gap:28px;padding:15px 19px;border-radius:999px;background:#f17b3d;color:#fff;text-decoration:none;font-size:13px;font-weight:850;box-shadow:0 12px 30px #c85d2a4d;transition:transform .2s,background .2s}
+.customer-primary-cta:hover{transform:translateY(-3px);background:#ff8b4a}
+.customer-primary-cta span{font-size:18px}
+.customer-chef-intro{position:absolute;z-index:3;right:clamp(22px,7vw,110px);bottom:19%;display:flex;align-items:flex-end;gap:13px;width:min(330px,35%);opacity:0;transform:translateY(28px) scale(.96);pointer-events:none;transition:opacity .65s ease,transform .65s cubic-bezier(.2,.8,.2,1)}
+.customer-chef-intro.is-visible{opacity:1;transform:translateY(0) scale(1)}
+.customer-chef-avatar{flex:0 0 58px;width:58px;height:58px;display:grid;place-items:center;border-radius:50%;background:#fff2df;color:#b85c38;border:3px solid #ffbd83;font-size:29px;box-shadow:0 12px 28px #170b0880}
+.customer-chef-bubble{position:relative;padding:16px 18px;border-radius:19px 19px 19px 5px;background:#fff8ee;color:#3b2418;box-shadow:0 15px 40px #150a0866}
+.customer-chef-bubble:before{content:"";position:absolute;left:-8px;bottom:13px;width:16px;height:16px;background:#fff8ee;transform:rotate(45deg)}
+.customer-chef-bubble strong,.customer-chef-bubble span{position:relative;display:block}
+.customer-chef-bubble strong{font-size:14px;margin-bottom:5px}
+.customer-chef-bubble span{font-size:12px;line-height:1.55;color:#806557}
+.customer-scroll-cue{position:absolute;z-index:2;left:clamp(22px,6vw,96px);bottom:32px;display:flex;align-items:center;gap:12px;color:#f8e7d6;text-decoration:none;font-size:9px;letter-spacing:.2em;font-weight:800}
+.scroll-cue-line{display:block;width:34px;height:1px;background:#ffad69}
+.customer-hero-orbit{position:absolute;z-index:0;border:1px solid #ffffff19;border-radius:50%;pointer-events:none}
+.orbit-one{width:440px;height:440px;right:8%;top:20%;transform:rotate(-24deg)}
+.orbit-two{width:530px;height:530px;right:5%;top:15%;border-style:dashed;opacity:.5}
+.customer-menu-section{position:relative;padding:100px clamp(20px,6vw,96px) 110px;background:radial-gradient(ellipse at 10% 20%,#f4dfcc 0,transparent 34%),#fbf4eb}
+.customer-section-heading{text-align:center;max-width:680px;margin:0 auto 62px}
+.customer-section-heading .customer-kicker{justify-content:center}
+.customer-section-heading h2{font-size:clamp(38px,5.2vw,65px);letter-spacing:-.065em;line-height:1.02;margin:0 0 17px;font-weight:900}
+.customer-section-heading h2 em{color:#c65e34}
+.customer-section-heading>p:last-child{font-size:15px;line-height:1.7;color:#846b5c}
+.customer-category-area{max-width:1280px;margin:0 auto}
+.customer-category-heading,.customer-items-heading{display:flex;justify-content:space-between;align-items:end;gap:18px;margin-bottom:24px}
+.customer-category-heading h3,.customer-items-heading h3{margin:0;font-size:25px;letter-spacing:-.045em}
+.customer-category-heading>span,.customer-items-heading>span{font-size:12px;color:#9a7f6c}
+.customer-category-bubbles{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:24px;padding:12px 0 62px}
+.customer-category-bubble{width:150px;min-height:174px;padding:14px 10px 16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;border:1px solid #ead8c7;border-radius:100px;background:#fffaf4;color:#442b1c;cursor:pointer;box-shadow:0 10px 28px #7544210b;transition:transform .28s cubic-bezier(.2,.8,.2,1),box-shadow .28s,border-color .28s}
+.customer-category-bubble:nth-child(2n){transform:translateY(14px)}
+.customer-category-bubble:hover,.customer-category-bubble.selected{transform:translateY(-7px) scale(1.04);border-color:#e77a43;box-shadow:0 18px 35px #8f4a2520}
+.customer-category-bubble.selected{background:#fff0e4;outline:2px solid #e77a4333}
+.customer-category-bubble img{width:82px;height:82px;object-fit:cover;border-radius:50%;box-shadow:0 7px 16px #51301a20}
+.category-bubble-art{display:grid;place-items:center;width:82px;height:82px;border-radius:50%;background:linear-gradient(145deg,#fbe2c7,#fff7eb);font-size:35px;color:#cb683c}
+.category-tone-1 .category-bubble-art{background:linear-gradient(145deg,#f4d2b8,#fff1df)}
+.category-tone-2 .category-bubble-art{background:linear-gradient(145deg,#e8d4b8,#fff4de)}
+.category-tone-3 .category-bubble-art{background:linear-gradient(145deg,#f5cfae,#fff0dc)}
+.category-tone-4 .category-bubble-art{background:linear-gradient(145deg,#e7d7bc,#fff6e9)}
+.customer-category-bubble strong{font-size:13px;font-weight:850}
+.customer-category-bubble small{font-size:10px;color:#a08775}
+.customer-items-heading{margin:8px 0 25px;padding-bottom:17px;border-bottom:1px solid #e9d8c8}
+.customer-items-heading .customer-kicker{font-size:9px;margin-bottom:8px}
+.customer-items-heading h3{font-size:31px}
+.customer-food-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px}
+.customer-food-card{overflow:hidden;border:1px solid #eddfd2;border-radius:23px;background:#fffaf5;box-shadow:0 12px 35px #6540210a;transition:transform .25s,box-shadow .25s}
+.customer-food-card:hover{transform:translateY(-6px);box-shadow:0 20px 42px #65402118}
+.customer-food-image{position:relative;display:grid;place-items:center;aspect-ratio:1.15;background:radial-gradient(circle at 40% 35%,#fff4e4,#efd7bd);overflow:hidden}
+.customer-food-image img{width:100%;height:100%;object-fit:cover;transition:transform .5s}
+.customer-food-card:hover .customer-food-image img{transform:scale(1.06)}
+.customer-food-image>span:first-child:not(.customer-veg-mark){font-size:74px;filter:drop-shadow(0 12px 8px #6b3b2320)}
+.customer-veg-mark{position:absolute;right:13px;top:13px;width:17px;height:17px;border:2px solid #fff;border-radius:4px;background:#2f9d60;box-shadow:0 2px 6px #0002}
+.customer-veg-mark:after{content:"";position:absolute;width:5px;height:5px;border-radius:50%;background:white;left:4px;top:4px}
+.customer-veg-mark.nonveg{background:#cf4d3c}
+.customer-food-info{padding:17px}
+.customer-food-info>div:first-child{display:flex;align-items:start;justify-content:space-between;gap:8px}
+.customer-food-info h4{font-size:15px;line-height:1.35;margin:0;font-weight:850}
+.customer-food-info>div:first-child>strong{white-space:nowrap;color:#bf5a32;font-size:14px}
+.customer-food-info>p{min-height:32px;margin:9px 0 13px;color:#947969;font-size:11px;line-height:1.5}
+.customer-food-info>button{width:100%;display:flex;align-items:center;justify-content:center;gap:9px;padding:11px;border:1px solid #edc8af;border-radius:12px;background:#fff0e5;color:#a84e2b;font-size:12px;font-weight:850;cursor:pointer}
+.customer-food-info>button:hover{background:#f17b3d;color:white}
+.customer-quantity-controls{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:9px;color:#987662;font-size:10px}
+.customer-quantity-controls button{display:grid;place-items:center;width:27px;height:27px;border:1px solid #e9d4c3;border-radius:50%;background:white;color:#a84e2b;cursor:pointer;font-size:15px}
+.customer-loading,.customer-empty,.customer-error{padding:35px 20px;text-align:center;color:#927664;border:1px dashed #dfc4af;border-radius:18px;line-height:1.7}
+.customer-error button{margin-left:12px;border:0;background:none;color:#b9522d;font-weight:800;cursor:pointer}
+.customer-footer{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:28px clamp(20px,6vw,96px);background:#29180f;color:#f9eadd;font-size:11px}
+.customer-footer .customer-brand{font-size:15px}
+.customer-footer .customer-brand-mark{width:34px;height:34px;border-radius:11px}
+.customer-footer>a:last-child{color:#ffb16d;text-decoration:none;font-weight:800}
+.customer-cart-fab{position:fixed;z-index:20;bottom:22px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:16px;padding:14px 20px;border:0;border-radius:999px;background:#302016;color:#fff7ee;box-shadow:0 14px 42px #29180f45;cursor:pointer;font-size:12px;font-weight:750;white-space:nowrap}
+.customer-cart-fab strong{padding-left:15px;border-left:1px solid #ffffff30;color:#ffb16d}
+.customer-cart-panel{position:fixed;z-index:19;right:22px;bottom:88px;width:min(430px,calc(100vw - 28px));max-height:70vh;overflow:auto;padding:22px;border:1px solid #ead7c6;border-radius:24px;background:#fffaf4;box-shadow:0 24px 80px #29180f30}
+.customer-cart-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.customer-cart-title small{color:#bc633b;font-size:9px;font-weight:900;letter-spacing:.16em}
+.customer-cart-title h3{margin:4px 0 0;font-size:25px}
+.customer-cart-title>button{width:32px;height:32px;border:0;border-radius:50%;background:#f4e5d7;font-size:23px;cursor:pointer}
+.customer-cart-line{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:14px;padding:13px 0;border-bottom:1px solid #efe1d5;font-size:12px}
+.customer-cart-line>div:first-child strong,.customer-cart-line>div:first-child small{display:block}
+.customer-cart-line>div:first-child small{margin-top:5px;color:#9d8371}
+.customer-cart-total{display:flex;justify-content:space-between;margin-top:18px;font-size:14px}
+.customer-cart-total strong{color:#b95630}
+.customer-cart-note{margin:14px 0 0;padding:11px;border-radius:12px;background:#f8eee4;color:#977d6a;font-size:10px;line-height:1.55}
+@keyframes customer-copy-in{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(-6px)}}
+@media(max-width:1000px){.customer-food-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.customer-hero{min-height:700px}.customer-chef-intro{right:5%;bottom:14%;width:min(310px,43%)}.customer-category-bubble{width:136px;min-height:160px}.category-bubble-art,.customer-category-bubble img{width:72px;height:72px}}
+@media(max-width:640px){.customer-hero{height:auto;min-height:780px;padding:20px 22px 70px;background-position:58% center}.customer-hero-shade{background:linear-gradient(90deg,#24130eeb 0%,#29160ed1 58%,#29160e66 100%),linear-gradient(0deg,#24130e88,transparent 65%)}.customer-brand{font-size:16px}.customer-brand-mark{width:36px;height:36px;border-radius:12px}.customer-nav-cta{gap:8px;padding:10px 12px;font-size:11px}.customer-hero-copy{width:100%;margin:110px 0 250px}.customer-hero h1{font-size:clamp(54px,15vw,82px)}.customer-hero-subtitle{font-size:15px;max-width:290px}.customer-chef-intro{left:22px;right:22px;bottom:92px;width:auto;max-width:360px}.customer-chef-avatar{flex-basis:48px;width:48px;height:48px;font-size:24px}.customer-chef-bubble{padding:13px 15px}.customer-scroll-cue{left:22px;bottom:32px;font-size:8px}.customer-hero-orbit{right:-140px;top:36%;width:360px;height:360px}.orbit-two{width:430px;height:430px;right:-175px}.customer-menu-section{padding:70px 20px 78px}.customer-section-heading{margin-bottom:44px}.customer-section-heading h2{font-size:43px}.customer-section-heading>p:last-child{font-size:13px}.customer-category-heading h3{font-size:20px}.customer-category-heading>span,.customer-items-heading>span{font-size:10px}.customer-category-bubbles{gap:12px;padding:10px 0 44px}.customer-category-bubble{width:calc(33.333% - 9px);min-height:132px;padding:10px 5px;border-radius:70px}.customer-category-bubble:nth-child(2n){transform:none}.customer-category-bubble:hover,.customer-category-bubble.selected{transform:translateY(-4px) scale(1.02)}.category-bubble-art,.customer-category-bubble img{width:58px;height:58px;font-size:27px}.customer-category-bubble strong{font-size:11px;text-align:center}.customer-category-bubble small{font-size:9px}.customer-items-heading h3{font-size:25px}.customer-food-grid{gap:12px}.customer-food-info{padding:12px}.customer-food-info h4{font-size:12px}.customer-food-info>div:first-child>strong{font-size:12px}.customer-food-info>p{font-size:10px}.customer-food-info>button{font-size:10px;padding:10px 5px}.customer-food-image>span:first-child:not(.customer-veg-mark){font-size:52px}.customer-footer{flex-wrap:wrap;padding:22px;justify-content:space-between}.customer-footer>span{order:3;width:100%}.customer-cart-fab{max-width:calc(100vw - 24px);gap:10px;padding:13px 15px;font-size:11px}.customer-cart-panel{right:14px;bottom:80px;padding:17px}.customer-cart-line{gap:8px;font-size:10px}}
+@media(prefers-reduced-motion:reduce){.customer-landing *{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
