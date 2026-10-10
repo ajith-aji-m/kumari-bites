@@ -839,3 +839,7 @@ input:not([type="checkbox"]):focus { border-color: #b85c38; box-shadow: 0 0 0 3p
   }
 }
 
+
+.visually-hidden-field { position:absolute; width:1px; height:1px; opacity:0; pointer-events:none; }
+.custom-form-select .custom-select-trigger { min-height:44px; background:rgba(255,255,255,.82); }
+.custom-form-select .custom-select-menu { max-height:220px; overflow:auto; }
