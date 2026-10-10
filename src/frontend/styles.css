@@ -5862,3 +5862,10 @@ button {
 .customer-story-categories.story-categories-visible .story-panel-heading,
 .customer-story-categories.story-categories-visible.menu-items-on-plate .story-panel-heading{transform:translateY(-42px)!important;margin-bottom:-28px!important}
 }
+
+/* Sit the platter links near the bottom edge of the platter on desktop. */
+@media(min-width:761px){
+.customer-story-categories.menu-items-on-plate.story-categories-visible .customer-plate-links{transform:translateY(90px)!important}
+.customer-story-categories.story-categories-visible:not(.menu-items-on-plate) .customer-category-bubbles{transform:translateY(80px)!important}
+.customer-story-categories.story-categories-visible:not(.menu-items-on-plate) .customer-plate-links{transform:translateY(108px)!important}
+}
