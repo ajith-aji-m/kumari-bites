@@ -2938,7 +2938,7 @@ button {
 
 
 /* Orders follows the same Menu Management layout and floating action pattern */
-.orders-page { display:grid; gap:18px; }
+.orders-page { display:grid; gap:18px; margin-top:12px; }
 .orders-panel { min-width:0; }
 .menu-management .menu-index-controls.orders-toolbar {
   grid-template-columns:minmax(220px,1fr) minmax(160px,210px);
