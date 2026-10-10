@@ -1,4 +1,5 @@
-import { DragEvent, FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { ImageUpload } from "./components/ImageUpload";
 
 type DashboardData = {
   today: { orders: number; sales: number; averageOrder: number; activeOrders: number; completedOrders: number; cancelledOrders: number };
@@ -53,21 +54,6 @@ const featuredMenuItems = [
 
 function money(value: string | number | null | undefined) {
   return `₹${Number(value ?? 0).toLocaleString("en-IN", { maximumFractionDigits: 0 })}`;
-}
-
-const MAX_IMAGE_DIMENSION = 800;
-
-// Downscale and re-encode uploads so the data URL stays small enough to store and send.
-async function readImageAsDataUrl(file: File) {
-  const bitmap = await createImageBitmap(file);
-  const scale = Math.min(1, MAX_IMAGE_DIMENSION / Math.max(bitmap.width, bitmap.height));
-  const canvas = document.createElement("canvas");
-  canvas.width = Math.round(bitmap.width * scale);
-  canvas.height = Math.round(bitmap.height * scale);
-  canvas.getContext("2d")!.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-  bitmap.close();
-  const webp = canvas.toDataURL("image/webp", 0.82);
-  return webp.startsWith("data:image/webp") ? webp : canvas.toDataURL("image/jpeg", 0.82);
 }
 
 function statusLabel(status: string) {
@@ -570,17 +556,7 @@ function MenuManagement() {
         <div className="editor-section">
           <div className="editor-section-head"><span className="editor-step">02</span><div><strong>Dish presentation</strong><small>Add the image and short description customers should see.</small></div></div>
           <div className="editor-media-grid">
-            <div className="menu-image-preview menu-upload-preview">
-              {itemImage ? <img src={itemImage} alt="Selected dish" /> : <div className="menu-image-empty"><span className="menu-upload-plus" aria-hidden="true">+</span><strong>Add image</strong></div>}
-              <label className={`menu-image-upload-button${itemImage ? " has-image" : ""}`} aria-label={itemImage ? "Change image" : "Add image"}>{itemImage && <span className="menu-upload-plus" aria-hidden="true">+</span>}<input type="file" accept="image/png,image/jpeg,image/webp" onChange={event => {
-                const file = event.target.files?.[0];
-                if (!file) return;
-                if (!file.type.startsWith("image/")) { setError("Please choose an image file."); return; }
-                if (file.size > 5 * 1024 * 1024) { setError("Please choose an image smaller than 5 MB."); return; }
-                readImageAsDataUrl(file).then(setItemImage, () => setError("Could not read that image. Please try another file."));
-              }} /></label>
-              <input type="hidden" name="imageUrl" value={itemImage} readOnly />
-            </div>
+            <ImageUpload value={itemImage} onChange={setItemImage} name="imageUrl" alt="Selected dish" />
             <div className="editor-media-fields">
               <label>Description<textarea name="description" defaultValue={itemDefaults.description ?? ""} placeholder="Short description customers should see..." /></label>
             </div>
@@ -616,23 +592,7 @@ function MenuManagement() {
         <div className="editor-section">
           <div className="editor-section-head"><span className="editor-step">02</span><div><strong>Category presentation</strong><small>Add a visual image that represents this category.</small></div></div>
           <div className="editor-media-grid category-media-grid">
-            <label className="menu-upload-preview category-upload-preview category-single-upload" aria-label={categoryImage ? "Change category image" : "Add category image"}>
-              {categoryImage ? <>
-                <img src={categoryImage} alt="Selected category" />
-                <button type="button" className="category-image-remove" aria-label="Remove category image" title="Remove image" onClick={event => {
-                  event.preventDefault();
-                  event.stopPropagation();
-                  setCategoryImage("");
-                }}>×</button>
-              </> : <div className="menu-image-empty"><span className="menu-upload-plus" aria-hidden="true">+</span><strong>Add image</strong><small>PNG, JPG or WEBP · Max 5 MB</small></div>}
-              <input type="file" accept="image/png,image/jpeg,image/webp" onChange={event => {
-                const file = event.target.files?.[0];
-                if (!file) return;
-                if (!file.type.startsWith("image/")) { setError("Please choose an image file."); return; }
-                if (file.size > 5 * 1024 * 1024) { setError("Please choose an image smaller than 5 MB."); return; }
-                readImageAsDataUrl(file).then(setCategoryImage, () => setError("Could not read that image. Please try another file."));
-              }} />
-            </label>
+            <ImageUpload value={categoryImage} onChange={setCategoryImage} name="imageUrl" alt="Selected category" />
           </div>
         </div>
       </div>
