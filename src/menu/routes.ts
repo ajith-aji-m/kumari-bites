@@ -11,7 +11,8 @@ const categorySchema = z.object({
   slug: z.string().trim().min(1).max(120).optional(),
   description: z.string().trim().max(2000).optional(),
   imageUrl: z.string().trim().max(5000000).optional(),
-  sortOrder: z.number().int().min(0).default(0)
+  sortOrder: z.number().int().min(0).default(0),
+  isActive: z.boolean().optional()
 });
 
 const menuItemSchema = z.object({
