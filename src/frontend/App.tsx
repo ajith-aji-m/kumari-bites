@@ -661,8 +661,8 @@ function CustomSelect({ value, onChange, options, placeholder = "Select...", por
       const trigger = triggerRef.current;
       if (!trigger) return;
       const rect = trigger.getBoundingClientRect();
-      const width = Math.max(rect.width, 180);
-      const menuHeight = Math.min(options.length * 38 + 10, 250);
+      const width = rect.width;
+      const menuHeight = Math.min(options.length * 29 + 10, 220);
       const left = Math.max(8, Math.min(rect.left, window.innerWidth - width - 8));
       const top = rect.bottom + menuHeight + 8 <= window.innerHeight
         ? rect.bottom + 6
