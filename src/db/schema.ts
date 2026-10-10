@@ -68,7 +68,7 @@ export const categories = mysqlTable("categories", {
   name: varchar("name", { length: 100 }).notNull(),
   slug: varchar("slug", { length: 120 }).notNull(),
   description: text("description"),
-  imageUrl: varchar("image_url", { length: 500 }),
+  imageUrl: text("image_url"),
   sortOrder: int("sort_order").default(0).notNull(),
   isActive: boolean("is_active").default(true).notNull(),
   ...timestamps
