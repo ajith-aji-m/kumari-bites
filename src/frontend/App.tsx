@@ -44,14 +44,7 @@ const menuItems = [
   { label: "Settings", icon: "⚙" }
 ];
 
-const featuredMenuItems = [
-  "Momos",
-  "Veg Mojito",
-  "Combo Platter",
-  "Custom Chips",
-  "French Fries",
-  "Kathi Rolls"
-];
+
 
 function money(value: string | number | null | undefined) {
   return `₹${Number(value ?? 0).toLocaleString("en-IN", { maximumFractionDigits: 0 })}`;
@@ -170,61 +163,115 @@ function useRealtimeRefresh(onEvent: (event: { type: string; payload?: unknown }
 
 function DashboardHome() {
   const [data, setData] = useState<DashboardData | null>(null);
+  const [orders, setOrders] = useState<Array<DashboardData["recentOrders"][number]>>([]);
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
 
-  const load = useCallback(() => {
+  const load = useCallback(async () => {
     setError("");
-    api<DashboardData>("/api/v1/dashboard").then(setData).catch(e => setError(e.message));
+    try {
+      const result = await api<DashboardData>("/api/v1/dashboard");
+      setData(result);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Unable to load dashboard");
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  useEffect(() => { load(); }, [load]);
+  const loadOrders = useCallback(async () => {
+    try {
+      const result = await api<Array<DashboardData["recentOrders"][number]>>("/api/v1/orders");
+      setOrders(result);
+    } catch {
+      // Keep the dashboard's main metrics available if the order list endpoint is temporarily unavailable.
+    }
+  }, []);
+
+  const loadMenu = useCallback(async () => {
+    try {
+      const result = await api<MenuItem[]>("/api/v1/menu-items");
+      setMenuItems(result);
+    } catch {
+      // Menu metrics are supplementary; don't block the dashboard if they fail to load.
+    }
+  }, []);
+
+  useEffect(() => { load(); loadOrders(); loadMenu(); }, [load, loadOrders, loadMenu]);
 
   useRealtimeRefresh(useCallback((event) => {
-    if (event.type === "order.created" || event.type === "order.status_changed") load();
-  }, [load]));
+    if (event.type === "order.created" || event.type === "order.status_changed") {
+      load();
+      loadOrders();
+    }
+    if (event.type === "menu.low_stock") loadMenu();
+  }, [load, loadOrders, loadMenu]));
 
-  if (error) return <section className="panel"><h3>Dashboard unavailable</h3><p className="muted">{error}</p><button className="primary-button compact" onClick={load}>Retry</button></section>;
-  if (!data) return <section className="panel"><p className="muted">Loading dashboard...</p></section>;
+  if (loading && !data) return <section className="dashboard-home-state panel"><p className="muted">Loading dashboard...</p></section>;
+  if (error && !data) return <section className="dashboard-home-state panel"><h3>Dashboard unavailable</h3><p className="muted">{error}</p><button className="primary-button compact" onClick={load}>Retry</button></section>;
 
-  const top = data.popularItems[0];
+  const popular = data?.popularItems ?? [];
+  const recentOrders = data?.recentOrders ?? [];
+  const activeStatuses = new Set(["new", "confirmed", "preparing", "ready"]);
+  const activeOrders = orders.filter(order => activeStatuses.has(order.status)).length;
+  const preparingOrders = orders.filter(order => order.status === "preparing").length;
+  const readyOrders = orders.filter(order => order.status === "ready").length;
+  const availableItems = menuItems.filter(item => item.isAvailable && item.stockQuantity > 0);
+  const unavailableItems = menuItems.filter(item => !item.isAvailable || item.stockQuantity <= 0);
+  const lowStockItems = menuItems.filter(item => item.isAvailable && item.stockQuantity > 0 && item.stockQuantity <= item.lowStockThreshold);
+  const trendMax = Math.max(1, ...(data?.salesTrend ?? []).map(day => Number(day.sales) || 0));
+  const dateLabel = new Intl.DateTimeFormat("en-IN", { weekday: "long", day: "numeric", month: "long", year: "numeric" }).format(new Date());
 
-  return <>
-    <section className="welcome">
-      <div><p className="eyebrow">KITCHEN TODAY</p><h1>Good morning, Admin</h1><p className="muted">A live view of today’s orders, sales and the Kumari Bites menu.</p></div>
-      <button className="primary-button compact">+ New order</button>
+  return <section className="dashboard-home">
+    <div className="dashboard-home-heading">
+      <div><p className="eyebrow">OVERVIEW</p><h1>Dashboard</h1><p className="muted">{dateLabel}</p></div>
+      <button type="button" className="dashboard-refresh-button" onClick={() => { load(); loadOrders(); loadMenu(); }}><span aria-hidden="true">↻</span> Refresh</button>
+    </div>
+
+    <section className="dashboard-metrics" aria-label="Today's business metrics">
+      <article className="dashboard-metric-card"><span className="dashboard-metric-label">Today's sales</span><strong>{money(data?.today.sales)}</strong><small>{data?.today.completedOrders ?? 0} completed orders</small></article>
+      <article className="dashboard-metric-card"><span className="dashboard-metric-label">Orders today</span><strong>{data?.today.orders ?? 0}</strong><small>{data?.today.cancelledOrders ?? 0} cancelled</small></article>
+      <article className="dashboard-metric-card"><span className="dashboard-metric-label">Preparing now</span><strong>{preparingOrders}</strong><small>Orders in preparation</small></article>
+      <article className="dashboard-metric-card"><span className="dashboard-metric-label">Ready for pickup</span><strong>{readyOrders}</strong><small>Awaiting collection</small></article>
     </section>
-    <section className="menu-spotlight">
-      <div className="menu-spotlight-copy">
-        <p className="eyebrow">FROM OUR MENU</p>
-        <h3>Fresh favourites, ready to serve</h3>
-        <p className="muted">The menu behind today’s kitchen activity.</p>
-      </div>
-      <div className="menu-spotlight-items">
-        {featuredMenuItems.map(item => <span key={item}>{item}</span>)}
-      </div>
-    </section>
-    <section className="stats">
-      <article><span>Today's sales</span><strong>{money(data.today.sales)}</strong><small>{data.today.completedOrders} orders completed</small></article>
-      <article><span>Live orders</span><strong>{data.today.orders}</strong><small>{data.today.activeOrders} in the kitchen</small></article>
-      <article><span>Average order</span><strong>{money(data.today.averageOrder)}</strong><small>Per order today</small></article>
-      <article><span>Menu favourite</span><strong>{top?.itemName ?? "—"}</strong><small>{top?.quantity ?? 0} sold today</small></article>
-    </section>
-    <section className="dashboard-grid">
-      <article className="panel"><div className="panel-head"><div><h3>Fresh from the kitchen</h3><p className="muted">Latest orders and service status</p></div><span className="status-dot">Live</span></div>
-        {data.recentOrders.slice(0, 5).map(o => <div className="order-row" key={o.id}><div><strong>{o.orderNumber}</strong><span>{o.customerName ?? "Walk-in customer"}</span></div><span className={`badge ${o.status}`}>{statusLabel(o.status)}</span><strong>{money(o.totalAmount)}</strong></div>)}
-        {!data.recentOrders.length && <p className="muted">No orders yet.</p>}
+
+    <section className="dashboard-home-grid">
+      <article className="dashboard-clean-panel dashboard-orders-panel">
+        <div className="dashboard-section-heading"><div><h2>Recent orders</h2><p>Latest orders and their current status</p></div><span className="dashboard-live-indicator"><i /> Live</span></div>
+        {recentOrders.length ? <div className="dashboard-recent-orders">{recentOrders.slice(0, 5).map(order => <div className="dashboard-recent-order" key={order.id}>
+          <div className="dashboard-order-info"><strong>{order.orderNumber}</strong><span>{order.customerName || "Walk-in customer"}</span></div>
+          <span className={`badge ${order.status}`}>{statusLabel(order.status)}</span>
+          <strong className="dashboard-order-total">{money(order.totalAmount)}</strong>
+        </div>)}</div> : <div className="dashboard-empty-state"><strong>No orders yet</strong><span>New orders will appear here.</span></div>}
+        <div className="dashboard-active-summary"><span>Active orders</span><strong>{activeOrders}</strong></div>
       </article>
-      <article className="panel"><div className="panel-head"><div><h3>Menu favourites</h3><p className="muted">What customers are ordering today</p></div></div>
-        {data.popularItems.map((item, i) => <div className="popular-row" key={item.itemName}><span className="rank">{i + 1}</span><span>{item.itemName}</span><strong>{item.quantity}</strong></div>)}
-        {!data.popularItems.length && <p className="muted">No sales yet.</p>}
+
+      <article className="dashboard-clean-panel dashboard-menu-panel">
+        <div className="dashboard-section-heading"><div><h2>Menu overview</h2><p>Live figures from Menu Management</p></div></div>
+        <div className="dashboard-menu-stats">
+          <div><span>Available items</span><strong>{menuItems.length ? availableItems.length : "—"}</strong></div>
+          <div><span>Low stock</span><strong className={lowStockItems.length ? "dashboard-warning-value" : ""}>{menuItems.length ? lowStockItems.length : "—"}</strong></div>
+          <div><span>Unavailable</span><strong>{menuItems.length ? unavailableItems.length : "—"}</strong></div>
+        </div>
+        <div className="dashboard-section-subheading"><h3>Top sellers today</h3><span>Items sold</span></div>
+        {popular.length ? <div className="dashboard-top-sellers">{popular.slice(0, 5).map((item, index) => <div className="dashboard-top-seller" key={item.itemName}><span className="dashboard-rank">{index + 1}</span><span>{item.itemName}</span><strong>{item.quantity}</strong></div>)}</div> : <div className="dashboard-empty-state compact"><span>No sales data yet.</span></div>}
       </article>
     </section>
-    <section className="panel"><div className="panel-head"><div><h3>Sales rhythm</h3><p className="muted">Last 7 days of Kumari Bites orders</p></div></div>
-      <div className="trend-row">{data.salesTrend.map(day => <span key={String(day.sale_date)}>{String(day.sale_date).slice(5)} · {money(day.sales)}</span>)}</div>
+
+    <section className="dashboard-clean-panel dashboard-sales-panel">
+      <div className="dashboard-section-heading"><div><h2>Sales trend</h2><p>Daily sales over the last 7 days</p></div></div>
+      {data?.salesTrend.length ? <div className="dashboard-sales-chart">{data.salesTrend.map(day => {
+        const sales = Number(day.sales) || 0;
+        const height = Math.max(5, (sales / trendMax) * 100);
+        return <div className="dashboard-sales-day" key={String(day.sale_date)} title={`${String(day.sale_date)}: ${money(sales)}`}>
+          <div className="dashboard-sales-bar-track"><div className="dashboard-sales-bar" style={{ height: `${height}%` }} /></div>
+          <strong>{money(sales)}</strong><span>{String(day.sale_date).slice(5)}</span>
+        </div>;
+      })}</div> : <div className="dashboard-empty-state compact"><span>Sales data will appear when orders are completed.</span></div>}
     </section>
-  </>;
+  </section>;
 }
-
 function ImagePreviewDrawer({ preview, onClose }: { preview: { url: string; type: "item" | "category"; name: string; category?: string; price?: string | number | null; description?: string | null; isVeg?: boolean; isAvailable?: boolean; stockQuantity?: number; slug?: string; itemCount?: number; isActive?: boolean }; onClose: () => void }) {
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
