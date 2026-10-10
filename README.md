@@ -257,11 +257,11 @@ The React frontend lives under `src/frontend/` and does not create a separate ba
 
 ## Customer Landing Page — First UI Foundation
 
-- Customer-facing preview routes: `/order` and `/customer`.
+- Customer-facing route: `/customer/order`.
 - The page reads active categories and available menu items from the public read-only endpoint `GET /api/v1/public/menu`; the existing authenticated admin menu APIs are unchanged.
 - Hero background asset placeholder: `public/assets/customer-landing-bg.png`. Add the generated food-only background image at this exact path; keep the chef as a separate animated layer.
-- The initial UI includes a delayed welcome bubble, category bubbles, item cards, quantity selection, and a local preview cart. Checkout/order submission is not connected yet.
-- Local preview URL after starting Vite: `http://localhost:5173/order`.
+- The hero is a sticky, scroll-driven story: background first, the separate `order-taker.png` character and speech bubble next, then categories and category-filtered menu items within the same viewport. The cart is still a local preview; checkout/order submission is not connected yet.
+- Local preview URL after starting Vite: `http://localhost:5173/customer/order`.
 - Customer landing URL configured in Settings should point to the deployed site's `/order` path when the page is deployed.
 
 ## Current UI milestone — Menu Management
