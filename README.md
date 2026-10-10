@@ -242,7 +242,7 @@ The React frontend lives under `src/frontend/` and does not create a separate ba
 - [ ] Full authentication/session-aware frontend
 - [ ] Roles & permissions UI
 - [ ] Menu management
-- [ ] Order management
+- [x] Order management UI foundation (create, list, filter, and update status)
 - [ ] WebSocket events
 - [ ] Reports
 - [ ] Invoice generation
@@ -266,3 +266,17 @@ The React admin now includes a working Menu Management area connected to the exi
 ### Development note
 
 The requested workflow is to keep implementation on the main branch. After each meaningful architecture or configuration change, update this README so the repository remains the source of truth for project decisions.
+
+
+### Current UI milestone — Orders
+
+The admin Orders page now supports:
+
+- Search by order number, customer name, and phone number.
+- Status filtering and five-row pagination, using the same custom select and table conventions as Menu Management.
+- Add Order modal with optional customer/contact details, order source, notes, menu item selection, quantity controls, and a live total.
+- Creation through the existing order API, using the current menu prices and available stock.
+- Kitchen status updates (New, Confirmed, Preparing, Ready, Completed, Cancelled) with realtime refresh.
+- Order listing includes saved line-item snapshots and shows the newest orders first.
+
+The order/customer information remains order-centric; no separate customer CRM module was added. Invoice generation, payment collection/reconciliation, and WhatsApp delivery remain separate follow-up work.
