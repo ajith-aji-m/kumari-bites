@@ -284,45 +284,179 @@ function Pagination({ currentPage, totalPages, totalItems, pageSize, onPageChang
 function Orders() {
   const [status, setStatus] = useState("all");
   const [query, setQuery] = useState("");
-  const [orders, setOrders] = useState<DashboardData["recentOrders"]>([]);
+  const [orders, setOrders] = useState<Array<DashboardData["recentOrders"][number] & { customerPhone?: string | null; source?: string; notes?: string | null; subtotal?: string | number; items?: Array<{ id: number; itemName: string; quantity: number; unitPrice: string | number; lineTotal: string | number }> }>>([]);
+  const [menu, setMenu] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [ordersPage, setOrdersPage] = useState(1);
+  const [showCreate, setShowCreate] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [customerName, setCustomerName] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
+  const [source, setSource] = useState("walk_in");
+  const [notes, setNotes] = useState("");
+  const [cart, setCart] = useState<Array<{ menuItemId: number; quantity: number }>>([]);
   const pageSize = 5;
 
-  const loadOrders = useCallback(() => {
+  const loadOrders = useCallback(async () => {
     setLoading(true);
-    api<DashboardData["recentOrders"]>("/api/v1/orders").then(setOrders).catch(() => setOrders([])).finally(() => setLoading(false));
+    setError("");
+    try {
+      const data = await api<Array<DashboardData["recentOrders"][number] & { customerPhone?: string | null; source?: string; notes?: string | null; subtotal?: string | number; items?: Array<{ id: number; itemName: string; quantity: number; unitPrice: string | number; lineTotal: string | number }> }>>("/api/v1/orders");
+      setOrders(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to load orders");
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  useEffect(() => { loadOrders(); }, [loadOrders]);
+  const loadMenu = useCallback(async () => {
+    try {
+      const data = await api<MenuItem[]>("/api/v1/menu-items");
+      setMenu(data.filter(item => item.isAvailable));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to load menu items");
+    }
+  }, []);
+
+  useEffect(() => { loadOrders(); loadMenu(); }, [loadOrders, loadMenu]);
   useRealtimeRefresh(useCallback((event) => {
     if (event.type === "order.created" || event.type === "order.status_changed") loadOrders();
   }, [loadOrders]));
 
   const filtered = orders.filter(o =>
     (status === "all" || o.status === status) &&
-    [o.orderNumber, o.customerName ?? ""].some(v => v.toLowerCase().includes(query.toLowerCase()))
+    [o.orderNumber, o.customerName ?? "", o.customerPhone ?? ""].some(v => v.toLowerCase().includes(query.toLowerCase()))
   );
   const ordersTotalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const pagedOrders = filtered.slice((ordersPage - 1) * pageSize, ordersPage * pageSize);
+  const cartItems = cart.map(entry => {
+    const item = menu.find(candidate => candidate.id === entry.menuItemId);
+    return item ? { ...item, quantity: entry.quantity } : null;
+  }).filter((item): item is MenuItem & { quantity: number } => item !== null);
+  const cartTotal = cartItems.reduce((sum, item) => sum + Number(item.price ?? 0) * item.quantity, 0);
 
   useEffect(() => { setOrdersPage(1); }, [status, query]);
   useEffect(() => { if (ordersPage > ordersTotalPages) setOrdersPage(ordersTotalPages); }, [ordersPage, ordersTotalPages]);
 
-  return <section className="panel">
-    <div className="panel-head"><div><p className="eyebrow">KITCHEN SERVICE</p><h3>Orders</h3><p className="muted">Keep every Kumari Bites order moving from new to ready.</p></div><span className="status-dot">Live</span></div>
-    <div className="orders-toolbar"><input className="search-input" value={query} onChange={e => setQuery(e.target.value)} placeholder="Search order or customer" />
-      <select aria-label="Filter orders by kitchen status" className="filter-select" value={status} onChange={e => setStatus(e.target.value)}><option value="all">All kitchen statuses</option>{["new","confirmed","preparing","ready","completed","cancelled"].map(s => <option key={s} value={s}>{statusLabel(s)}</option>)}</select>
-    </div>
-    <div style={{ overflowX: "auto" }}>
-      {loading ? <p className="muted" style={{ padding: 25 }}>Loading orders...</p> : <>
-        <table className="orders-table"><thead><tr><th>Order</th><th>Customer</th><th>Kitchen status</th><th>Total</th></tr></thead><tbody>
-          {pagedOrders.map(o => <tr key={o.id}><td className="order-number">{o.orderNumber}</td><td><div className="order-customer"><strong>{o.customerName ?? "Walk-in customer"}</strong><small>{o.placedAt ? new Date(o.placedAt).toLocaleString("en-IN") : "—"}</small></div></td><td><span className={`order-status ${o.status}`}>{statusLabel(o.status)}</span></td><td><strong>{money(o.totalAmount)}</strong></td></tr>)}
-        </tbody></table>
+  function resetCreateForm() {
+    setCustomerName("");
+    setCustomerPhone("");
+    setSource("walk_in");
+    setNotes("");
+    setCart([]);
+    setError("");
+  }
+
+  async function createOrder(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError("");
+    setSuccess("");
+    if (!cartItems.length) { setError("Add at least one available menu item."); return; }
+    if (customerPhone.trim() && !/^[+0-9()\-\s]{7,30}$/.test(customerPhone.trim())) {
+      setError("Enter a valid customer phone number.");
+      return;
+    }
+    setSaving(true);
+    try {
+      await api("/api/v1/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          customerName: customerName.trim() || undefined,
+          customerPhone: customerPhone.trim() || undefined,
+          source,
+          notes: notes.trim() || undefined,
+          items: cartItems.map(item => ({
+            menuItemId: item.id,
+            itemName: item.name,
+            unitPrice: Number(item.price ?? 0),
+            quantity: item.quantity
+          }))
+        })
+      });
+      setShowCreate(false);
+      resetCreateForm();
+      setSuccess("Order created successfully.");
+      window.setTimeout(() => setSuccess(""), 3200);
+      await Promise.all([loadOrders(), loadMenu()]);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to create order");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function updateStatus(orderId: number, nextStatus: string) {
+    const current = orders.find(order => order.id === orderId);
+    if (!current || current.status === nextStatus) return;
+    setError("");
+    try {
+      await api("/api/v1/orders/" + orderId + "/status", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: nextStatus })
+      });
+      setOrders(currentOrders => currentOrders.map(order => order.id === orderId ? { ...order, status: nextStatus } : order));
+      setSuccess("Order status updated.");
+      window.setTimeout(() => setSuccess(""), 3200);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to update order status");
+    }
+  }
+
+  return <section className="orders-page">
+    {success && <div className="chef-success-toast category-success-toast" role="status" aria-live="polite"><div className="chef-success-bubble"><strong>Chef says</strong><span>{success}</span></div><div className="chef-success-character" aria-hidden="true"><img src="/assets/kumari-bites-chef.png" alt="" /></div></div>}
+    <article className="panel menu-panel orders-panel">
+      <div className="orders-page-heading">
+        <div><p className="eyebrow">KITCHEN SERVICE</p><h3>Orders</h3><p className="muted">Create orders and keep every order moving from new to ready.</p></div>
+        <div className="orders-heading-actions"><span className="status-dot">Live</span><button type="button" className="primary-button compact" onClick={() => { resetCreateForm(); setShowCreate(true); }}>+ Add Order</button></div>
+      </div>
+      {error && !showCreate && <div className="inline-error" role="alert">{error} <button type="button" onClick={loadOrders}>Retry</button></div>}
+      <div className="menu-toolbar menu-index-controls orders-toolbar">
+        <input className="search-input" value={query} onChange={e => setQuery(e.target.value)} placeholder="Search order, customer or phone..." />
+        <CustomSelect value={status} onChange={setStatus} options={[{ value: "all", label: "All statuses" }, ...["new","confirmed","preparing","ready","completed","cancelled"].map(s => ({ value: s, label: statusLabel(s) }))]} />
+      </div>
+      {loading ? <p className="muted">Loading orders...</p> : <div className="menu-table-wrap orders-table-wrap">
+        <table className="menu-table orders-table">
+          <thead><tr><th>Order</th><th>Customer</th><th>Items</th><th>Status</th><th>Total</th><th>Update</th></tr></thead>
+          <tbody>{pagedOrders.map(order => <tr key={order.id}>
+            <td><div className="order-main-cell"><strong>{order.orderNumber}</strong><small>{order.placedAt ? new Date(order.placedAt).toLocaleString("en-IN") : "—"}</small></div></td>
+            <td><div className="order-main-cell"><strong>{order.customerName || "Walk-in customer"}</strong><small>{order.customerPhone || "No phone provided"}</small></div></td>
+            <td><div className="order-items-cell">{order.items?.length ? order.items.map(item => <span key={item.id}>{item.itemName} <small>× {item.quantity}</small></span>) : <span className="muted">Items unavailable</span>}</div></td>
+            <td><span className={"order-status " + order.status}>{statusLabel(order.status)}</span></td>
+            <td><strong>{money(order.totalAmount)}</strong></td>
+            <td><CustomSelect value={order.status} onChange={value => updateStatus(order.id, value)} options={["new","confirmed","preparing","ready","completed","cancelled"].map(s => ({ value: s, label: statusLabel(s) }))} /></td>
+          </tr>)}</tbody>
+        </table>
+        {!filtered.length && <div className="empty-state"><span>🧾</span><strong>No orders found</strong><p className="muted">{query || status !== "all" ? "Try changing your search or status filter." : "Add your first order to get started."}</p></div>}
         <Pagination currentPage={ordersPage} totalPages={ordersTotalPages} totalItems={filtered.length} pageSize={pageSize} onPageChange={setOrdersPage} />
-      </>}
-      {!loading && !filtered.length && <p className="muted" style={{ padding: 25, textAlign: "center" }}>No orders found.</p>}
-    </div>
+      </div>}
+    </article>
+
+    {showCreate && <div className="order-modal-backdrop" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget && !saving) setShowCreate(false); }}>
+      <section className="order-modal" role="dialog" aria-modal="true" aria-labelledby="add-order-title">
+        <div className="order-modal-heading"><div><p className="eyebrow">KITCHEN SERVICE</p><h2 id="add-order-title">Add Order</h2><p className="muted">Add customer details and choose items for this order.</p></div><button type="button" className="image-preview-drawer-close" onClick={() => !saving && setShowCreate(false)} aria-label="Close add order">×</button></div>
+        <form className="order-create-form" onSubmit={createOrder}>
+          {error && <div className="inline-error" role="alert">{error}</div>}
+          <div className="order-form-grid">
+            <label>Customer name <input value={customerName} onChange={e => setCustomerName(e.target.value)} maxLength={120} placeholder="Name (optional)" /></label>
+            <label>Phone number <input value={customerPhone} onChange={e => setCustomerPhone(e.target.value)} maxLength={30} inputMode="tel" placeholder="WhatsApp / contact number" /></label>
+            <label>Order source <CustomSelect value={source} onChange={setSource} options={[{value:"walk_in",label:"Walk-in"},{value:"admin",label:"Admin entry"},{value:"qr",label:"QR order"}]} /></label>
+            <label className="order-notes-field">Order notes <input value={notes} onChange={e => setNotes(e.target.value)} maxLength={1000} placeholder="Special instructions (optional)" /></label>
+          </div>
+          <div className="order-item-picker">
+            <div className="order-section-heading"><h3>Order items</h3><span>{cartItems.length} selected</span></div>
+            <div className="order-add-item-row"><CustomSelect value="" onChange={value => { const id = Number(value); if (!cart.some(entry => entry.menuItemId === id)) setCart(current => [...current, { menuItemId: id, quantity: 1 }]); }} placeholder="Choose menu item..." options={menu.map(item => ({value:String(item.id),label:item.name + " · " + money(item.price)}))} /><span className="muted">Only available items</span></div>
+            {cartItems.length ? <div className="order-cart-list">{cartItems.map(item => <div className="order-cart-row" key={item.id}><div><strong>{item.name}</strong><small>{money(item.price)} each</small></div><div className="quantity-control"><button type="button" onClick={() => setCart(current => current.map(entry => entry.menuItemId === item.id ? { ...entry, quantity: Math.max(1, entry.quantity - 1) } : entry))} aria-label={"Decrease " + item.name}>−</button><span>{item.quantity}</span><button type="button" onClick={() => setCart(current => current.map(entry => entry.menuItemId === item.id ? { ...entry, quantity: Math.min(item.stockQuantity, entry.quantity + 1) } : entry))} disabled={item.quantity >= item.stockQuantity} aria-label={"Increase " + item.name}>+</button><strong>{money(Number(item.price ?? 0) * item.quantity)}</strong><button type="button" className="remove-order-item" onClick={() => setCart(current => current.filter(entry => entry.menuItemId !== item.id))} aria-label={"Remove " + item.name}>×</button></div></div>)}</div> : <div className="order-empty-cart">Choose one or more menu items to build this order.</div>}
+          </div>
+          <div className="order-total-row"><span>Order total</span><strong>{money(cartTotal)}</strong></div>
+          <div className="order-modal-actions"><button type="button" className="secondary-button" disabled={saving} onClick={() => setShowCreate(false)}>Cancel</button><button type="submit" className="primary-button" disabled={saving || !cartItems.length}>{saving ? "Creating order..." : "Create Order · " + money(cartTotal)}</button></div>
+        </form>
+      </section>
+    </div>}
   </section>;
 }
 
