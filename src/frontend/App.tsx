@@ -83,6 +83,8 @@ function Login({ onLogin }: { onLogin: () => void }) {
           <form onSubmit={async (event) => {
             event.preventDefault();
             setError("");
+            if (!identifier.trim()) { setError("👨‍🍳 Chef says: Enter your email or phone to get started!"); return; }
+            if (!password) { setError("👨‍🍳 Chef says: Add your password and we’ll get you in!"); return; }
             setLoading(true);
             try {
               await api("/api/v1/auth/login", {
@@ -101,7 +103,7 @@ function Login({ onLogin }: { onLogin: () => void }) {
             <label className="login-field">
               <span>Email or phone</span>
               <div className="input-wrap">
-                <input value={identifier} onChange={e => setIdentifier(e.target.value)} placeholder="Enter your email or phone" autoComplete="username" required />
+                <input value={identifier} onChange={e => { setIdentifier(e.target.value); setError(""); }} placeholder="Enter your email or phone" autoComplete="username" />
               </div>
             </label>
 
