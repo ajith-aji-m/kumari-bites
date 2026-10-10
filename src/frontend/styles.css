@@ -143,6 +143,41 @@ input:not([type="checkbox"]):focus { border-color: #b85c38; box-shadow: 0 0 0 3p
 .toggle-check { display:flex; align-items:center; gap:7px; font-weight:700; }
 .toggle-check input { accent-color:#b85c38; }
 .modal-actions { display:flex; justify-content:flex-end; gap:9px; margin-top:22px; padding-top:17px; border-top:1px solid #eee1d6; }
+
+.menu-item-editor { display:grid; gap:20px; }
+.editor-section { padding:18px; border:1px solid #eadbcd; border-radius:14px; background:#fffdf9; }
+.editor-section-head { display:flex; gap:11px; align-items:flex-start; margin-bottom:15px; }
+.editor-step { display:grid; place-items:center; width:28px; height:28px; flex:0 0 28px; border-radius:9px; background:#f2ddd0; color:#9f492c; font-size:9px; font-weight:900; letter-spacing:.06em; }
+.editor-section-head strong { display:block; color:#3c2118; font-size:13px; }
+.editor-section-head small { display:block; margin-top:3px; color:#9b897d; font-size:10px; font-weight:500; line-height:1.45; }
+.editor-section .form-grid { gap:13px; }
+.editor-section .form-grid label { font-size:11px; }
+.field-wide { grid-column:1 / -1; }
+.price-input { position:relative; }
+.price-input > span { position:absolute; left:13px; top:50%; transform:translateY(-50%); color:#9b897d; font-weight:800; font-size:12px; }
+.price-input input { padding-left:29px !important; }
+.editor-media-grid { display:grid; grid-template-columns:170px 1fr; gap:16px; }
+.menu-image-preview { min-height:170px; border:1px dashed #d9c4b5; border-radius:13px; overflow:hidden; background:linear-gradient(145deg,#f8eee6,#f1e0d4); display:grid; place-items:center; text-align:center; }
+.menu-image-preview img { width:100%; height:100%; min-height:170px; object-fit:cover; }
+.menu-image-preview div { padding:20px; display:grid; gap:5px; }
+.menu-image-preview span { font-size:30px; }
+.menu-image-preview strong { color:#6d5144; font-size:11px; }
+.menu-image-preview small { color:#a18f84; font-size:9px; }
+.editor-media-fields { display:grid; gap:13px; }
+.editor-media-fields textarea { min-height:104px; }
+.editor-advanced { background:#fffaf4; }
+.editor-advanced .toggle-row { margin-top:14px; padding-top:14px; }
+.editor-advanced .toggle-check { flex:1; align-items:flex-start; }
+.editor-advanced .toggle-check > span { display:grid; gap:2px; }
+.editor-advanced .toggle-check strong { color:#51352a; font-size:11px; }
+.editor-advanced .toggle-check small { color:#9b897d; font-size:9px; font-weight:500; }
+.editor-save { min-width:145px; }
+@media (max-width:650px) {
+  .editor-media-grid { grid-template-columns:1fr; }
+  .menu-image-preview { min-height:135px; }
+  .menu-image-preview img { min-height:135px; }
+  .editor-section { padding:14px; }
+}
 .secondary-button { border:1px solid #dfcfc1; background:#fff; color:#5d4539; border-radius:11px; padding:12px 16px; font-weight:750; cursor:pointer; }
 .trend-row { display:flex; gap:8px; flex-wrap:wrap; }
 .trend-row span { padding:9px 11px; border-radius:9px; background:#f5e8de; color:#72584a; font-size:11px; font-weight:700; }
