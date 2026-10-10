@@ -407,17 +407,14 @@ function Orders() {
     }
   }
 
-  return <section className="orders-page">
+  return <section className="menu-management orders-page">
     {success && <div className="chef-success-toast category-success-toast" role="status" aria-live="polite"><div className="chef-success-bubble"><strong>Chef says</strong><span>{success}</span></div><div className="chef-success-character" aria-hidden="true"><img src="/assets/kumari-bites-chef.png" alt="" /></div></div>}
     <article className="panel menu-panel orders-panel">
-      <div className="orders-page-heading">
-        <div><p className="eyebrow">KITCHEN SERVICE</p><h3>Orders</h3><p className="muted">Create orders and keep every order moving from new to ready.</p></div>
-        <div className="orders-heading-actions"><span className="status-dot">Live</span><button type="button" className="primary-button compact" onClick={() => { resetCreateForm(); setShowCreate(true); }}>+ Add Order</button></div>
-      </div>
       {error && !showCreate && <div className="inline-error" role="alert">{error} <button type="button" onClick={loadOrders}>Retry</button></div>}
       <div className="menu-toolbar menu-index-controls orders-toolbar">
         <input className="search-input" value={query} onChange={e => setQuery(e.target.value)} placeholder="Search order, customer or phone..." />
         <CustomSelect value={status} onChange={setStatus} options={[{ value: "all", label: "All statuses" }, ...["new","confirmed","preparing","ready","completed","cancelled"].map(s => ({ value: s, label: statusLabel(s) }))]} />
+        <button type="button" className="primary-button compact order-add-icon-button" onClick={() => { resetCreateForm(); setShowCreate(true); }} aria-label="Create order" title="Create order"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg></button>
       </div>
       {loading ? <p className="muted">Loading orders...</p> : <div className="menu-table-wrap orders-table-wrap">
         <table className="menu-table orders-table">
@@ -431,7 +428,7 @@ function Orders() {
             <td><CustomSelect value={order.status} onChange={value => updateStatus(order.id, value)} options={["new","confirmed","preparing","ready","completed","cancelled"].map(s => ({ value: s, label: statusLabel(s) }))} /></td>
           </tr>)}</tbody>
         </table>
-        {!filtered.length && <div className="empty-state"><span>🧾</span><strong>No orders found</strong><p className="muted">{query || status !== "all" ? "Try changing your search or status filter." : "Add your first order to get started."}</p></div>}
+        {!filtered.length && <div className="empty-state orders-empty-state"><span className="orders-empty-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 6h12M8 12h12M8 18h12M3.5 6h.01M3.5 12h.01M3.5 18h.01" /></svg></span><strong>{query || status !== "all" ? "No matching orders" : "No orders yet"}</strong><p className="muted">{query || status !== "all" ? "Try changing your search or status filter." : "Create your first order using the + button above."}</p></div>}
         <Pagination currentPage={ordersPage} totalPages={ordersTotalPages} totalItems={filtered.length} pageSize={pageSize} onPageChange={setOrdersPage} />
       </div>}
     </article>
