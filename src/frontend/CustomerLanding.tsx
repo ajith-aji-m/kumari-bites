@@ -21,8 +21,8 @@ export function CustomerLanding() {
     setCategoryIntroPlaying(true);
     window.setTimeout(() => {
       setStage(1);
-      setCategoryIntroPlaying(false);
-    }, 1100);
+      window.setTimeout(() => setCategoryIntroPlaying(false), 900);
+    }, 650);
   };
   const openItems = (categoryId?: number) => {
     if (typeof categoryId === "number") setSelectedCategory(categoryId);
@@ -70,13 +70,13 @@ export function CustomerLanding() {
           <div className="customer-story-bubble-content">
             <strong>{stage === 0 ? "Vanakkam, food lover!" : "Choose your favourites!"}</strong>
             <p>{stage === 0 ? "Welcome to Kumari Bites! 🍽️ Ready to discover your next favourite?" : "Tap a category to explore our freshly made favourites."}</p>
-            {stage === 0 && <button type="button" className="customer-story-link" onClick={openCategories}>Click here to explore categories <span aria-hidden="true">→</span></button>}
+            {stage === 0 && <button type="button" className="customer-story-link" onClick={openCategories}>Explore the menu <span aria-hidden="true">↗</span></button>}
           </div>
         </div>
         <div className={"customer-story-categories " + (stage === 1 ? "story-categories-visible" : "")}>
           <div className="story-panel-heading"><small>STEP 01 · PICK YOUR MOOD</small><h2>What are you <em>craving?</em></h2><p>Tap a category to help me find your favourites.</p></div>
           {loading ? <div className="customer-story-loading">Getting the menu ready…</div> : error ? <div className="customer-story-loading">{error}</div> : <div className="customer-category-bubbles">
-            {categories.map((c, i) => <button key={c.id} className={"customer-category-bubble category-tone-" + (i % 5) + (selectedCategory === c.id ? " selected" : "")} onClick={() => openItems(c.id)}>
+            {categories.map((c, i) => <button key={c.id} style={{ animationDelay: `${i * 90}ms` }} className={"customer-category-bubble category-tone-" + (i % 5) + (selectedCategory === c.id ? " selected" : "")} onClick={() => openItems(c.id)}>
               {c.imageUrl ? <img src={c.imageUrl} alt="" /> : <span className="category-bubble-art">{["🥟", "🌯", "🍔", "🍟", "🍗"][i % 5]}</span>}<strong>{c.name}</strong>
             </button>)}
           </div>}
