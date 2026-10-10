@@ -965,6 +965,146 @@ function MenuManagement() {
   </section>;
 }
 
+
+type ReportData = {
+  range: { startDate: string; endDate: string };
+  summary: {
+    totalOrders: number;
+    completedOrders: number;
+    cancelledOrders: number;
+    sales: number;
+    completedSales: number;
+    averageOrderValue: number;
+  };
+  dailySales: Array<{ date: string; orders: number; sales: number }>;
+  statuses: Array<{ status: string; count: number }>;
+  topItems: Array<{ itemName: string; quantity: number; revenue: number }>;
+  recentOrders: Array<{
+    id: number;
+    orderNumber: string;
+    customerName: string | null;
+    status: string;
+    source: string;
+    totalAmount: string | number;
+    placedAt: string | Date;
+  }>;
+};
+
+function localDateInputValue(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function Reports() {
+  const today = localDateInputValue(new Date());
+  const initialStart = localDateInputValue(new Date(Date.now() - 6 * 24 * 60 * 60 * 1000));
+  const [startDate, setStartDate] = useState(initialStart);
+  const [endDate, setEndDate] = useState(today);
+  const [appliedRange, setAppliedRange] = useState({ startDate: initialStart, endDate: today });
+  const [data, setData] = useState<ReportData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const loadReports = useCallback(async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const params = new URLSearchParams(appliedRange);
+      const result = await api<ReportData>(`/api/v1/reports?${params.toString()}`);
+      setData(result);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to load reports");
+    } finally {
+      setLoading(false);
+    }
+  }, [appliedRange]);
+
+  useEffect(() => { loadReports(); }, [loadReports]);
+
+  const dailyRows = useMemo(() => {
+    const existing = new Map((data?.dailySales ?? []).map(day => [day.date, day]));
+    const days: Array<{ date: string; orders: number; sales: number }> = [];
+    const cursor = new Date(`${appliedRange.startDate}T00:00:00Z`);
+    const end = new Date(`${appliedRange.endDate}T00:00:00Z`);
+    while (cursor <= end && days.length < 370) {
+      const date = cursor.toISOString().slice(0, 10);
+      days.push(existing.get(date) ?? { date, orders: 0, sales: 0 });
+      cursor.setUTCDate(cursor.getUTCDate() + 1);
+    }
+    return days;
+  }, [data, appliedRange]);
+
+  const chartMax = Math.max(1, ...dailyRows.map(day => day.sales));
+  const dateLabel = (date: string) => new Date(`${date}T00:00:00`).toLocaleDateString("en-IN", { day: "numeric", month: "short" });
+
+  function applyDateRange(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!startDate || !endDate) { setError("Choose both a start date and an end date."); return; }
+    if (startDate > endDate) { setError("Start date must be on or before the end date."); return; }
+    setAppliedRange({ startDate, endDate });
+  }
+
+  return <section className="reports-page">
+    <div className="reports-heading">
+      <div><p className="eyebrow">BUSINESS PERFORMANCE</p><h1>Reports &amp; Analytics</h1><p className="muted">Understand sales, order volume, and best-selling menu items using your existing order data.</p></div>
+      <button type="button" className="dashboard-refresh-button" onClick={loadReports} disabled={loading}><span aria-hidden="true">↻</span> {loading ? "Refreshing…" : "Refresh"}</button>
+    </div>
+
+    <form className="reports-filter panel" onSubmit={applyDateRange}>
+      <div className="reports-filter-copy"><strong>Date range</strong><span>Choose the period you want to review.</span></div>
+      <label>From<input type="date" value={startDate} max={endDate || undefined} onChange={event => setStartDate(event.target.value)} /></label>
+      <label>To<input type="date" value={endDate} min={startDate || undefined} onChange={event => setEndDate(event.target.value)} /></label>
+      <button className="primary-button compact" type="submit" disabled={loading}>Apply filters</button>
+    </form>
+
+    {error && <div className="inline-error" role="alert">{error} <button type="button" onClick={loadReports}>Retry</button></div>}
+
+    {loading && !data ? <section className="panel reports-state"><p className="muted">Loading report data…</p></section> : data && <>
+      <div className="reports-range-note">Showing <strong>{dateLabel(appliedRange.startDate)}</strong> – <strong>{dateLabel(appliedRange.endDate)}</strong></div>
+      <section className="reports-metrics" aria-label="Sales report summary">
+        <article className="reports-metric-card"><span>Total sales</span><strong>{money(data.summary.sales)}</strong><small>Excludes cancelled orders</small></article>
+        <article className="reports-metric-card"><span>Total orders</span><strong>{data.summary.totalOrders.toLocaleString("en-IN")}</strong><small>All order statuses</small></article>
+        <article className="reports-metric-card"><span>Completed sales</span><strong>{money(data.summary.completedSales)}</strong><small>{data.summary.completedOrders} completed orders</small></article>
+        <article className="reports-metric-card"><span>Average order value</span><strong>{money(data.summary.averageOrderValue)}</strong><small>Per non-cancelled order</small></article>
+      </section>
+
+      <section className="reports-main-grid">
+        <article className="panel reports-chart-panel">
+          <div className="reports-section-heading"><div><h2>Daily sales</h2><p>Sales total for each day in the selected range</p></div><span className="reports-chart-legend"><i /> Sales</span></div>
+          {dailyRows.some(day => day.sales > 0) ? <div className="reports-chart-scroll"><div className="reports-sales-chart">{dailyRows.map(day => {
+            const height = day.sales > 0 ? Math.max(5, (day.sales / chartMax) * 100) : 0;
+            return <div className="reports-sales-day" key={day.date} title={`${day.date}: ${money(day.sales)} · ${day.orders} orders`}>
+              <div className="reports-bar-track"><div className="reports-bar" style={{ height: `${height}%` }} /></div>
+              <strong>{day.sales ? money(day.sales) : "—"}</strong><span>{dateLabel(day.date)}</span>
+            </div>;
+          })}</div></div> : <div className="reports-empty"><strong>No sales for this period</strong><span>Try selecting a different date range.</span></div>}
+        </article>
+
+        <article className="panel reports-status-panel">
+          <div className="reports-section-heading"><div><h2>Order summary</h2><p>Orders by current status</p></div></div>
+          {data.statuses.length ? <div className="reports-status-list">{data.statuses.map(item => <div className="reports-status-row" key={item.status}><span className={`reports-status-dot ${item.status}`} /><span>{statusLabel(item.status)}</span><strong>{item.count}</strong></div>)}
+            <div className="reports-status-row reports-status-total"><span>Total orders</span><strong>{data.summary.totalOrders}</strong></div>
+          </div> : <div className="reports-empty"><span>No orders in this period.</span></div>}
+        </article>
+      </section>
+
+      <section className="reports-bottom-grid">
+        <article className="panel reports-table-panel">
+          <div className="reports-section-heading"><div><h2>Top-selling items</h2><p>Ranked by quantity sold</p></div></div>
+          {data.topItems.length ? <div className="reports-table-wrap"><table className="reports-table"><thead><tr><th>Menu item</th><th>Qty sold</th><th>Sales</th></tr></thead><tbody>{data.topItems.map((item, index) => <tr key={item.itemName}><td><span className="reports-item-rank">{index + 1}</span><strong>{item.itemName}</strong></td><td>{item.quantity}</td><td><strong>{money(item.revenue)}</strong></td></tr>)}</tbody></table></div> : <div className="reports-empty"><span>No item sales in this period.</span></div>}
+        </article>
+
+        <article className="panel reports-table-panel">
+          <div className="reports-section-heading"><div><h2>Recent orders</h2><p>Latest orders in the selected date range</p></div></div>
+          {data.recentOrders.length ? <div className="reports-table-wrap"><table className="reports-table reports-recent-table"><thead><tr><th>Order</th><th>Status</th><th>Total</th></tr></thead><tbody>{data.recentOrders.map(order => <tr key={order.id}><td><strong>{order.orderNumber}</strong><small>{order.customerName || "Walk-in customer"}</small></td><td><span className={`reports-order-status ${order.status}`}>{statusLabel(order.status)}</span></td><td><strong>{money(order.totalAmount)}</strong></td></tr>)}</tbody></table></div> : <div className="reports-empty"><span>No orders in this period.</span></div>}
+        </article>
+      </section>
+    </>}
+  </section>;
+}
+
 const dashboardRoutes: Record<string, string> = {
   Dashboard: "/dashboard",
   Orders: "/orders",
