@@ -633,7 +633,7 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
       <div className="sidebar-admin"><span className="avatar">A</span><div><strong>Admin</strong><small>Kumari Bites</small></div></div>\n      <button className="nav-item logout" onClick={async () => { await fetch("/api/v1/auth/logout", { method: "POST", credentials: "include" }); onLogout(); }}><span>↪</span> Sign out</button>
     </aside>
     <main className="dashboard">
-      <header className="topbar"><div><p className="eyebrow">KUMARI BITES ADMIN</p><h2>{active === "Menu" ? "Menu Management" : active}</h2></div><div className="admin-chip"><span className="avatar">A</span><span>Admin</span></div></header>
+      <header className="topbar"><div><p className="eyebrow">KUMARI BITES ADMIN</p><h2>{active === "Menu" ? "Menu Management" : active}</h2></div></header>
       {active === "Dashboard" ? <DashboardHome /> : active === "Orders" ? <Orders /> : active === "Menu" ? <MenuManagement /> : <section className="panel"><h3>{active}</h3><p className="muted">This module is coming next.</p></section>}
     </main>
   </div>;
