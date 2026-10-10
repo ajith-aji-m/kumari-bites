@@ -503,7 +503,7 @@ function Orders() {
           : `Confirm ${pendingStatusChange.orderNumber} is fulfilled. Once completed, its status will be locked and cannot be changed.`}</p>
         <div className="order-confirm-actions">
           <button type="button" className="secondary-button" disabled={statusSaving} onClick={() => setPendingStatusChange(null)}>Go back</button>
-          <button type="button" className={`order-confirm-action ${pendingStatusChange.status === "cancelled" ? "order-confirm-action-danger" : "order-confirm-action-success"}`} disabled={statusSaving} onClick={() => updateStatus(pendingStatusChange.orderId, pendingStatusChange.status, true)}>
+          <button type="button" className={`primary-button order-confirm-action ${pendingStatusChange.status === "cancelled" ? "order-confirm-action-danger" : "order-confirm-action-success"}`} disabled={statusSaving} onClick={() => updateStatus(pendingStatusChange.orderId, pendingStatusChange.status, true)}>
             {statusSaving ? "Please wait…" : pendingStatusChange.status === "cancelled" ? "Yes, cancel order" : "Confirm completion"}
           </button>
         </div>
