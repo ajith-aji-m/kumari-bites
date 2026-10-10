@@ -67,7 +67,7 @@ function Login({ onLogin }: { onLogin: () => void }) {
       {loginSuccess && <div className="chef-success-toast login-success-toast-top" role="status" aria-live="polite">
         <div className="chef-success-character" aria-hidden="true"><img src="/assets/kumari-bites-chef.png" alt="" /></div>
         <div className="chef-success-bubble"><strong>Chef says</strong><span>Welcome back! Login successful. Taking you to the dashboard.</span></div>
-      </div>
+      </div>}
       <div className="login-shell">
         <section className="login-visual" aria-hidden="true">
           <div className="login-visual-vignette" />
