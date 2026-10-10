@@ -135,6 +135,9 @@ export async function registerOrderRoutes(app: FastifyInstance) {
     const input = statusSchema.parse(request.body);
     const existing = await db.select().from(orders).where(eq(orders.id, orderId)).limit(1);
     if (!existing[0]) return reply.code(404).send({ message: "Order not found" });
+    if (existing[0].status === "completed") {
+      return reply.code(409).send({ message: "This order is completed and locked. Its status cannot be changed." });
+    }
 
     await db.update(orders).set({
       status: input.status,
