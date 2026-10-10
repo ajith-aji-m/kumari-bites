@@ -14,23 +14,13 @@ export function CustomerLanding() {
   const [cart, setCart] = useState<Record<number, number>>({});
   const [cartOpen, setCartOpen] = useState(false);
 
-  useEffect(() => {
-    let frame = 0;
-    const update = () => {
-      cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(() => {
-        const root = document.querySelector<HTMLElement>(".customer-story");
-        if (!root) return;
-        const distance = Math.max(1, root.offsetHeight - window.innerHeight);
-        const progress = Math.min(1, Math.max(0, -root.getBoundingClientRect().top / distance));
-        setStage(Math.min(3, Math.floor(progress * 3.001)));
-      });
-    };
-    update();
-    window.addEventListener("scroll", update, { passive: true });
-    window.addEventListener("resize", update);
-    return () => { cancelAnimationFrame(frame); window.removeEventListener("scroll", update); window.removeEventListener("resize", update); };
-  }, []);
+  // The landing experience is click-driven; native page scrolling no longer changes stages.
+  const openCategories = () => setStage(1);
+  const openItems = (categoryId?: number) => {
+    if (typeof categoryId === "number") setSelectedCategory(categoryId);
+    setStage(2);
+  };
+  const goToStage = (target: number) => setStage(Math.max(0, Math.min(2, target)));
 
   useEffect(() => {
     let cancelled = false;
@@ -77,19 +67,20 @@ export function CustomerLanding() {
           <img className="customer-story-cloud-image" src="/assets/welcome-cloud.png" alt="" aria-hidden="true" />
           <div className="customer-story-bubble-content">
             <strong>{stage === 0 ? "Vanakkam, food lover!" : "Choose your favourites!"}</strong>
-            <p>{stage === 0 ? "Welcome to Kumari Bites! 🍽️ What’s your feast today? Scroll down to explore our menu, pick your favourites, and let’s get your order started!" : "Tap a category to explore our freshly made favourites."}</p>
+            <p>{stage === 0 ? "Welcome to Kumari Bites! 🍽️ What’s your feast today? Explore our menu and pick your favourites." : "Tap a category to explore our freshly made favourites."}</p>
+            {stage === 0 && <button type="button" className="customer-story-link" onClick={openCategories}>Click here to explore categories <span aria-hidden="true">→</span></button>}
           </div>
         </div>
-        <div className={"customer-story-categories " + (stage >= 1 && stage < 2 ? "story-categories-visible" : "")}>
+        <div className={"customer-story-categories " + (stage === 1 ? "story-categories-visible" : "")}>
           <div className="story-panel-heading"><small>STEP 01 · PICK YOUR MOOD</small><h2>What are you <em>craving?</em></h2><p>Tap a category to help me find your favourites.</p></div>
           {loading ? <div className="customer-story-loading">Getting the menu ready…</div> : error ? <div className="customer-story-loading">{error}</div> : <div className="customer-category-bubbles">
-            {categories.map((c, i) => <button key={c.id} className={"customer-category-bubble category-tone-" + (i % 5) + (selectedCategory === c.id ? " selected" : "")} onClick={() => { setSelectedCategory(c.id); goToStage(3); }}>
+            {categories.map((c, i) => <button key={c.id} className={"customer-category-bubble category-tone-" + (i % 5) + (selectedCategory === c.id ? " selected" : "")} onClick={() => openItems(c.id)}>
               {c.imageUrl ? <img src={c.imageUrl} alt="" /> : <span className="category-bubble-art">{["🥟", "🌯", "🍔", "🍟", "🍗"][i % 5]}</span>}<strong>{c.name}</strong><small>{items.filter(item => item.categoryId === c.id).length} bites</small>
             </button>)}
           </div>}
-          <span className="story-scroll-hint">SCROLL TO MEET THE MENU <b>↓</b></span>
+          <button type="button" className="story-scroll-hint customer-story-link" onClick={() => goToStage(0)}>← Back to welcome</button>
         </div>
-        <div className={"customer-story-items " + (stage >= 2 ? "story-items-visible" : "")}>
+        <div className={"customer-story-items " + (stage === 2 ? "story-items-visible" : "")}>
           <div className="story-items-topline"><button className="story-back-button" onClick={() => goToStage(1)}>← Categories</button><small>STEP 02 · MADE FOR YOU</small></div>
           <div className="story-items-title"><div><h2>{categories.find(c => c.id === selectedCategory)?.name ?? "All the good stuff"}</h2><p>Fresh picks, just a tap away.</p></div><span>{visibleItems.length} items</span></div>
           {visibleItems.length ? <div className="customer-food-grid">{visibleItems.map((item, i) => <article className={"customer-food-card food-card-" + (i % 4)} key={item.id}>
