@@ -626,14 +626,14 @@ input:not([type="checkbox"]):focus { border-color: #b85c38; box-shadow: 0 0 0 3p
 .chef-success-bubble::after {
   content:"";
   position:absolute;
-  left:-6px;
+  right:-6px;
   bottom:9px;
   width:10px;
   height:10px;
   background:rgba(245,146,38,.12);
-  border-left:1px solid rgba(245, 146, 38, .38);
+  border-right:1px solid rgba(245, 146, 38, .38);
   border-bottom:1px solid rgba(245, 146, 38, .38);
-  transform:rotate(45deg);
+  transform:rotate(-45deg);
 }
 .chef-success-bubble strong {
   display:block;
