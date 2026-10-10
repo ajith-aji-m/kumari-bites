@@ -1439,3 +1439,34 @@ button {
   position: absolute;
   z-index: 9999;
 }
+
+/* Category dropdown must sit above the following Dish Presentation section. */
+.menu-management .menu-item-editor .form-grid {
+  position: relative;
+  z-index: 1;
+}
+
+.menu-management .menu-item-editor .form-grid > label:nth-child(2) {
+  position: relative;
+  z-index: 100;
+}
+
+.menu-management .menu-item-editor .form-grid > label:nth-child(2) .custom-form-select,
+.menu-management .menu-item-editor .form-grid > label:nth-child(2) .custom-select {
+  position: relative;
+  z-index: 101;
+}
+
+.menu-management .menu-item-editor .form-grid > label:nth-child(2) .custom-select-menu {
+  z-index: 10000;
+}
+
+.menu-management .menu-item-editor .editor-section:first-child {
+  position: relative;
+  z-index: 10;
+}
+
+.menu-management .menu-item-editor .editor-section:nth-child(2) {
+  position: relative;
+  z-index: 1;
+}
