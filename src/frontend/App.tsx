@@ -531,11 +531,6 @@ function MenuManagement() {
       <div className="chef-success-character" aria-hidden="true"><img src="/assets/kumari-bites-chef.png" alt="" /></div>
     </div>}
 
-    <div className="welcome menu-heading menu-index-heading">
-      <div><p className="eyebrow">MENU</p><h1>{tab === "items" ? "Menu Items" : "Categories"}</h1></div>
-      <button className="primary-button compact menu-action-primary" onClick={() => tab === "items" ? setItemModal("new") : setCategoryModal("new")}><span className="button-icon">+</span><span>{tab === "items" ? "Add menu item" : "Add category"}</span></button>
-    </div>
-
     <div className="menu-tabs">
       <button className={tab === "items" ? "active" : ""} onClick={() => setTab("items")}>Menu Items <span>{items.length}</span></button>
       <button className={tab === "categories" ? "active" : ""} onClick={() => setTab("categories")}>Categories <span>{categories.length}</span></button>
@@ -674,7 +669,7 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
       <button className="nav-item logout" onClick={async () => { await fetch("/api/v1/auth/logout", { method: "POST", credentials: "include" }); window.history.replaceState({}, "", "/"); onLogout(); }}><span>↪</span> Sign out</button>
     </aside>
     <main className="dashboard">
-      <header className="topbar"><div><p className="eyebrow">KUMARI BITES ADMIN</p><h2>{active === "Menu" ? "Menu Management" : active}</h2></div></header>
+      <header className="topbar"><div>{active === "Menu" ? <h2>Menu Management</h2> : <><p className="eyebrow">KUMARI BITES ADMIN</p><h2>{active}</h2></>}</div></header>
       {active === "Dashboard" ? <DashboardHome /> : active === "Orders" ? <Orders /> : active === "Menu" ? <MenuManagement /> : <section className="panel"><h3>{active}</h3><p className="muted">This module is coming next.</p></section>}
     </main>
   </div>;
