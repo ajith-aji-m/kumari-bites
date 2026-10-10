@@ -401,7 +401,7 @@ function MenuManagement() {
       const form = new FormData(event.currentTarget);
       const payload = {
         name: String(form.get("name") ?? "").trim(),
-        slug: String(form.get("slug") ?? "").trim(),
+        slug: String(form.get("slug") ?? "").trim() || undefined,
         description: String(form.get("description") ?? "").trim() || undefined,
         imageUrl: categoryImage || undefined,
         sortOrder: Number(form.get("sortOrder") ?? 0)
