@@ -17,6 +17,7 @@ export function CustomerLanding() {
   const [cart, setCart] = useState<Record<number, number>>({});
   const [cartOpen, setCartOpen] = useState(false);
   const [addingItemId, setAddingItemId] = useState<number | null>(null);
+  const [flyingBite, setFlyingBite] = useState<{ id: number; imageUrl: string | null; x: number; y: number } | null>(null);
 
   // The landing experience is click-driven; native page scrolling no longer changes stages.
   const openCategories = () => {
@@ -57,10 +58,15 @@ export function CustomerLanding() {
   useEffect(() => { setMenuPage(0); }, [selectedCategory]);
   const cartCount = Object.values(cart).reduce((s, n) => s + n, 0);
   const total = items.reduce((s, i) => s + Number(i.price ?? 0) * (cart[i.id] ?? 0), 0);
-  const add = (id: number) => {
+  const add = (id: number, event?: React.MouseEvent<HTMLButtonElement>) => {
     setCart(c => ({ ...c, [id]: (c[id] ?? 0) + 1 }));
-    setAddingItemId(id);
-    window.setTimeout(() => setAddingItemId(current => current === id ? null : current), 650);
+    const item = items.find(entry => entry.id === id);
+    const imageBox = event?.currentTarget.closest(".customer-menu-bubble-image") as HTMLElement | null;
+    if (item && imageBox) {
+      const rect = imageBox.getBoundingClientRect();
+      setFlyingBite({ id, imageUrl: item.imageUrl, x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
+      window.setTimeout(() => setFlyingBite(current => current?.id === id ? null : current), 720);
+    }
   };
   const change = (id: number, delta: number) => setCart(c => { const n = { ...c, [id]: Math.max(0, (c[id] ?? 0) + delta) }; if (!n[id]) delete n[id]; return n; });
 
@@ -98,17 +104,16 @@ export function CustomerLanding() {
               {c.imageUrl ? <img src={c.imageUrl} alt="" /> : <span className="category-bubble-art">{["🥟", "🌯", "🍔", "🍟", "🍗"][i % 5]}</span>}<strong>{c.name}</strong>
             </button>)}
           </div> : <div className="customer-menu-bubbles">
-            {visibleItems.map((item, i) => <article key={item.id} style={{ animationDelay: `${i * 90}ms` }} className={"customer-menu-bubble " + (addingItemId === item.id ? "adding-to-cart" : "")}>
-              <div className="customer-menu-bubble-image">{item.imageUrl ? <img src={item.imageUrl} alt={item.name} loading="lazy" /> : <span>{["🥟", "🌯", "🍔", "🍗", "🍜"][i % 5]}</span>}{cart[item.id] ? <span className="customer-menu-image-count">{cart[item.id]}</span> : null}<button type="button" aria-label={`Add ${item.name} to your bites`} className="customer-menu-image-add" onClick={() => add(item.id)}>+</button></div>
+            {visibleItems.map((item, i) => <article key={item.id} style={{ animationDelay: `${i * 90}ms` }} className="customer-menu-bubble">
+              <div className="customer-menu-bubble-image">{item.imageUrl ? <img src={item.imageUrl} alt={item.name} loading="lazy" /> : <span>{["🥟", "🌯", "🍔", "🍗", "🍜"][i % 5]}</span>}{cart[item.id] ? <span className="customer-menu-image-count">{cart[item.id]}</span> : null}<button type="button" aria-label={`Add ${item.name} to your bites`} className="customer-menu-image-add" onClick={(event) => add(item.id, event)}>+</button></div>
               <strong className="customer-menu-bubble-name">{item.name}</strong>
               <span className="customer-menu-bubble-price">{money(item.price)}</span>
             </article>)}
             {!categoryItems.length && <div className="customer-story-loading">No items in this category yet.</div>}
           </div>}
-          {selectedCategory !== null && categoryItems.length > menuPageSize && <div className="customer-menu-pagination" aria-label="Menu pages">
-            <button type="button" onClick={() => setMenuPage(p => Math.max(0, p - 1))} disabled={menuPage === 0}>← Previous</button>
-            <span>Page {menuPage + 1} of {menuPageCount}</span>
-            <button type="button" onClick={() => setMenuPage(p => Math.min(menuPageCount - 1, p + 1))} disabled={menuPage >= menuPageCount - 1}>{menuPage >= menuPageCount - 1 ? "All bites shown" : "See More →"}</button>
+          {selectedCategory !== null && categoryItems.length > menuPageSize && <div className="customer-menu-pagination" aria-label="Menu navigation">
+            {menuPage > 0 && <button type="button" className="menu-page-prev" aria-label="Previous menu items" onClick={() => setMenuPage(p => Math.max(0, p - 1))}>←</button>}
+            {menuPage < menuPageCount - 1 && <button type="button" className="menu-page-next" aria-label="More menu items" onClick={() => setMenuPage(p => Math.min(menuPageCount - 1, p + 1))}>→</button>}
           </div>}
           <div className="customer-plate-links">
             {selectedCategory !== null && <button type="button" className="customer-story-link" onClick={() => { setSelectedCategory(null); setMenuPage(0); }}>← All categories</button>}
@@ -128,6 +133,7 @@ export function CustomerLanding() {
         <div className="customer-story-bottom"><span className="story-bottom-line" /> SCROLL TO CONTINUE <span className="story-bottom-arrow">↓</span></div>
       </div>
     </section>
+    {flyingBite && <div key={flyingBite.id + "-" + flyingBite.x} className="customer-flying-bite" style={{ left: flyingBite.x, top: flyingBite.y }} aria-hidden="true">{flyingBite.imageUrl ? <img src={flyingBite.imageUrl} alt="" /> : <span>🍽️</span>}</div>}
     {cartCount > 0 && <button key={cartCount} className="customer-cart-fab" onClick={() => setCartOpen(v => !v)}><span>🛒</span><span>Your bites · {cartCount}</span><strong>{money(total)}</strong></button>}
     {cartOpen && <aside className="customer-cart-panel" aria-label="Your cart"><div className="customer-cart-title"><div><small>YOUR ORDER</small><h3>Your bites</h3></div><button onClick={() => setCartOpen(false)} aria-label="Close cart">×</button></div>
       {items.filter(i => cart[i.id]).map(i => <div className="customer-cart-line" key={i.id}><div><strong>{i.name}</strong><small>{money(i.price)} each</small></div><div className="customer-quantity-controls"><button onClick={() => change(i.id, -1)}>−</button><span>{cart[i.id]}</span><button onClick={() => add(i.id)}>+</button></div><button className="customer-cart-remove" onClick={() => setCart(c => { const n = { ...c }; delete n[i.id]; return n; })}>Remove</button><strong>{money(Number(i.price ?? 0) * cart[i.id])}</strong></div>)}
