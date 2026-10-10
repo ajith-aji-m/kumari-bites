@@ -5865,7 +5865,8 @@ button {
 
 /* Sit the platter links near the bottom edge of the platter on desktop. */
 @media(min-width:761px){
-.customer-story-categories.story-categories-visible:not(.menu-items-on-plate) .customer-category-bubbles{transform:translateY(80px)!important}
+.customer-story-categories.story-categories-visible:not(.menu-items-on-plate) .customer-category-bubbles{transform:translateY(68px)!important}
+.customer-story-categories.story-categories-visible:not(.menu-items-on-plate) .customer-category-bubbles{padding:48px 4% 40px!important;margin:-36px 0 -48px!important}
 .customer-story-categories.story-categories-visible:not(.menu-items-on-plate) .customer-plate-links{transform:translateY(108px)!important}
 }
 
@@ -5886,16 +5887,26 @@ button {
 .customer-story-categories.menu-items-on-plate.story-categories-visible .customer-plate-links{transform:translateY(128px)!important}
 }
 
-/* Scatter dishes across the platter so they read as placed food, not a grid. */
+/* Scatter bubbles across the platter so they read as placed food, not a grid. */
 @media(min-width:761px){
-.customer-story-categories.menu-items-on-plate.story-categories-visible .customer-menu-bubble:nth-child(10n+1){translate:4px -18px}
-.customer-story-categories.menu-items-on-plate.story-categories-visible .customer-menu-bubble:nth-child(10n+2){translate:-6px 20px}
-.customer-story-categories.menu-items-on-plate.story-categories-visible .customer-menu-bubble:nth-child(10n+3){translate:8px -6px}
-.customer-story-categories.menu-items-on-plate.story-categories-visible .customer-menu-bubble:nth-child(10n+4){translate:-4px 14px}
-.customer-story-categories.menu-items-on-plate.story-categories-visible .customer-menu-bubble:nth-child(10n+5){translate:-10px -14px}
-.customer-story-categories.menu-items-on-plate.story-categories-visible .customer-menu-bubble:nth-child(10n+6){translate:-22px 4px}
-.customer-story-categories.menu-items-on-plate.story-categories-visible .customer-menu-bubble:nth-child(10n+7){translate:22px 2px}
-.customer-story-categories.menu-items-on-plate.story-categories-visible .customer-menu-bubble:nth-child(10n+8){translate:-12px 14px}
-.customer-story-categories.menu-items-on-plate.story-categories-visible .customer-menu-bubble:nth-child(10n+9){translate:20px -8px}
-.customer-story-categories.menu-items-on-plate.story-categories-visible .customer-menu-bubble:nth-child(10n){translate:-8px 10px}
+.customer-story-categories.story-categories-visible .customer-category-bubble:nth-child(10n+1),
+.customer-story-categories.menu-items-on-plate.story-categories-visible .customer-menu-bubble:nth-child(10n+1){translate:-46px 14px}
+.customer-story-categories.story-categories-visible .customer-category-bubble:nth-child(10n+2),
+.customer-story-categories.menu-items-on-plate.story-categories-visible .customer-menu-bubble:nth-child(10n+2){translate:13px -18px}
+.customer-story-categories.story-categories-visible .customer-category-bubble:nth-child(10n+3),
+.customer-story-categories.menu-items-on-plate.story-categories-visible .customer-menu-bubble:nth-child(10n+3){translate:13px 26px}
+.customer-story-categories.story-categories-visible .customer-category-bubble:nth-child(10n+4),
+.customer-story-categories.menu-items-on-plate.story-categories-visible .customer-menu-bubble:nth-child(10n+4){translate:17px -14px}
+.customer-story-categories.story-categories-visible .customer-category-bubble:nth-child(10n+5),
+.customer-story-categories.menu-items-on-plate.story-categories-visible .customer-menu-bubble:nth-child(10n+5){translate:19px 26px}
+.customer-story-categories.story-categories-visible .customer-category-bubble:nth-child(10n+6),
+.customer-story-categories.menu-items-on-plate.story-categories-visible .customer-menu-bubble:nth-child(10n+6){translate:-35px -9px}
+.customer-story-categories.story-categories-visible .customer-category-bubble:nth-child(10n+7),
+.customer-story-categories.menu-items-on-plate.story-categories-visible .customer-menu-bubble:nth-child(10n+7){translate:16px 23px}
+.customer-story-categories.story-categories-visible .customer-category-bubble:nth-child(10n+8),
+.customer-story-categories.menu-items-on-plate.story-categories-visible .customer-menu-bubble:nth-child(10n+8){translate:0px 28px}
+.customer-story-categories.story-categories-visible .customer-category-bubble:nth-child(10n+9),
+.customer-story-categories.menu-items-on-plate.story-categories-visible .customer-menu-bubble:nth-child(10n+9){translate:-12px -27px}
+.customer-story-categories.story-categories-visible .customer-category-bubble:nth-child(10n),
+.customer-story-categories.menu-items-on-plate.story-categories-visible .customer-menu-bubble:nth-child(10n){translate:15px -25px}
 }
