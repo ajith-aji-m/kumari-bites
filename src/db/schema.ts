@@ -150,7 +150,7 @@ export const orders = mysqlTable("orders", {
   customerName: varchar("customer_name", { length: 120 }),
   customerPhone: varchar("customer_phone", { length: 30 }),
   source: mysqlEnum("source", ["qr", "admin", "walk_in"]).default("qr").notNull(),
-  status: mysqlEnum("status", ["new", "confirmed", "preparing", "ready", "completed", "cancelled"]).default("new").notNull(),
+  status: mysqlEnum("status", ["placed", "preparing", "ready", "completed", "cancelled"]).default("placed").notNull(),
   paymentStatus: mysqlEnum("payment_status", ["pending", "paid", "failed", "refunded", "partially_refunded"]).default("pending").notNull(),
   subtotal: decimal("subtotal", { precision: 10, scale: 2 }).notNull(),
   discountAmount: decimal("discount_amount", { precision: 10, scale: 2 }).default("0").notNull(),
