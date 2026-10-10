@@ -405,7 +405,7 @@ function MenuManagement() {
   return <section className="menu-management">
     <div className="welcome menu-heading">
       <div><p className="eyebrow">MENU MANAGEMENT</p><h1>Menu</h1><p className="muted">Keep categories, dishes and pricing simple and up to date.</p></div>
-      <button className="primary-button compact" onClick={() => tab === "items" ? setItemModal("new") : setCategoryModal("new")}>+ {tab === "items" ? "Add menu item" : "Add category"}</button>
+      <button className="primary-button compact menu-action-primary" onClick={() => tab === "items" ? setItemModal("new") : setCategoryModal("new")}><span className="button-icon">+</span><span>{tab === "items" ? "Add menu item" : "Add category"}</span></button>
     </div>
 
     <div className="menu-tabs">
@@ -427,17 +427,17 @@ function MenuManagement() {
           <td>{categoryName(item.categoryId)}</td><td className="price-cell">{money(item.price)}</td>
           <td><span className={item.isVeg ? "veg-badge" : "nonveg-badge"}>{item.isVeg ? "VEG" : "NON-VEG"}</span></td>
           <td><button className={`switch ${item.isAvailable ? "on" : ""}`} onClick={() => toggleItem(item)} aria-label={item.isAvailable ? "Disable item" : "Enable item"}><span /></button></td>
-          <td><button className="table-action" onClick={() => setItemModal(item)}>Edit</button></td>
+          <td><button className="table-action menu-action-edit" onClick={() => setItemModal(item)}><span className="button-icon">✎</span><span>Edit</span></button></td>
         </tr>)}
       </tbody></table>{!visibleItems.length && <div className="empty-state"><span>🍛</span><strong>No menu items found</strong><p className="muted">Add your first menu item to get started.</p></div>}</div>}
     </article> : <article className="panel menu-panel">
       {loading ? <p className="muted">Loading categories...</p> : <div className="menu-table-wrap"><table className="menu-table"><thead><tr><th>Category</th><th>Description</th><th>Items</th><th>Status</th><th></th></tr></thead><tbody>
-        {categories.map(category => <tr key={category.id}><td><strong>{category.name}</strong><small>/{category.slug}</small></td><td>{category.description || "—"}</td><td>{items.filter(item => item.categoryId === category.id).length}</td><td><span className={`category-status ${category.isActive ? "active" : "inactive"}`}>{category.isActive ? "Active" : "Inactive"}</span></td><td className="action-group"><button className="table-action" onClick={() => setCategoryModal(category)}>Edit</button><button className="text-action" onClick={() => toggleCategory(category)}>{category.isActive ? "Disable" : "Enable"}</button></td></tr>)}
+        {categories.map(category => <tr key={category.id}><td><strong>{category.name}</strong><small>/{category.slug}</small></td><td>{category.description || "—"}</td><td>{items.filter(item => item.categoryId === category.id).length}</td><td><span className={`category-status ${category.isActive ? "active" : "inactive"}`}>{category.isActive ? "Active" : "Inactive"}</span></td><td className="action-group"><button className="table-action menu-action-edit" onClick={() => setCategoryModal(category)}><span className="button-icon">✎</span><span>Edit</span></button><button className="text-action menu-action-toggle" onClick={() => toggleCategory(category)}><span>{category.isActive ? "Disable" : "Enable"}</span></button></td></tr>)}
       </tbody></table>{!categories.length && <div className="empty-state"><span>🗂️</span><strong>No categories yet</strong><p className="muted">Create a category before adding menu items.</p></div>}</div>}
     </article>}
 
     {itemDefaults && <div className="modal-backdrop" onMouseDown={e => e.currentTarget === e.target && setItemModal(null)}><form className="modal-card" onSubmit={saveItem}>
-      <div className="modal-head"><div><p className="eyebrow">MENU ITEM</p><h2>{itemModal === "new" ? "Add menu item" : "Edit menu item"}</h2></div><button type="button" className="icon-button" onClick={() => setItemModal(null)}>×</button></div>
+      <div className="modal-head"><div><p className="eyebrow">MENU ITEM</p><h2>{itemModal === "new" ? "Add menu item" : "Edit menu item"}</h2></div><button type="button" className="icon-button menu-action-close" onClick={() => setItemModal(null)} aria-label="Close menu item editor">×</button></div>
       <div className="menu-item-editor">
         {error && <div className="chef-guide menu-item-feedback has-error" role="alert" aria-live="polite"><div className="chef-character" aria-hidden="true"><img src="/assets/kumari-bites-chef.png" alt="" /></div><div className="chef-bubble"><strong>Chef says</strong><span>{error}</span></div></div>}
         <div className="editor-section">
@@ -473,13 +473,13 @@ function MenuManagement() {
           </div>
         </div>
       </div>
-      <div className="modal-actions"><button type="button" className="secondary-button" onClick={() => setItemModal(null)}>Cancel</button><button className="primary-button editor-save" disabled={saving}>{saving ? "Saving..." : itemModal === "new" ? "Add menu item" : "Save changes"}</button></div>
+      <div className="modal-actions"><button type="button" className="secondary-button menu-action-secondary" onClick={() => setItemModal(null)}><span className="button-icon">×</span><span>Cancel</span></button><button className="primary-button editor-save menu-action-primary" disabled={saving}><span className="button-icon">{saving ? "…" : "＋"}</span><span>{saving ? "Saving..." : itemModal === "new" ? "Add menu item" : "Save changes"}</span></button></div>
     </form></div>}
 
     {categoryDefaults && <div className="modal-backdrop" onMouseDown={e => e.currentTarget === e.target && setCategoryModal(null)}><form className="modal-card small-modal" onSubmit={saveCategory}>
-      <div className="modal-head"><div><p className="eyebrow">CATEGORY</p><h2>{categoryModal === "new" ? "Add category" : "Edit category"}</h2></div><button type="button" className="icon-button" onClick={() => setCategoryModal(null)}>×</button></div>
+      <div className="modal-head"><div><p className="eyebrow">CATEGORY</p><h2>{categoryModal === "new" ? "Add category" : "Edit category"}</h2></div><button type="button" className="icon-button menu-action-close" onClick={() => setCategoryModal(null)} aria-label="Close category editor">×</button></div>
       <div className="form-grid"><label>Category name *<input name="name" defaultValue={categoryDefaults.name} required placeholder="South Indian" /></label><label>Slug *<input name="slug" defaultValue={categoryDefaults.slug} required placeholder="south-indian" /></label><label className="full-field">Description<textarea name="description" defaultValue={categoryDefaults.description ?? ""} /></label><label className="full-field">Image URL<input name="imageUrl" defaultValue={categoryDefaults.imageUrl ?? ""} placeholder="https://..." /></label><label>Sort order<input name="sortOrder" type="number" min="0" defaultValue={categoryDefaults.sortOrder} /></label></div>
-      <div className="modal-actions"><button type="button" className="secondary-button" onClick={() => setCategoryModal(null)}>Cancel</button><button className="primary-button" disabled={saving}>{saving ? "Saving..." : categoryModal === "new" ? "Save category" : "Update category"}</button></div>
+      <div className="modal-actions"><button type="button" className="secondary-button menu-action-secondary" onClick={() => setCategoryModal(null)}><span className="button-icon">×</span><span>Cancel</span></button><button className="primary-button menu-action-primary" disabled={saving}><span className="button-icon">{saving ? "…" : "✓"}</span><span>{saving ? "Saving..." : categoryModal === "new" ? "Save category" : "Update category"}</span></button></div>
     </form></div>}
   </section>;
 }
