@@ -347,6 +347,96 @@ function Pagination({ currentPage, totalPages, totalItems, pageSize, onPageChang
   </div>;
 }
 
+type PrintableOrder = {
+  id: number; orderNumber: string; customerName: string | null; customerPhone?: string | null;
+  status: string; source?: string; notes?: string | null; subtotal?: string | number;
+  totalAmount: string | number; placedAt: string;
+  items?: Array<{ id: number; itemName: string; quantity: number; unitPrice: string | number; lineTotal: string | number }>;
+};
+
+function escapeReceiptHtml(value: unknown) {
+  return String(value ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+
+function printOrderReceipt(order: PrintableOrder) {
+  const printWindow = window.open("", "_blank", "width=620,height=760");
+  if (!printWindow) { window.alert("Your browser blocked the print window. Allow pop-ups and try again."); return; }
+  const placedAt = order.placedAt ? new Date(order.placedAt).toLocaleString("en-IN") : "—";
+  const source = (order.source || "—").replace(/_/g, " ");
+  const itemRows = (order.items ?? []).map(item => '<tr><td>' + escapeReceiptHtml(item.itemName) + '<small>Qty ' + item.quantity + ' × ' + escapeReceiptHtml(money(item.unitPrice)) + '</small></td><td class="amount">' + escapeReceiptHtml(money(item.lineTotal)) + '</td></tr>').join("");
+  const html = '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Order ' + escapeReceiptHtml(order.orderNumber) + '</title>' +
+  '<style>*{box-sizing:border-box}body{font-family:Arial,Helvetica,sans-serif;color:#241a15;margin:0;padding:28px;font-size:12px}header{text-align:center;padding-bottom:18px;border-bottom:2px solid #d97736}header h1{font-size:24px;margin:0 0 5px}header p{margin:0;color:#715f54}h2{font-size:17px;margin:20px 0 8px}.meta{display:grid;grid-template-columns:1fr 1fr;gap:9px 16px;margin:18px 0}.meta div{display:grid;gap:4px}.meta span{color:#76675e;font-size:10px;text-transform:uppercase;letter-spacing:.06em}.meta strong{font-size:12px;overflow-wrap:anywhere}table{width:100%;border-collapse:collapse;margin-top:10px}th{text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:#76675e;background:#f8f1eb}th,td{padding:10px 8px;border-bottom:1px solid #eadfd7}td small{display:block;margin-top:4px;color:#76675e}.amount{text-align:right;white-space:nowrap}.totals{margin:18px 0 0 auto;width:min(260px,100%);display:grid;gap:9px}.total-line{display:flex;justify-content:space-between;gap:15px}.grand{border-top:2px solid #d97736;padding-top:10px;font-size:17px;font-weight:800}.notes{margin-top:18px;padding:12px;background:#fbf6f1;border-radius:8px;white-space:pre-wrap;overflow-wrap:anywhere}.footer{text-align:center;color:#76675e;font-size:10px;margin-top:26px}@media print{body{padding:8mm}}</style></head><body>' +
+  '<header><h1>Kumari Bites</h1><p>Order receipt</p></header><h2>Order ' + escapeReceiptHtml(order.orderNumber) + '</h2>' +
+  '<section class="meta"><div><span>Order date</span><strong>' + escapeReceiptHtml(placedAt) + '</strong></div><div><span>Status</span><strong>' + escapeReceiptHtml(statusLabel(order.status)) + '</strong></div><div><span>Customer</span><strong>' + escapeReceiptHtml(order.customerName || "Walk-in customer") + '</strong></div><div><span>Phone</span><strong>' + escapeReceiptHtml(order.customerPhone || "—") + '</strong></div><div><span>Order source</span><strong>' + escapeReceiptHtml(source) + '</strong></div></section>' +
+  '<table><thead><tr><th>Item</th><th class="amount">Amount</th></tr></thead><tbody>' + (itemRows || '<tr><td colspan="2">Order item details unavailable</td></tr>') + '</tbody></table>' +
+  '<section class="totals"><div class="total-line"><span>Subtotal</span><strong>' + escapeReceiptHtml(money(order.subtotal ?? order.totalAmount)) + '</strong></div><div class="total-line grand"><span>Total</span><strong>' + escapeReceiptHtml(money(order.totalAmount)) + '</strong></div></section>' +
+  (order.notes ? '<div class="notes"><strong>Order notes</strong><br>' + escapeReceiptHtml(order.notes) + '</div>' : '') +
+  '<p class="footer">Thank you for choosing Kumari Bites.</p><script>window.onload=function(){setTimeout(function(){window.print()},250)};<\\/script></body></html>';
+  printWindow.document.open(); printWindow.document.write(html); printWindow.document.close();
+}
+
+function downloadOrderPdf(order: PrintableOrder) {
+  const clean = (value: unknown) => String(value ?? "").normalize("NFKD").replace(/[\u0300-\u036f]/g, "").replace(/[^\x20-\x7E]/g, "?");
+  const wrap = (value: unknown, max = 78) => {
+    const words = clean(value).split(/\s+/); const lines: string[] = []; let line = "";
+    for (const word of words) {
+      if (line && (line + " " + word).length > max) { lines.push(line); line = word; }
+      else line = line ? line + " " + word : word;
+    }
+    if (line) lines.push(line);
+    return lines.length ? lines : [""];
+  };
+  const date = order.placedAt ? new Date(order.placedAt).toLocaleString("en-IN") : "—";
+  const lines: string[] = ["KUMARI BITES", "ORDER RECEIPT", "", ...wrap("Order: " + order.orderNumber), ...wrap("Date: " + date),
+    ...wrap("Customer: " + (order.customerName || "Walk-in customer")), ...wrap("Phone: " + (order.customerPhone || "—")),
+    ...wrap("Status: " + statusLabel(order.status)), ...wrap("Source: " + (order.source || "—").replace(/_/g, " ")),
+    "", "ITEMS", "---------------------------------------------------------------"];
+  for (const item of order.items ?? []) {
+    lines.push(...wrap(item.itemName));
+    lines.push(...wrap("  " + item.quantity + " x " + money(item.unitPrice) + "                         " + money(item.lineTotal)));
+  }
+  if (!order.items?.length) lines.push("Order item details unavailable");
+  lines.push("---------------------------------------------------------------", ...wrap("Subtotal: " + money(order.subtotal ?? order.totalAmount)), ...wrap("TOTAL: " + money(order.totalAmount)));
+  if (order.notes) lines.push("", ...wrap("Notes: " + order.notes));
+  lines.push("", "Thank you for choosing Kumari Bites.");
+  const pageLines: string[][] = [];
+  for (let i = 0; i < lines.length; i += 48) pageLines.push(lines.slice(i, i + 48));
+  const objects: string[] = [];
+  const addObject = (body: string) => { objects.push(body); return objects.length; };
+  const catalogId = addObject(""); const pagesId = addObject("");
+  const fontId = addObject("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>");
+  const pageIds: number[] = [];
+  pageLines.forEach(page => {
+    const commands = ["BT", "/F1 10 Tf", "48 790 Td", "14 TL"];
+    page.forEach((line, index) => {
+      if (index === 0) commands.push("/F1 18 Tf");
+      if (index === 1) commands.push("/F1 11 Tf");
+      if (index === 2) commands.push("/F1 10 Tf");
+      const safe = line.replace(/\\/g, "\\\\").replace(/\(/g, "\\(").replace(/\)/g, "\\)");
+      commands.push("(" + safe + ") Tj", "T*");
+      if (index === 0) commands.push("/F1 10 Tf");
+    });
+    commands.push("ET");
+    const stream = commands.join("\n");
+    const streamId = addObject("<< /Length " + stream.length + " >>\nstream\n" + stream + "\nendstream");
+    const pageId = addObject("<< /Type /Page /Parent " + pagesId + " 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 " + fontId + " 0 R >> >> /Contents " + streamId + " 0 R >>");
+    pageIds.push(pageId);
+  });
+  objects[catalogId - 1] = "<< /Type /Catalog /Pages " + pagesId + " 0 R >>";
+  objects[pagesId - 1] = "<< /Type /Pages /Kids [" + pageIds.map(id => id + " 0 R").join(" ") + "] /Count " + pageIds.length + " >>";
+  let pdf = "%PDF-1.4\n"; const offsets = [0];
+  objects.forEach((object, index) => { offsets.push(pdf.length); pdf += (index + 1) + " 0 obj\n" + object + "\nendobj\n"; });
+  const xrefOffset = pdf.length;
+  pdf += "xref\n0 " + (objects.length + 1) + "\n0000000000 65535 f \n";
+  offsets.slice(1).forEach(offset => { pdf += String(offset).padStart(10, "0") + " 00000 n \n"; });
+  pdf += "trailer\n<< /Size " + (objects.length + 1) + " /Root " + catalogId + " 0 R >>\nstartxref\n" + xrefOffset + "\n%%EOF";
+  const blob = new Blob([pdf], { type: "application/pdf" }); const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a"); anchor.href = url;
+  anchor.download = "order-" + (clean(order.orderNumber).replace(/[^a-zA-Z0-9_-]/g, "-") || order.id) + ".pdf";
+  document.body.appendChild(anchor); anchor.click(); anchor.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
 function Orders() {
   const [status, setStatus] = useState("all");
   const [query, setQuery] = useState("");
@@ -493,7 +583,7 @@ function Orders() {
       </div>
       {loading ? <p className="muted">Loading orders...</p> : <div className="menu-table-wrap orders-table-wrap">
         <table className="menu-table orders-table">
-          <thead><tr><th>Order</th><th>Customer</th><th>Items</th><th>Status</th><th>Total</th><th>Update</th></tr></thead>
+          <thead><tr><th>Order</th><th>Customer</th><th>Items</th><th>Status</th><th>Total</th><th>Update</th><th>Actions</th></tr></thead>
           <tbody>{pagedOrders.map(order => <tr key={order.id}>
             <td><div className="order-main-cell"><strong>{order.orderNumber}</strong><small>{order.placedAt ? new Date(order.placedAt).toLocaleString("en-IN") : "—"}</small></div></td>
             <td><div className="order-main-cell"><strong>{order.customerName || "Walk-in customer"}</strong><small>{order.customerPhone || "No phone provided"}</small></div></td>
@@ -501,6 +591,7 @@ function Orders() {
             <td><span className={"order-status " + order.status}>{statusLabel(order.status)}</span></td>
             <td><strong>{money(order.totalAmount)}</strong></td>
             <td>{order.status === "completed" || order.status === "cancelled" ? <span className="order-status-lock" title={`${statusLabel(order.status)} orders cannot be changed`}><span aria-hidden="true">🔒</span> Locked</span> : <CustomSelect value={order.status} onChange={value => updateStatus(order.id, value)} portalMenu statusTone options={["new","confirmed","preparing","ready","completed","cancelled"].map(s => ({ value: s, label: statusLabel(s) }))} />}</td>
+            <td><div className="order-document-actions"><button type="button" className="order-document-button order-print-button" onClick={() => printOrderReceipt(order)} title={"Print order " + order.orderNumber}><span aria-hidden="true">⎙</span><span>Print</span></button><button type="button" className="order-document-button order-pdf-button" onClick={() => downloadOrderPdf(order)} title={"Download PDF for order " + order.orderNumber}><span aria-hidden="true">↓</span><span>PDF</span></button></div></td>
           </tr>)}</tbody>
         </table>
         {!filtered.length && <div className="empty-state orders-empty-state"><span className="orders-empty-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 6h12M8 12h12M8 18h12M3.5 6h.01M3.5 12h.01M3.5 18h.01" /></svg></span><strong>{query || status !== "all" ? "No matching orders" : "No orders yet"}</strong><p className="muted">{query || status !== "all" ? "Try changing your search or status filter." : "Use the + button at the bottom-right to create your first order."}</p></div>}
