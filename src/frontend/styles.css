@@ -5885,3 +5885,17 @@ button {
 .customer-story-categories.menu-items-on-plate.story-categories-visible .customer-menu-pagination{transform:translateY(54px)!important}
 .customer-story-categories.menu-items-on-plate.story-categories-visible .customer-plate-links{transform:translateY(128px)!important}
 }
+
+/* Scatter dishes across the platter so they read as placed food, not a grid. */
+@media(min-width:761px){
+.customer-story-categories.menu-items-on-plate.story-categories-visible .customer-menu-bubble:nth-child(10n+1){translate:4px -18px}
+.customer-story-categories.menu-items-on-plate.story-categories-visible .customer-menu-bubble:nth-child(10n+2){translate:-6px 20px}
+.customer-story-categories.menu-items-on-plate.story-categories-visible .customer-menu-bubble:nth-child(10n+3){translate:8px -6px}
+.customer-story-categories.menu-items-on-plate.story-categories-visible .customer-menu-bubble:nth-child(10n+4){translate:-4px 14px}
+.customer-story-categories.menu-items-on-plate.story-categories-visible .customer-menu-bubble:nth-child(10n+5){translate:-10px -14px}
+.customer-story-categories.menu-items-on-plate.story-categories-visible .customer-menu-bubble:nth-child(10n+6){translate:-22px 4px}
+.customer-story-categories.menu-items-on-plate.story-categories-visible .customer-menu-bubble:nth-child(10n+7){translate:22px 2px}
+.customer-story-categories.menu-items-on-plate.story-categories-visible .customer-menu-bubble:nth-child(10n+8){translate:-12px 14px}
+.customer-story-categories.menu-items-on-plate.story-categories-visible .customer-menu-bubble:nth-child(10n+9){translate:20px -8px}
+.customer-story-categories.menu-items-on-plate.story-categories-visible .customer-menu-bubble:nth-child(10n){translate:-8px 10px}
+}
