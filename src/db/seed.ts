@@ -43,16 +43,19 @@ const defaultCategories = [
 const categoryIds = new Map<string, number>();
 for (const category of defaultCategories) {
   const existing = (await db.select().from(categories).where(eq(categories.slug, category.slug)).limit(1))[0];
+  const imageUrl = `/assets/categories/${category.slug}.webp`;
   if (existing) {
     await db.update(categories).set({
       name: category.name,
       description: category.description,
+      // Keep any image uploaded through the admin UI.
+      imageUrl: existing.imageUrl ?? imageUrl,
       sortOrder: category.sortOrder,
       isActive: true
     }).where(eq(categories.id, existing.id));
     categoryIds.set(category.slug, existing.id);
   } else {
-    const inserted = (await db.insert(categories).values(category).$returningId())[0]!;
+    const inserted = (await db.insert(categories).values({ ...category, imageUrl }).$returningId())[0]!;
     categoryIds.set(category.slug, inserted.id);
   }
 }
