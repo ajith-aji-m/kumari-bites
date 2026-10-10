@@ -1273,7 +1273,10 @@ function SettingsPage() {
       setSettings({ ...emptySiteSettings, ...result.settings });
       const savedCustomerUrl = result.settings.customerLandingUrl?.trim() ?? "";
       setGeneratedUrl(savedCustomerUrl);
-      setNotice("Your settings have been saved." );
+      setNotice(savedCustomerUrl
+        ? "Settings saved successfully. Your customer QR code is ready."
+        : "Settings saved successfully.");
+      window.setTimeout(() => setNotice(""), 3200);
       window.dispatchEvent(new CustomEvent("site-settings-updated", { detail: result.settings }));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to save settings");
@@ -1319,7 +1322,7 @@ function SettingsPage() {
     </div>
 
     {error && <div className="inline-error" role="alert">{error}<button type="button" onClick={() => setError("")}>Dismiss</button></div>}
-    {notice && <div className="settings-success" role="status"><span aria-hidden="true">✓</span>{notice}</div>}
+    {notice && <div className="chef-success-toast category-success-toast settings-success-toast" role="status" aria-live="polite"><div className="chef-success-bubble"><strong>Chef says</strong><span>{notice}</span></div><div className="chef-success-character" aria-hidden="true"><img src="/assets/kumari-bites-chef.png" alt="" /></div></div>}
     {loading ? <section className="panel settings-loading"><p className="muted">Loading settings…</p></section> : <form id="site-settings-form" className="settings-layout" onSubmit={saveSettings}>
       <div className="settings-main-column">
         <section className="panel settings-card">
