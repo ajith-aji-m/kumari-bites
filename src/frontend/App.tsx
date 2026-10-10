@@ -1,4 +1,5 @@
-import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { ImageUpload } from "./components/ImageUpload";
 
 type DashboardData = {
@@ -424,7 +425,7 @@ function Orders() {
             <td><div className="order-items-cell">{order.items?.length ? order.items.map(item => <span key={item.id}>{item.itemName} <small>× {item.quantity}</small></span>) : <span className="muted">Items unavailable</span>}</div></td>
             <td><span className={"order-status " + order.status}>{statusLabel(order.status)}</span></td>
             <td><strong>{money(order.totalAmount)}</strong></td>
-            <td><CustomSelect value={order.status} onChange={value => updateStatus(order.id, value)} options={["new","confirmed","preparing","ready","completed","cancelled"].map(s => ({ value: s, label: statusLabel(s) }))} /></td>
+            <td><CustomSelect value={order.status} onChange={value => updateStatus(order.id, value)} portalMenu statusTone options={["new","confirmed","preparing","ready","completed","cancelled"].map(s => ({ value: s, label: statusLabel(s) }))} /></td>
           </tr>)}</tbody>
         </table>
         {!filtered.length && <div className="empty-state orders-empty-state"><span className="orders-empty-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 6h12M8 12h12M8 18h12M3.5 6h.01M3.5 12h.01M3.5 18h.01" /></svg></span><strong>{query || status !== "all" ? "No matching orders" : "No orders yet"}</strong><p className="muted">{query || status !== "all" ? "Try changing your search or status filter." : "Use the + button at the bottom-right to create your first order."}</p></div>}
@@ -458,19 +459,63 @@ function Orders() {
   </section>;
 }
 
-function CustomSelect({ value, onChange, options, placeholder = "Select..." }: { value: string; onChange: (value: string) => void; options: { value: string; label: string }[]; placeholder?: string }) {
+function CustomSelect({ value, onChange, options, placeholder = "Select...", portalMenu = false, statusTone = false }: { value: string; onChange: (value: string) => void; options: { value: string; label: string }[]; placeholder?: string; portalMenu?: boolean; statusTone?: boolean }) {
   const [open, setOpen] = useState(false);
+  const [menuPosition, setMenuPosition] = useState<{ top: number; left: number; width: number }>({ top: 0, left: 0, width: 180 });
+  const triggerRef = useRef<HTMLButtonElement | null>(null);
   const selected = options.find(option => option.value === value);
-  return <div className="custom-select">
-    <button type="button" className="custom-select-trigger" onClick={() => setOpen(current => !current)} aria-expanded={open}>
+
+  useEffect(() => {
+    if (!open || !portalMenu) return;
+    const positionMenu = () => {
+      const trigger = triggerRef.current;
+      if (!trigger) return;
+      const rect = trigger.getBoundingClientRect();
+      const width = Math.max(rect.width, 180);
+      const menuHeight = Math.min(options.length * 38 + 10, 250);
+      const left = Math.max(8, Math.min(rect.left, window.innerWidth - width - 8));
+      const top = rect.bottom + menuHeight + 8 <= window.innerHeight
+        ? rect.bottom + 6
+        : Math.max(8, rect.top - menuHeight - 6);
+      setMenuPosition({ top, left, width });
+    };
+    positionMenu();
+    window.addEventListener("resize", positionMenu);
+    window.addEventListener("scroll", positionMenu, true);
+    return () => {
+      window.removeEventListener("resize", positionMenu);
+      window.removeEventListener("scroll", positionMenu, true);
+    };
+  }, [open, portalMenu, options.length]);
+
+  const menu = open && <div
+    className={`custom-select-menu${statusTone ? " order-status-menu" : ""}`}
+    style={portalMenu ? { position: "fixed", top: menuPosition.top, left: menuPosition.left, width: menuPosition.width, zIndex: 10000 } : undefined}
+    role="listbox"
+  >
+    {options.map(option => <button
+      type="button"
+      key={option.value}
+      role="option"
+      aria-selected={option.value === value}
+      className={`custom-select-option${option.value === value ? " selected" : ""}${statusTone ? ` order-status-option order-status-option-${option.value}` : ""}`}
+      onClick={() => { onChange(option.value); setOpen(false); }}
+    >{option.label}</button>)}
+  </div>;
+
+  return <div className={`custom-select${statusTone ? " order-status-select" : ""}`}>
+    <button
+      ref={triggerRef}
+      type="button"
+      className={`custom-select-trigger${statusTone ? ` order-status-trigger order-status-trigger-${value}` : ""}`}
+      onClick={() => setOpen(current => !current)}
+      aria-expanded={open}
+    >
       <span>{selected?.label ?? placeholder}</span><span className="custom-select-chevron">⌄</span>
     </button>
-    {open && <div className="custom-select-menu">
-      {options.map(option => <button type="button" key={option.value} className={option.value === value ? "custom-select-option selected" : "custom-select-option"} onClick={() => { onChange(option.value); setOpen(false); }}>{option.label}</button>)}
-    </div>}
+    {open && portalMenu && typeof document !== "undefined" ? createPortal(menu, document.body) : menu}
   </div>;
 }
-
 function MenuManagement() {
   const [tab, setTab] = useState<"items" | "categories">("items");
   const [categories, setCategories] = useState<Category[]>([]);
