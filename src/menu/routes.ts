@@ -32,6 +32,30 @@ const menuItemSchema = z.object({
 });
 
 export async function registerMenuRoutes(app: FastifyInstance) {
+  // Public read-only catalog used by the customer landing page. Admin routes below remain permission-protected.
+  app.get("/api/v1/public/menu", async () => {
+    const categoryRows = await db.select().from(categories)
+      .where(eq(categories.isActive, true))
+      .orderBy(categories.sortOrder, categories.name);
+    const itemRows = await db.select().from(menuItems)
+      .where(eq(menuItems.isAvailable, true))
+      .orderBy(menuItems.sortOrder, menuItems.name);
+    const priceRows = await db.select().from(menuItemPrices)
+      .where(eq(menuItemPrices.isActive, true));
+    const visibleItems = itemRows
+      .filter((item) => categoryRows.some((category) => category.id === item.categoryId))
+      .map((item) => ({
+        id: item.id,
+        categoryId: item.categoryId,
+        name: item.name,
+        description: item.description,
+        imageUrl: item.imageUrl,
+        isVeg: item.isVeg,
+        price: priceRows.find((price) => price.menuItemId === item.id)?.price ?? null
+      }));
+    return { categories: categoryRows, items: visibleItems };
+  });
+
   app.get("/api/v1/categories", async (request, reply) => {
     const user = await requirePermission(request, reply, "menu.view");
     if (!user) return;
