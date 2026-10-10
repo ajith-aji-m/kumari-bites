@@ -87,6 +87,9 @@ export const menuItems = mysqlTable("menu_items", {
   sku: varchar("sku", { length: 80 }),
   isVeg: boolean("is_veg").default(false).notNull(),
   isAvailable: boolean("is_available").default(true).notNull(),
+  stockQuantity: int("stock_quantity").default(0).notNull(),
+  lowStockThreshold: int("low_stock_threshold").default(5).notNull(),
+  lowStockAlertEnabled: boolean("low_stock_alert_enabled").default(true).notNull(),
   sortOrder: int("sort_order").default(0).notNull(),
   ...timestamps
 }, (table) => [
