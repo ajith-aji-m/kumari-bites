@@ -5473,3 +5473,147 @@ button {
   .customer-menu-bubble-price{font-size:11px!important}
   .customer-menu-bubble-add{font-size:9px!important}
 }
+
+
+/* Stable four-at-a-time menu paging; keep both categories and dishes inside the platter. */
+.customer-story-categories.story-categories-visible{
+  top:16%!important;
+  right:clamp(10px,2vw,28px)!important;
+  width:min(58vw,760px)!important;
+  max-height:76vh!important;
+  overflow:visible!important;
+}
+.customer-story-categories.story-categories-visible:before{
+  top:28%!important;
+  width:106%!important;
+  height:86%!important;
+}
+.customer-story-categories.story-categories-visible:not(.menu-items-on-plate){
+  top:17%!important;
+  right:clamp(12px,2.4vw,34px)!important;
+  width:min(56vw,730px)!important;
+  max-height:74vh!important;
+  overflow:visible!important;
+}
+.customer-story-categories.story-categories-visible:not(.menu-items-on-plate) .story-panel-heading{
+  margin-bottom:clamp(6px,1vh,12px)!important;
+}
+.customer-story-categories.story-categories-visible:not(.menu-items-on-plate) .customer-category-bubbles{
+  position:relative!important;
+  z-index:2!important;
+  display:flex!important;
+  flex-wrap:wrap!important;
+  justify-content:center!important;
+  align-content:center!important;
+  gap:clamp(8px,1vw,14px)!important;
+  max-height:43vh!important;
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+  padding:8px 4% 12px!important;
+}
+.customer-menu-bubbles{
+  display:grid!important;
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  justify-items:center!important;
+  align-items:start!important;
+  gap:clamp(5px,1vw,14px)!important;
+  width:100%!important;
+  padding:8px 2% 8px!important;
+}
+.customer-menu-bubble{
+  width:100%!important;
+  max-width:132px!important;
+  min-width:0!important;
+  padding:5px 3px 6px!important;
+  gap:5px!important;
+}
+.customer-menu-bubble-image{
+  width:clamp(48px,5vw,70px)!important;
+  height:clamp(48px,5vw,70px)!important;
+}
+.customer-menu-bubble-name{
+  overflow-wrap:anywhere!important;
+  font-size:clamp(10px,.88vw,12px)!important;
+}
+.customer-menu-pagination{
+  position:relative;
+  z-index:4;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:clamp(8px,1.5vw,18px);
+  margin:2px auto 0;
+  padding:5px 8px;
+  color:#6f422e;
+  font-size:clamp(10px,.85vw,12px);
+  font-weight:800;
+}
+.customer-menu-pagination button{
+  border:1px solid rgba(151,72,38,.35);
+  border-radius:999px;
+  padding:7px 12px;
+  background:rgba(255,249,239,.82);
+  color:#813b22;
+  font-size:inherit;
+  font-weight:850;
+  cursor:pointer;
+  transition:background .18s ease,transform .18s ease;
+}
+.customer-menu-pagination button:hover:not(:disabled){
+  background:#f4dfca;
+  transform:translateY(-1px);
+}
+.customer-menu-pagination button:disabled{
+  opacity:.42;
+  cursor:default;
+}
+.customer-menu-pagination span{white-space:nowrap}
+@media(max-width:760px){
+  .customer-story-categories.story-categories-visible:not(.menu-items-on-plate){
+    top:13%!important;
+    right:3px!important;
+    width:69vw!important;
+    max-height:78vh!important;
+  }
+  .customer-story-categories.story-categories-visible:not(.menu-items-on-plate):before{
+    top:27%!important;
+    width:110%!important;
+    height:90%!important;
+  }
+  .customer-story-categories.story-categories-visible:not(.menu-items-on-plate) .customer-category-bubbles{
+    max-height:44vh!important;
+    gap:6px!important;
+    padding:6px 2% 10px!important;
+  }
+  .customer-story-categories.menu-items-on-plate.story-categories-visible{
+    top:13%!important;
+    right:2px!important;
+    width:69vw!important;
+    max-height:79vh!important;
+    overflow:visible!important;
+  }
+  .customer-story-categories.menu-items-on-plate.story-categories-visible:before{
+    top:29%!important;
+    width:108%!important;
+    height:88%!important;
+  }
+  .customer-menu-bubbles{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:5px!important;
+    padding:6px 2% 6px!important;
+  }
+  .customer-menu-bubble{
+    max-width:104px!important;
+    padding:4px 2px 5px!important;
+    gap:4px!important;
+  }
+  .customer-menu-bubble-image{
+    width:clamp(42px,12vw,56px)!important;
+    height:clamp(42px,12vw,56px)!important;
+  }
+  .customer-menu-pagination{gap:6px;padding:4px 0;font-size:10px}
+  .customer-menu-pagination button{padding:6px 8px}
+}
+@media(prefers-reduced-motion:reduce){
+  .customer-menu-pagination button{transition:none}
+}
