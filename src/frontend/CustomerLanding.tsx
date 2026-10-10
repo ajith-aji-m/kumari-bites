@@ -14,6 +14,7 @@ export function CustomerLanding() {
   const [categoryIntroPlaying, setCategoryIntroPlaying] = useState(false);
   const [cart, setCart] = useState<Record<number, number>>({});
   const [cartOpen, setCartOpen] = useState(false);
+  const [addingItemId, setAddingItemId] = useState<number | null>(null);
 
   // The landing experience is click-driven; native page scrolling no longer changes stages.
   const openCategories = () => {
@@ -26,7 +27,7 @@ export function CustomerLanding() {
   };
   const openItems = (categoryId?: number) => {
     if (typeof categoryId === "number") setSelectedCategory(categoryId);
-    setStage(2);
+    setStage(1);
   };
   const goToStage = (target: number) => setStage(Math.max(0, Math.min(2, target)));
 
@@ -47,7 +48,11 @@ export function CustomerLanding() {
   const visibleItems = useMemo(() => items.filter(i => selectedCategory === null || i.categoryId === selectedCategory), [items, selectedCategory]);
   const cartCount = Object.values(cart).reduce((s, n) => s + n, 0);
   const total = items.reduce((s, i) => s + Number(i.price ?? 0) * (cart[i.id] ?? 0), 0);
-  const add = (id: number) => setCart(c => ({ ...c, [id]: (c[id] ?? 0) + 1 }));
+  const add = (id: number) => {
+    setCart(c => ({ ...c, [id]: (c[id] ?? 0) + 1 }));
+    setAddingItemId(id);
+    window.setTimeout(() => setAddingItemId(current => current === id ? null : current), 650);
+  };
   const change = (id: number, delta: number) => setCart(c => { const n = { ...c, [id]: Math.max(0, (c[id] ?? 0) + delta) }; if (!n[id]) delete n[id]; return n; });
 
   return <main className="customer-landing customer-story-page">
@@ -73,14 +78,29 @@ export function CustomerLanding() {
             {stage === 0 && <button type="button" className="customer-story-link" onClick={openCategories}>Explore the menu <span aria-hidden="true">↗</span></button>}
           </div>
         </div>
-        <div className={"customer-story-categories " + (stage === 1 ? "story-categories-visible" : "")}>
-          <div className="story-panel-heading"><small>STEP 01 · PICK YOUR MOOD</small><h2>What are you <em>craving?</em></h2><p>Tap a category to help me find your favourites.</p></div>
-          {loading ? <div className="customer-story-loading">Getting the menu ready…</div> : error ? <div className="customer-story-loading">{error}</div> : <div className="customer-category-bubbles">
-            {categories.map((c, i) => <button key={c.id} style={{ animationDelay: `${i * 90}ms` }} className={"customer-category-bubble category-tone-" + (i % 5) + (selectedCategory === c.id ? " selected" : "")} onClick={() => openItems(c.id)}>
+        <div className={"customer-story-categories " + (stage === 1 ? "story-categories-visible" : "") + (selectedCategory !== null ? " menu-items-on-plate" : "")}>
+          <div className="story-panel-heading">
+            <small>{selectedCategory === null ? "STEP 01 · PICK YOUR MOOD" : "FRESH FROM OUR KITCHEN"}</small>
+            <h2>{selectedCategory === null ? <>What are you <em>craving?</em></> : <>{categories.find(c => c.id === selectedCategory)?.name ?? "Your favourites"} <em>menu</em></>}</h2>
+            <p>{selectedCategory === null ? "Choose a category to see what’s cooking." : "Pick your bites and watch them join your order."}</p>
+          </div>
+          {loading ? <div className="customer-story-loading">Getting the menu ready…</div> : error ? <div className="customer-story-loading">{error}</div> : selectedCategory === null ? <div className="customer-category-bubbles">
+            {categories.map((c, i) => <button key={c.id} style={{ animationDelay: `${i * 90}ms` }} className={"customer-category-bubble category-tone-" + (i % 5)} onClick={() => openItems(c.id)}>
               {c.imageUrl ? <img src={c.imageUrl} alt="" /> : <span className="category-bubble-art">{["🥟", "🌯", "🍔", "🍟", "🍗"][i % 5]}</span>}<strong>{c.name}</strong>
             </button>)}
+          </div> : <div className="customer-menu-bubbles">
+            {visibleItems.map((item, i) => <article key={item.id} style={{ animationDelay: `${i * 90}ms` }} className={"customer-menu-bubble " + (addingItemId === item.id ? "adding-to-cart" : "")}>
+              <div className="customer-menu-bubble-image">{item.imageUrl ? <img src={item.imageUrl} alt={item.name} loading="lazy" /> : <span>{["🥟", "🌯", "🍔", "🍗", "🍜"][i % 5]}</span>}<span className={"customer-veg-mark " + (item.isVeg ? "veg" : "nonveg")} /></div>
+              <strong className="customer-menu-bubble-name">{item.name}</strong>
+              <span className="customer-menu-bubble-price">{money(item.price)}</span>
+              <button type="button" className="customer-menu-bubble-add" onClick={() => add(item.id)}>{cart[item.id] ? `Added · ${cart[item.id]}` : "Pick me to add"} <span>+</span></button>
+            </article>)}
+            {!visibleItems.length && <div className="customer-story-loading">No items in this category yet.</div>}
           </div>}
-          <button type="button" className="story-scroll-hint customer-story-link" onClick={() => goToStage(0)}>← Back to welcome</button>
+          <div className="customer-plate-links">
+            {selectedCategory !== null && <button type="button" className="customer-story-link" onClick={() => setSelectedCategory(null)}>← All categories</button>}
+            <button type="button" className="story-scroll-hint customer-story-link" onClick={() => { setSelectedCategory(null); goToStage(0); }}>← Welcome</button>
+          </div>
         </div>
         <div className={"customer-story-items " + (stage === 2 ? "story-items-visible" : "")}>
           <div className="story-items-topline"><button className="story-back-button" onClick={() => goToStage(1)}>← Categories</button><small>STEP 02 · MADE FOR YOU</small></div>
@@ -97,7 +117,7 @@ export function CustomerLanding() {
     </section>
     {cartCount > 0 && <button className="customer-cart-fab" onClick={() => setCartOpen(v => !v)}><span>🛍</span><span>Your bites · {cartCount}</span><strong>{money(total)}</strong></button>}
     {cartOpen && <aside className="customer-cart-panel" aria-label="Your cart"><div className="customer-cart-title"><div><small>YOUR ORDER</small><h3>Your bites</h3></div><button onClick={() => setCartOpen(false)} aria-label="Close cart">×</button></div>
-      {items.filter(i => cart[i.id]).map(i => <div className="customer-cart-line" key={i.id}><div><strong>{i.name}</strong><small>{money(i.price)} each</small></div><div className="customer-quantity-controls"><button onClick={() => change(i.id, -1)}>−</button><span>{cart[i.id]}</span><button onClick={() => add(i.id)}>+</button></div><strong>{money(Number(i.price ?? 0) * cart[i.id])}</strong></div>)}
+      {items.filter(i => cart[i.id]).map(i => <div className="customer-cart-line" key={i.id}><div><strong>{i.name}</strong><small>{money(i.price)} each</small></div><div className="customer-quantity-controls"><button onClick={() => change(i.id, -1)}>−</button><span>{cart[i.id]}</span><button onClick={() => add(i.id)}>+</button></div><button className="customer-cart-remove" onClick={() => setCart(c => { const n = { ...c }; delete n[i.id]; return n; })}>Remove</button><strong>{money(Number(i.price ?? 0) * cart[i.id])}</strong></div>)}
       <div className="customer-cart-total"><span>Subtotal</span><strong>{money(total)}</strong></div><p className="customer-cart-note">Cart preview only — checkout integration comes next.</p>
     </aside>}
   </main>;
