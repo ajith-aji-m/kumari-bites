@@ -5846,3 +5846,19 @@ button {
 .customer-story-categories.story-categories-visible:not(.menu-items-on-plate) .customer-category-bubbles{gap:8px!important;row-gap:12px!important;padding:8px 1% 4px!important;max-height:46vh!important}
 .customer-story-categories.story-categories-visible .customer-plate-links{transform:translateY(10px)!important;margin-top:5px!important}
 }
+
+/* Keep one persistent platter: selecting a category swaps only its contents. */
+.customer-story-categories.story-categories-visible,
+.customer-story-categories.story-categories-visible.menu-items-on-plate{top:31%!important;left:auto!important;right:clamp(10px,2vw,30px)!important;width:min(54vw,760px)!important;max-height:74vh!important;transform:none!important}
+.customer-story-categories.story-categories-visible:before,
+.customer-story-categories.story-categories-visible.menu-items-on-plate:before{top:18%!important;left:50%!important;width:108%!important;height:118%!important;transform:translateX(-50%)!important}
+.customer-story-categories.story-categories-visible .story-panel-heading,
+.customer-story-categories.story-categories-visible.menu-items-on-plate .story-panel-heading{transform:translateY(-66px)!important;margin-bottom:-48px!important}
+@media(max-width:760px){
+.customer-story-categories.story-categories-visible,
+.customer-story-categories.story-categories-visible.menu-items-on-plate{top:25%!important;left:auto!important;right:2px!important;width:68vw!important;max-height:74vh!important;transform:none!important}
+.customer-story-categories.story-categories-visible:before,
+.customer-story-categories.story-categories-visible.menu-items-on-plate:before{top:18%!important;left:50%!important;width:108%!important;height:112%!important;transform:translateX(-50%)!important}
+.customer-story-categories.story-categories-visible .story-panel-heading,
+.customer-story-categories.story-categories-visible.menu-items-on-plate .story-panel-heading{transform:translateY(-42px)!important;margin-bottom:-28px!important}
+}
