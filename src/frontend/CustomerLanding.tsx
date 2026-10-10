@@ -74,8 +74,8 @@ export function CustomerLanding() {
         </div>
         <div className={"customer-order-taker " + (stage >= 1 ? "order-taker-visible" : "")}><img src="/assets/order-taker.png" alt="Your Kumari Bites order taker" /></div>
         <div className={"customer-story-bubble " + (stage >= 1 ? "story-bubble-visible" : "")}>
-          <span className="bubble-spark">✦</span><strong>{stage >= 2 ? "Lovely choice!" : "Hey there, food lover!"}</strong>
-          <p>{stage >= 2 ? "What are you craving today? Pick a category and I’ll take care of the rest." : "Welcome to Kumari Bites! What would you like to order today?"}</p><span className="bubble-tail" />
+          <span className="bubble-spark">✦</span><strong>{stage >= 2 ? "Your feast starts here!" : "Vanakkam, food lover!"}</strong>
+          <p>{stage >= 2 ? "What are you craving today? Choose a category below and let’s find your favourites." : "Welcome to Kumari Bites! 🍽️ What’s your feast today? Scroll down to explore our menu, pick your favourites, and let’s get your order started!"}</p><span className="bubble-tail" />
         </div>
         <div className={"customer-story-categories " + (stage >= 2 ? "story-categories-visible" : "")}>
           <div className="story-panel-heading"><small>STEP 01 · PICK YOUR MOOD</small><h2>What are you <em>craving?</em></h2><p>Tap a category to help me find your favourites.</p></div>
