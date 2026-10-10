@@ -599,3 +599,59 @@ input:not([type="checkbox"]):focus { border-color: #b85c38; box-shadow: 0 0 0 3p
   from { opacity: 0; transform: translateX(18px) scale(.96); }
   to { opacity: 1; transform: translateX(0) scale(1); }
 }
+
+
+/* Login success toast */
+.login-success-toast {
+  display:flex;
+  align-items:center;
+  gap:11px;
+  padding:11px 14px;
+  border:1px solid rgba(111, 222, 145, .28);
+  border-radius:12px;
+  background:rgba(24, 54, 34, .94);
+  color:#e4f8e9;
+  box-shadow:0 14px 35px rgba(0,0,0,.28);
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+}
+.login-success-toast-top {
+  position:fixed;
+  z-index:20;
+  top:22px;
+  left:50%;
+  transform:translateX(-50%);
+  width:min(390px, calc(100vw - 32px));
+  animation:loginSuccessToastIn .35s cubic-bezier(.2,.8,.2,1) both;
+}
+.login-success-icon {
+  width:28px;
+  height:28px;
+  flex:0 0 28px;
+  display:grid;
+  place-items:center;
+  border-radius:50%;
+  background:#34704c;
+  color:#fff;
+  font-size:14px;
+  font-weight:900;
+}
+.login-success-toast div {
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+  min-width:0;
+}
+.login-success-toast strong {
+  color:#fff;
+  font-size:11px;
+}
+.login-success-toast span {
+  color:rgba(228,248,233,.72);
+  font-size:10px;
+  line-height:1.4;
+}
+@keyframes loginSuccessToastIn {
+  from { opacity:0; transform:translate(-50%, -14px) scale(.97); }
+  to { opacity:1; transform:translate(-50%, 0) scale(1); }
+}
