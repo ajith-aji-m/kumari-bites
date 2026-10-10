@@ -472,53 +472,23 @@ input:not([type="checkbox"]):focus { border-color: #b85c38; box-shadow: 0 0 0 3p
 }
 .chef-character {
   position:relative;
-  width:42px;
-  height:52px;
-  flex:0 0 42px;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:flex-end;
-  filter:drop-shadow(0 5px 8px rgba(0,0,0,.22));
+  width:52px;
+  height:62px;
+  flex:0 0 52px;
+  overflow:visible;
+  filter:drop-shadow(0 7px 10px rgba(0,0,0,.24));
   animation:chefBob 1.8s ease-in-out infinite;
 }
-.chef-hat {
+.chef-character img {
   position:absolute;
-  top:0;
-  z-index:2;
-  width:28px;
-  height:20px;
-  display:grid;
-  place-items:center;
-  border-radius:14px 14px 7px 7px;
-  background:#fff7ef;
-  color:#ff6b1a;
-  font-size:13px;
-  font-weight:800;
-  box-shadow:0 2px 5px rgba(0,0,0,.12);
-}
-.chef-face {
-  position:relative;
-  z-index:1;
-  width:29px;
-  height:25px;
-  display:grid;
-  place-items:center;
-  border-radius:50%;
-  background:#f2b27f;
-  color:#4a2115;
-  font-size:9px;
-  font-weight:800;
-}
-.chef-body {
-  width:35px;
-  height:19px;
-  margin-top:-2px;
-  display:grid;
-  place-items:center;
-  border-radius:9px 9px 5px 5px;
-  background:#fff7ef;
-  font-size:12px;
+  left:50%;
+  bottom:0;
+  width:92px;
+  height:92px;
+  max-width:none;
+  object-fit:contain;
+  object-position:center bottom;
+  transform:translateX(-50%);
 }
 .chef-bubble {
   position:relative;
