@@ -97,7 +97,7 @@ function Login({ onLogin }: { onLogin: () => void }) {
                 body: JSON.stringify({ identifier, password })
               });
               setLoginSuccess(true);
-              window.setTimeout(onLogin, 700);
+              window.setTimeout(onLogin, 5000);
             } catch (err) {
               setError(err instanceof Error ? err.message : "Unable to sign in");
             } finally {
