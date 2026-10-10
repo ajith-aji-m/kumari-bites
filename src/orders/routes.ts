@@ -105,7 +105,7 @@ export async function registerOrderRoutes(app: FastifyInstance) {
   app.post("/api/v1/public/orders", async (request, reply) => {
     const input = createOrderSchema.extend({
       customerName: z.string().trim().max(120).optional(),
-      customerPhone: z.string().trim().min(7).max(30),
+      customerPhone: z.string().trim().min(7).max(30).optional(),
       source: z.literal("qr").default("qr"),
       paymentMethod: z.literal("cash").default("cash"),
       notes: z.never().optional()
