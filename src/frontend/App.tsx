@@ -457,8 +457,8 @@ function MenuManagement() {
           <div className="editor-section-head"><span className="editor-step">02</span><div><strong>Dish presentation</strong><small>Add the image and short description customers should see.</small></div></div>
           <div className="editor-media-grid">
             <div className="menu-image-preview menu-upload-preview">
-              {itemImage ? <img src={itemImage} alt="Selected dish" /> : <div><span>🍽️</span><strong>Dish image</strong><small>Upload a clear food image</small></div>}
-              <label className="menu-image-upload-button"><span>{itemImage ? "Change image" : "Upload image"}</span><input type="file" accept="image/png,image/jpeg,image/webp" onChange={event => {
+              {itemImage ? <img src={itemImage} alt="Selected dish" /> : <div className="menu-image-empty"><span className="menu-upload-plus" aria-hidden="true">+</span><strong>Add image</strong></div>}
+              <label className="menu-image-upload-button" aria-label={itemImage ? "Change image" : "Add image"}><span className="menu-upload-plus" aria-hidden="true">+</span><input type="file" accept="image/png,image/jpeg,image/webp" onChange={event => {
                 const file = event.target.files?.[0];
                 if (!file) return;
                 if (!file.type.startsWith("image/")) { setError("Please choose an image file."); return; }
