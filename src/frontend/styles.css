@@ -1726,49 +1726,77 @@ button {
   }
 }
 
-/* Dish presentation: image upload instead of URL entry. */
+/* Dish presentation: image upload and description share one consistent field size. */
+.menu-management .editor-media-grid {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items:stretch;
+}
+
 .menu-management .menu-upload-preview {
-  min-height:188px;
+  position:relative;
+  min-height:190px;
+  height:100%;
   padding:12px;
   display:grid;
   place-items:center;
-  gap:9px;
+  overflow:hidden;
 }
 
 .menu-management .menu-upload-preview > img {
   width:100%;
   height:100%;
-  min-height:160px;
+  min-height:164px;
   object-fit:cover;
   border-radius:11px;
 }
 
-.menu-management .menu-image-upload-button {
-  position:absolute;
-  left:12px;
-  right:12px;
-  bottom:12px;
-  min-height:36px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  padding:8px 12px;
-  border:1px solid rgba(255,255,255,.16);
-  border-radius:10px;
-  background:rgba(8,10,11,.68);
+.menu-management .menu-image-empty {
+  display:grid;
+  place-items:center;
+  gap:8px;
+  text-align:center;
   color:#fff5ed;
-  font-size:10px;
-  font-weight:800;
-  cursor:pointer;
-  backdrop-filter:blur(12px);
-  -webkit-backdrop-filter:blur(12px);
-  transition:background .2s ease, border-color .2s ease, transform .18s ease;
 }
 
-.menu-management .menu-image-upload-button:hover {
-  transform:translateY(-1px);
-  background:rgba(255,255,255,.12);
-  border-color:rgba(255,194,155,.32);
+.menu-management .menu-upload-plus {
+  width:36px;
+  height:36px;
+  display:grid;
+  place-items:center;
+  border:1px solid rgba(255,255,255,.2);
+  border-radius:10px;
+  background:rgba(255,255,255,.07);
+  color:#fff;
+  font-size:24px;
+  font-weight:300;
+  line-height:1;
+}
+
+.menu-management .menu-image-empty strong {
+  font-size:11px;
+  font-weight:700;
+  color:#d9d1cc;
+}
+
+.menu-management .menu-image-upload-button {
+  position:absolute;
+  inset:12px;
+  display:grid;
+  place-items:center;
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:11px;
+  background:transparent;
+  color:#fff;
+  cursor:pointer;
+  opacity:0;
+  transition:opacity .2s ease, background .2s ease, border-color .2s ease;
+}
+
+.menu-management .menu-upload-preview:hover .menu-image-upload-button,
+.menu-management .menu-image-upload-button:focus-within {
+  opacity:1;
+  background:rgba(8,10,11,.28);
+  border-color:rgba(255,255,255,.2);
 }
 
 .menu-management .menu-image-upload-button input[type="file"] {
@@ -1779,6 +1807,39 @@ button {
   pointer-events:none;
 }
 
+.menu-management .editor-media-fields {
+  min-height:190px;
+  display:flex;
+  flex-direction:column;
+}
+
+.menu-management .editor-media-fields > label {
+  height:100%;
+  display:flex;
+  flex-direction:column;
+}
+
+.menu-management .editor-media-fields textarea {
+  flex:1;
+  min-height:164px;
+  resize:none;
+}
+
+@media (max-width:650px) {
+  .menu-management .editor-media-grid {
+    grid-template-columns:1fr;
+  }
+
+  .menu-management .menu-upload-preview,
+  .menu-management .editor-media-fields {
+    min-height:155px;
+  }
+
+  .menu-management .menu-upload-preview > img,
+  .menu-management .editor-media-fields textarea {
+    min-height:130px;
+  }
+}
 @media (max-width:650px) {
   .menu-management .menu-upload-preview {
     min-height:155px;
