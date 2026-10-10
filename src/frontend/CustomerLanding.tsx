@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 
-type Category = { id: number; name: string; slug: string; description: string | null; imageUrl: string | null };
-type MenuItem = { id: number; categoryId: number; name: string; description: string | null; imageUrl: string | null; isVeg: boolean; price: string | number | null };
+type Category = { id: number; name: string; slug: string; description: string | null; imageUrl: string | null; isActive?: boolean; is_active?: boolean; active?: boolean; status?: string };
+type MenuItem = { id: number; categoryId: number; name: string; description: string | null; imageUrl: string | null; isVeg: boolean; price: string | number | null; isActive?: boolean; is_active?: boolean; active?: boolean; status?: string };
 const money = (v: string | number | null) => "₹" + Number(v ?? 0).toLocaleString("en-IN", { maximumFractionDigits: 2 });
+const isMenuEntryActive = (entry: { isActive?: boolean; is_active?: boolean; active?: boolean; status?: string }) => entry.isActive !== false && entry.is_active !== false && entry.active !== false && !["inactive", "disabled", "draft", "archived"].includes(String(entry.status ?? "").toLowerCase());
 
 export function CustomerLanding() {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -45,7 +46,9 @@ export function CustomerLanding() {
     return () => { cancelled = true; };
   }, []);
 
-  const visibleItems = useMemo(() => items.filter(i => selectedCategory === null || i.categoryId === selectedCategory), [items, selectedCategory]);
+  const activeCategories = useMemo(() => categories.filter(isMenuEntryActive), [categories]);
+  const activeItems = useMemo(() => items.filter(isMenuEntryActive).filter(i => activeCategories.some(c => c.id === i.categoryId)), [items, activeCategories]);
+  const visibleItems = useMemo(() => activeItems.filter(i => selectedCategory === null || i.categoryId === selectedCategory), [activeItems, selectedCategory]);
   const cartCount = Object.values(cart).reduce((s, n) => s + n, 0);
   const total = items.reduce((s, i) => s + Number(i.price ?? 0) * (cart[i.id] ?? 0), 0);
   const add = (id: number) => {
@@ -81,11 +84,11 @@ export function CustomerLanding() {
         <div className={"customer-story-categories " + (stage === 1 ? "story-categories-visible" : "") + (selectedCategory !== null ? " menu-items-on-plate" : "")}>
           <div className="story-panel-heading">
             <small>{selectedCategory === null ? "STEP 01 · PICK YOUR MOOD" : "FRESH FROM OUR KITCHEN"}</small>
-            <h2>{selectedCategory === null ? <>What are you <em>craving?</em></> : <>{categories.find(c => c.id === selectedCategory)?.name ?? "Your favourites"} <em>menu</em></>}</h2>
+            <h2>{selectedCategory === null ? <>What are you <em>craving?</em></> : <>{activeCategories.find(c => c.id === selectedCategory)?.name ?? "Your favourites"} <em>menu</em></>}</h2>
             <p>{selectedCategory === null ? "Choose a category to see what’s cooking." : "Pick your bites and watch them join your order."}</p>
           </div>
           {loading ? <div className="customer-story-loading">Getting the menu ready…</div> : error ? <div className="customer-story-loading">{error}</div> : selectedCategory === null ? <div className="customer-category-bubbles">
-            {categories.map((c, i) => <button key={c.id} style={{ animationDelay: `${i * 90}ms` }} className={"customer-category-bubble category-tone-" + (i % 5)} onClick={() => openItems(c.id)}>
+            {activeCategories.map((c, i) => <button key={c.id} style={{ animationDelay: `${i * 90}ms` }} className={"customer-category-bubble category-tone-" + (i % 5)} onClick={() => openItems(c.id)}>
               {c.imageUrl ? <img src={c.imageUrl} alt="" /> : <span className="category-bubble-art">{["🥟", "🌯", "🍔", "🍟", "🍗"][i % 5]}</span>}<strong>{c.name}</strong>
             </button>)}
           </div> : <div className="customer-menu-bubbles">
@@ -93,7 +96,7 @@ export function CustomerLanding() {
               <div className="customer-menu-bubble-image">{item.imageUrl ? <img src={item.imageUrl} alt={item.name} loading="lazy" /> : <span>{["🥟", "🌯", "🍔", "🍗", "🍜"][i % 5]}</span>}<span className={"customer-veg-mark " + (item.isVeg ? "veg" : "nonveg")} /></div>
               <strong className="customer-menu-bubble-name">{item.name}</strong>
               <span className="customer-menu-bubble-price">{money(item.price)}</span>
-              <button type="button" className="customer-menu-bubble-add" onClick={() => add(item.id)}>{cart[item.id] ? `Added · ${cart[item.id]}` : "Pick me to add"} <span>+</span></button>
+              <button type="button" aria-label={`Add ${item.name} to your bites`} className={"customer-menu-bubble-add " + (cart[item.id] ? "is-in-cart" : "")} onClick={() => add(item.id)}>{cart[item.id] ? <><span className="menu-add-check">✓</span><span className="menu-add-count">{cart[item.id]} in your bites</span><span className="menu-add-plus">+</span></> : <><span className="menu-add-plus">+</span><span className="menu-add-count">Add a bite</span></>}</button>
             </article>)}
             {!visibleItems.length && <div className="customer-story-loading">No items in this category yet.</div>}
           </div>}
