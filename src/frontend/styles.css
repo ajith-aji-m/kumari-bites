@@ -2911,6 +2911,16 @@ button {
 .orders-table-wrap { overflow-x:auto; }
 .orders-table { min-width:900px; }
 .orders-table td { vertical-align:middle; }
+.orders-table td:nth-child(6) { width:116px; min-width:116px; }
+.orders-table td:nth-child(6) .custom-select { width:108px; min-width:108px; }
+.orders-table td:nth-child(6) .custom-select-trigger {
+  min-height:34px;
+  padding:0 9px;
+  gap:6px;
+  border-radius:9px;
+  font-size:11px;
+}
+.orders-table td:nth-child(6) .custom-select-chevron { font-size:14px; }
 .order-main-cell, .order-items-cell { display:grid; gap:5px; min-width:110px; }
 .order-main-cell strong { color:#3c2118; }
 .order-main-cell small, .order-items-cell small { color:#9b897d; font-size:11px; }
