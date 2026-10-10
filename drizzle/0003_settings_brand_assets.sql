@@ -1,0 +1,2 @@
+ALTER TABLE `app_settings`
+  MODIFY COLUMN `value` MEDIUMTEXT NULL;
