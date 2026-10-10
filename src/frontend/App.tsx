@@ -639,15 +639,39 @@ function MenuManagement() {
   </section>;
 }
 
+const dashboardRoutes: Record<string, string> = {
+  Dashboard: "/dashboard",
+  Orders: "/orders",
+  Menu: "/menu",
+  Reports: "/reports",
+  Settings: "/settings"
+};
+
+const dashboardPages: Record<string, string> = Object.fromEntries(
+  Object.entries(dashboardRoutes).map(([name, path]) => [path, name])
+);
+
 function Dashboard({ onLogout }: { onLogout: () => void }) {
-  const [active, setActive] = useState("Dashboard");
+  const [active, setActive] = useState(() => dashboardPages[window.location.pathname] ?? "Dashboard");
+
+  useEffect(() => {
+    const syncRoute = () => setActive(dashboardPages[window.location.pathname] ?? "Dashboard");
+    window.addEventListener("popstate", syncRoute);
+    return () => window.removeEventListener("popstate", syncRoute);
+  }, []);
+
+  const navigate = (page: string) => {
+    const path = dashboardRoutes[page] ?? "/dashboard";
+    window.history.pushState({}, "", path);
+    setActive(page);
+  };
 
   return <div className="app-shell dashboard-background">
     <aside className="sidebar">
       <div className="sidebar-brand"><span className="brand-mark small">KB</span><span>Kumari Bites</span></div>
-      <nav>{menuItems.map(item => <button key={item.label} className={active === item.label ? "nav-item active" : "nav-item"} onClick={() => setActive(item.label)}><span>{item.icon}</span>{item.label}</button>)}</nav>
+      <nav>{menuItems.map(item => <button key={item.label} className={active === item.label ? "nav-item active" : "nav-item"} onClick={() => navigate(item.label)}><span>{item.icon}</span>{item.label}</button>)}</nav>
       <div className="sidebar-admin"><span className="avatar">A</span><div><strong>Admin</strong><small>Kumari Bites</small></div></div>
-      <button className="nav-item logout" onClick={async () => { await fetch("/api/v1/auth/logout", { method: "POST", credentials: "include" }); onLogout(); }}><span>↪</span> Sign out</button>
+      <button className="nav-item logout" onClick={async () => { await fetch("/api/v1/auth/logout", { method: "POST", credentials: "include" }); window.history.replaceState({}, "", "/"); onLogout(); }}><span>↪</span> Sign out</button>
     </aside>
     <main className="dashboard">
       <header className="topbar"><div><p className="eyebrow">KUMARI BITES ADMIN</p><h2>{active === "Menu" ? "Menu Management" : active}</h2></div></header>
