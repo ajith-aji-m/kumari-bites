@@ -219,7 +219,7 @@ export const orderStatusEvents = mysqlTable("order_status_events", {
 export const appSettings = mysqlTable("app_settings", {
   id: int("id").autoincrement().primaryKey(),
   key: varchar("key", { length: 120 }).notNull(),
-  value: text("value"),
+  value: mediumtext("value"),
   isSecret: boolean("is_secret").default(false).notNull(),
   ...timestamps
 }, (table) => [uniqueIndex("app_settings_key_uq").on(table.key)]);
