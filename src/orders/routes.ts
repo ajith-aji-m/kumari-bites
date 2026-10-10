@@ -23,7 +23,7 @@ const createOrderSchema = z.object({
 });
 
 const statusSchema = z.object({
-  status: z.enum(["new", "confirmed", "preparing", "ready", "completed", "cancelled"])
+  status: z.enum(["placed", "preparing", "ready", "completed", "cancelled"])
 });
 
 // Derived from the auto-increment id, so concurrent orders can never collide.
@@ -91,7 +91,7 @@ async function createOrder(input: z.infer<typeof createOrderSchema>, recordCashP
     if (recordCashPayment) {
       await tx.insert(payments).values({ orderId, method: "cash", amount: subtotal.toFixed(2), status: "pending" });
     }
-    return { orderId, orderNumber, totalAmount: subtotal.toFixed(2), trackingToken: makeTrackingToken(orderId), status: "new" as const };
+    return { orderId, orderNumber, totalAmount: subtotal.toFixed(2), trackingToken: makeTrackingToken(orderId), status: "placed" as const };
   });
 
   broadcast({ type: "order.created", payload: { orderId: created.orderId, orderNumber: created.orderNumber } });
