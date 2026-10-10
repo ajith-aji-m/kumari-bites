@@ -64,6 +64,7 @@ function Login({ onLogin }: { onLogin: () => void }) {
 
   return (
     <main className="login-page">
+      {loginSuccess && <div className="login-success-toast login-success-toast-top" role="status" aria-live="polite"><span className="login-success-icon">✓</span><div><strong>Welcome back!</strong><span>Login successful. Taking you to the dashboard.</span></div></div>}
       <div className="login-shell">
         <section className="login-visual" aria-hidden="true">
           <div className="login-visual-vignette" />
@@ -124,7 +125,7 @@ function Login({ onLogin }: { onLogin: () => void }) {
 
             {error && <div className="chef-guide" role="alert"><div className="chef-character" aria-hidden="true"><img src="/assets/kumari-bites-chef.png" alt="" /></div><div className="chef-bubble"><strong>Chef says</strong><span>{error.replace(/^👨‍🍳 Chef says: /, "")}</span></div></div>}
 
-            {loginSuccess && <div className="chef-guide success" role="status" aria-live="polite"><div className="chef-character" aria-hidden="true"><img src="/assets/kumari-bites-chef.png" alt="" /></div><div className="chef-bubble"><strong>Chef says</strong><span>Welcome back! You're all set.</span></div></div>}
+            {loginSuccess && <div className="login-success-toast" role="status" aria-live="polite"><span className="login-success-icon">✓</span><div><strong>Welcome back!</strong><span>Login successful. Taking you to the dashboard.</span></div></div>}
 
             <button className={`primary-button login-submit ${loginSuccess ? "unlocked" : ""}`} disabled={loading || loginSuccess}>
               <span>{loginSuccess ? "✓" : loading ? "…" : ""}</span>
