@@ -570,19 +570,20 @@ input:not([type="checkbox"]):focus { border-color: #b85c38; box-shadow: 0 0 0 3p
 
 
 
-/* Login success toast */
-.login-success-toast {
+/* Chef success toast */
+.chef-success-toast {
   display:flex;
-  align-items:center;
-  gap:11px;
-  padding:11px 14px;
-  border:1px solid rgba(111, 222, 145, .28);
-  border-radius:12px;
-  background:rgba(24, 54, 34, .94);
+  align-items:flex-end;
+  gap:8px;
+  padding:9px 11px 9px 8px;
+  border:1px solid rgba(106, 204, 139, .30);
+  border-radius:13px;
+  background:rgba(24, 54, 34, .96);
   color:#e4f8e9;
-  box-shadow:0 14px 35px rgba(0,0,0,.28);
+  box-shadow:0 14px 35px rgba(0,0,0,.30);
   backdrop-filter:blur(10px);
   -webkit-backdrop-filter:blur(10px);
+  overflow:hidden;
 }
 .login-success-toast-top {
   position:fixed;
@@ -590,37 +591,65 @@ input:not([type="checkbox"]):focus { border-color: #b85c38; box-shadow: 0 0 0 3p
   top:22px;
   right:22px;
   width:min(390px, calc(100vw - 44px));
-  animation:loginSuccessToastIn .35s cubic-bezier(.2,.8,.2,1) both;
+  animation:chefSuccessToastIn .38s cubic-bezier(.2,.8,.2,1) both;
 }
-.login-success-icon {
-  width:28px;
-  height:28px;
-  flex:0 0 28px;
-  display:grid;
-  place-items:center;
-  border-radius:50%;
-  background:#34704c;
-  color:#fff;
-  font-size:14px;
-  font-weight:900;
-}
-.login-success-toast div {
+.chef-success-character {
+  width:64px;
+  height:68px;
+  flex:0 0 64px;
   display:flex;
-  flex-direction:column;
-  gap:2px;
+  align-items:flex-end;
+  justify-content:center;
+  filter:drop-shadow(0 6px 9px rgba(0,0,0,.24));
+  animation:chefBob 1.8s ease-in-out infinite;
+}
+.chef-success-character img {
+  display:block;
+  width:64px;
+  height:68px;
+  object-fit:contain;
+  object-position:center bottom;
+  transform:scaleX(-1);
+}
+.chef-success-bubble {
+  position:relative;
+  flex:1;
   min-width:0;
+  padding:9px 11px;
+  border:1px solid rgba(106, 204, 139, .30);
+  border-radius:11px 11px 3px 11px;
+  background:rgba(52,112,76,.18);
+  color:#d6f2df;
+  font-size:10px;
+  line-height:1.45;
 }
-.login-success-toast strong {
-  color:#fff;
-  font-size:11px;
+.chef-success-bubble::after {
+  content:"";
+  position:absolute;
+  right:-6px;
+  bottom:9px;
+  width:10px;
+  height:10px;
+  background:rgba(52,112,76,.18);
+  border-right:1px solid rgba(106, 204, 139, .30);
+  border-bottom:1px solid rgba(106, 204, 139, .30);
+  transform:rotate(-45deg);
 }
-.login-success-toast span {
-  color:rgba(228,248,233,.72);
+.chef-success-bubble strong {
+  display:block;
+  margin-bottom:2px;
+  color:#8fe0a8;
+  font-size:9px;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+}
+.chef-success-bubble span {
+  color:#d6f2df;
   font-size:10px;
   line-height:1.4;
 }
-@keyframes loginSuccessToastIn {
-  from { opacity:0; transform:translateY(-14px) scale(.97); }
+@keyframes chefSuccessToastIn {
+  from { opacity:0; transform:translateY(-14px) scale(.96); }
   to { opacity:1; transform:translateY(0) scale(1); }
 }
 @media (max-width:600px) {
@@ -628,5 +657,14 @@ input:not([type="checkbox"]):focus { border-color: #b85c38; box-shadow: 0 0 0 3p
     top:14px;
     right:14px;
     width:calc(100vw - 28px);
+  }
+  .chef-success-character {
+    width:54px;
+    height:60px;
+    flex-basis:54px;
+  }
+  .chef-success-character img {
+    width:54px;
+    height:60px;
   }
 }
