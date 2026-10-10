@@ -110,7 +110,7 @@ function Login({ onLogin }: { onLogin: () => void }) {
             <label className="login-field">
               <span>Password</span>
               <div className="input-wrap">
-                <input type={showPassword ? "text" : "password"} value={password} onChange={e => setPassword(e.target.value)} placeholder="Enter your password" autoComplete="current-password" required />
+                <input type={showPassword ? "text" : "password"} value={password} onChange={e => { setPassword(e.target.value); setError(""); }} placeholder="Enter your password" autoComplete="current-password" />
                 <button type="button" className="password-toggle" onClick={() => setShowPassword(value => !value)} aria-label={showPassword ? "Hide password" : "Show password"}>
                   {showPassword ? "Hide" : "Show"}
                 </button>
