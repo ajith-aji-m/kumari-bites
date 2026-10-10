@@ -310,7 +310,10 @@ function MenuManagement() {
   const [draggedCategoryId, setDraggedCategoryId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [itemsPage, setItemsPage] = useState(1);\n  const [categoriesPage, setCategoriesPage] = useState(1);\n  const pageSize = 5;\n  const [itemModal, setItemModal] = useState<MenuItem | null | "new">(null);
+  const [itemsPage, setItemsPage] = useState(1);
+  const [categoriesPage, setCategoriesPage] = useState(1);
+  const pageSize = 5;
+  const [itemModal, setItemModal] = useState<MenuItem | null | "new">(null);
   const [categoryModal, setCategoryModal] = useState<Category | "new" | null>(null);
   const [saving, setSaving] = useState(false);
   const [itemImage, setItemImage] = useState("");
@@ -643,7 +646,8 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
     <aside className="sidebar">
       <div className="sidebar-brand"><span className="brand-mark small">KB</span><span>Kumari Bites</span></div>
       <nav>{menuItems.map(item => <button key={item.label} className={active === item.label ? "nav-item active" : "nav-item"} onClick={() => setActive(item.label)}><span>{item.icon}</span>{item.label}</button>)}</nav>
-      <div className="sidebar-admin"><span className="avatar">A</span><div><strong>Admin</strong><small>Kumari Bites</small></div></div>\n      <button className="nav-item logout" onClick={async () => { await fetch("/api/v1/auth/logout", { method: "POST", credentials: "include" }); onLogout(); }}><span>↪</span> Sign out</button>
+      <div className="sidebar-admin"><span className="avatar">A</span><div><strong>Admin</strong><small>Kumari Bites</small></div></div>
+      <button className="nav-item logout" onClick={async () => { await fetch("/api/v1/auth/logout", { method: "POST", credentials: "include" }); onLogout(); }}><span>↪</span> Sign out</button>
     </aside>
     <main className="dashboard">
       <header className="topbar"><div><p className="eyebrow">KUMARI BITES ADMIN</p><h2>{active === "Menu" ? "Menu Management" : active}</h2></div></header>
