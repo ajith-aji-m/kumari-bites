@@ -531,8 +531,8 @@ function MenuManagement() {
       <div className="chef-success-character" aria-hidden="true"><img src="/assets/kumari-bites-chef.png" alt="" /></div>
     </div>}
 
-    <div className="welcome menu-heading">
-      <div><p className="eyebrow">MENU MANAGEMENT</p><h1>Menu</h1><p className="muted">Keep categories, dishes and pricing simple and up to date.</p></div>
+    <div className="welcome menu-heading menu-index-heading">
+      <div><p className="eyebrow">MENU</p><h1>{tab === "items" ? "Menu Items" : "Categories"}</h1></div>
       <button className="primary-button compact menu-action-primary" onClick={() => tab === "items" ? setItemModal("new") : setCategoryModal("new")}><span className="button-icon">+</span><span>{tab === "items" ? "Add menu item" : "Add category"}</span></button>
     </div>
 
@@ -544,10 +544,10 @@ function MenuManagement() {
     {error && <div className="inline-error">{error} <button onClick={load}>Retry</button></div>}
 
     {tab === "items" ? <article className="panel menu-panel">
-      <div className="menu-toolbar">
-        <input className="search-input" value={query} onChange={e => setQuery(e.target.value)} placeholder="Search menu items..." />
-        <CustomSelect value={categoryFilter} onChange={setCategoryFilter} options={[{ value: "all", label: "All categories" }, ...categories.map(c => ({ value: String(c.id), label: c.name }))]} />
-        <CustomSelect value={statusFilter} onChange={setStatusFilter} options={[{ value: "all", label: "All status" }, { value: "available", label: "Available" }, { value: "unavailable", label: "Unavailable" }]} />
+      <div className="menu-toolbar menu-index-controls">
+        <input className="search-input" value={query} onChange={e => { setQuery(e.target.value); setItemsPage(1); }} placeholder="Search menu items..." />
+        <CustomSelect value={categoryFilter} onChange={value => { setCategoryFilter(value); setItemsPage(1); }} options={[{ value: "all", label: "All categories" }, ...categories.map(c => ({ value: String(c.id), label: c.name }))]} />
+        <CustomSelect value={statusFilter} onChange={value => { setStatusFilter(value); setItemsPage(1); }} options={[{ value: "all", label: "All status" }, { value: "available", label: "Available" }, { value: "unavailable", label: "Unavailable" }]} />
       </div>
       {loading ? <p className="muted">Loading menu...</p> : <div className="menu-table-wrap"><table className="menu-table"><thead><tr><th>Item</th><th>Category</th><th>Price</th><th>Type</th><th>Availability</th><th></th></tr></thead><tbody>
         {pagedItems.map(item => <tr key={item.id}>
