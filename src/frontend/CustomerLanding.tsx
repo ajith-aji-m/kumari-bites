@@ -108,6 +108,8 @@ export function CustomerLanding() {
       if (!response.ok) throw new Error(data.message || data.error || "We couldn't place your order. Please try again.");
       setPlacedOrder({ orderId: Number(data.orderId), orderNumber: String(data.orderNumber), totalAmount: data.totalAmount });
       setCart({});
+      setCartOpen(false);
+      setStage(0);
     } catch (e) {
       setCheckoutError(e instanceof Error ? e.message : "We couldn't place your order. Please try again.");
     } finally {
@@ -129,6 +131,14 @@ export function CustomerLanding() {
           <span className="customer-primary-cta">Let’s find your flavour <span>↓</span></span>
         </div>
         <div className="customer-order-taker order-taker-visible"><img src="/assets/order-taker.png" alt="Your Kumari Bites order taker" /></div>
+        {placedOrder && <div className="customer-order-confirmation" role="status" aria-live="polite">
+          <span className="customer-order-confirmation-spark">✦</span>
+          <small>ORDER RECEIVED · {placedOrder.orderNumber}</small>
+          <h2>Thank you for your order!</h2>
+          <p>Your order is placed. Please wait while we get things ready for you.</p>
+          <div className="customer-order-waiting"><span className="customer-order-waiting-dot" /><span>Our kitchen is getting ready</span><span className="customer-order-waiting-dots"><i /><i /><i /></span></div>
+          <button type="button" className="customer-order-again" onClick={() => { setPlacedOrder(null); setCart({}); setCartOpen(false); setCustomerPhone(""); setSelectedCategory(null); setMenuPage(0); setStage(1); }}>Order something else <span aria-hidden="true">↗</span></button>
+        </div>}
         <div className={"customer-story-bubble " + (stage === 0 && !categoryIntroPlaying ? "story-bubble-visible" : "")}>
           <img className="customer-story-cloud-image" src="/assets/welcome-cloud.png" alt="" aria-hidden="true" />
           <div className="customer-story-bubble-content">
