@@ -10,6 +10,7 @@ export function CustomerLanding() {
   const [items, setItems] = useState<MenuItem[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const [menuPage, setMenuPage] = useState(0);
+  const [isWidePlate, setIsWidePlate] = useState(() => window.matchMedia("(min-width: 761px)").matches);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [stage, setStage] = useState(0);
@@ -52,10 +53,16 @@ export function CustomerLanding() {
   const activeCategories = useMemo(() => categories.filter(isMenuEntryActive), [categories]);
   const activeItems = useMemo(() => items.filter(isMenuEntryActive).filter(i => activeCategories.some(c => c.id === i.categoryId)), [items, activeCategories]);
   const categoryItems = useMemo(() => activeItems.filter(i => selectedCategory === null || i.categoryId === selectedCategory), [activeItems, selectedCategory]);
-  const menuPageSize = 4;
+  const menuPageSize = isWidePlate ? 10 : 4;
   const menuPageCount = Math.max(1, Math.ceil(categoryItems.length / menuPageSize));
   const visibleItems = useMemo(() => categoryItems.slice(menuPage * menuPageSize, (menuPage + 1) * menuPageSize), [categoryItems, menuPage]);
-  useEffect(() => { setMenuPage(0); }, [selectedCategory]);
+  useEffect(() => { setMenuPage(0); }, [selectedCategory, menuPageSize]);
+  useEffect(() => {
+    const query = window.matchMedia("(min-width: 761px)");
+    const sync = () => setIsWidePlate(query.matches);
+    query.addEventListener("change", sync);
+    return () => query.removeEventListener("change", sync);
+  }, []);
   const cartCount = Object.values(cart).reduce((s, n) => s + n, 0);
   const total = items.reduce((s, i) => s + Number(i.price ?? 0) * (cart[i.id] ?? 0), 0);
   const add = (id: number, event?: React.MouseEvent<HTMLButtonElement>) => {

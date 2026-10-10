@@ -5865,7 +5865,23 @@ button {
 
 /* Sit the platter links near the bottom edge of the platter on desktop. */
 @media(min-width:761px){
-.customer-story-categories.menu-items-on-plate.story-categories-visible .customer-plate-links{transform:translateY(90px)!important}
 .customer-story-categories.story-categories-visible:not(.menu-items-on-plate) .customer-category-bubbles{transform:translateY(80px)!important}
 .customer-story-categories.story-categories-visible:not(.menu-items-on-plate) .customer-plate-links{transform:translateY(108px)!important}
+}
+
+/* Menu items use the same round bubble as the categories on desktop. */
+@media(min-width:761px){
+.customer-story-categories.menu-items-on-plate.story-categories-visible .customer-menu-bubbles{display:flex!important;flex-wrap:wrap!important;justify-content:center!important;align-content:center!important;gap:clamp(14px,1.8vw,24px)!important;row-gap:clamp(16px,2vw,25px)!important;min-height:257px;padding:12px 2% 4px!important}
+.customer-story-categories.menu-items-on-plate.story-categories-visible .customer-menu-bubble{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;width:clamp(76px,7.5vw,108px)!important;height:clamp(76px,7.5vw,108px)!important;padding:8px 6px!important;gap:3px!important;border:2px solid rgba(255,255,255,.96)!important;border-radius:50%!important;background:linear-gradient(145deg,#fffdf7,#f5dfc7)!important;box-shadow:0 7px 0 rgba(145,86,45,.18),0 12px 18px rgba(68,35,17,.2)!important}
+.customer-story-categories.menu-items-on-plate.story-categories-visible .customer-menu-bubble-image{width:clamp(34px,3.2vw,47px)!important;height:clamp(34px,3.2vw,47px)!important;flex:0 0 auto;margin:0!important;border-width:2px!important;box-shadow:0 3px 8px rgba(69,37,20,.14)!important}
+.customer-story-categories.menu-items-on-plate.story-categories-visible .customer-menu-image-add{width:20px;height:20px;right:-8px;bottom:-4px;font-size:16px}
+.customer-story-categories.menu-items-on-plate.story-categories-visible .customer-menu-image-count{min-width:19px;height:19px;top:-6px;right:-8px;font-size:10px}
+.customer-story-categories.menu-items-on-plate.story-categories-visible .customer-menu-bubble-name{display:-webkit-box!important;max-width:100%;padding:0 2px!important;overflow:hidden!important;font-size:clamp(9px,.75vw,11px)!important;line-height:1.1!important;-webkit-line-clamp:2!important;-webkit-box-orient:vertical!important}
+.customer-story-categories.menu-items-on-plate.story-categories-visible .customer-menu-bubble-name:before{content:none!important}
+.customer-story-categories.menu-items-on-plate.story-categories-visible .customer-menu-bubble-price{font-size:clamp(9px,.75vw,11px)!important;line-height:1!important}
+.customer-story-categories.menu-items-on-plate.story-categories-visible{min-height:377px!important}
+.customer-story-categories.menu-items-on-plate.story-categories-visible .story-panel-heading{transform:translateY(-20px)!important;margin-bottom:-12px!important}
+.customer-story-categories.menu-items-on-plate.story-categories-visible .customer-menu-bubbles{transform:translateY(93px)!important}
+.customer-story-categories.menu-items-on-plate.story-categories-visible .customer-menu-pagination{transform:translateY(54px)!important}
+.customer-story-categories.menu-items-on-plate.story-categories-visible .customer-plate-links{transform:translateY(128px)!important}
 }
