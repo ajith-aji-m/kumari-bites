@@ -1,4 +1,4 @@
-import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { DragEvent, FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 
 type DashboardData = {
   today: { orders: number; sales: number; averageOrder: number; activeOrders: number; completedOrders: number; cancelledOrders: number };
@@ -292,6 +292,7 @@ function MenuManagement() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [categoryQuery, setCategoryQuery] = useState("");
   const [categoryStatusFilter, setCategoryStatusFilter] = useState<"all" | "active" | "inactive">("all");
+  const [draggedCategoryId, setDraggedCategoryId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [itemModal, setItemModal] = useState<MenuItem | null | "new">(null);
@@ -412,16 +413,36 @@ function MenuManagement() {
     }
   }
 
+  async function reorderCategories(draggedId: number, targetId: number) {
+    if (draggedId === targetId) return;
+    const ordered = [...categories];
+    const from = ordered.findIndex(category => category.id === draggedId);
+    const to = ordered.findIndex(category => category.id === targetId);
+    if (from < 0 || to < 0) return;
+    const [moved] = ordered.splice(from, 1);
+    ordered.splice(to, 0, moved);
+    const reordered = ordered.map((category, index) => ({ ...category, sortOrder: index }));
+    setCategories(reordered);
+    setDraggedCategoryId(null);
+    setError("");
+    try {
+      await Promise.all(reordered.map(category => api(`/api/v1/categories/${category.id}`, {
+        method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sortOrder: category.sortOrder })
+      })));
+      setCategorySuccess("Category order updated successfully.");
+      window.setTimeout(() => setCategorySuccess(""), 3200);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to update category order");
+      await load();
+    }
+  }
+
   async function saveCategory(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
     const form = new FormData(event.currentTarget);
     const name = String(form.get("name") ?? "").trim();
-    const sortOrderValue = String(form.get("sortOrder") ?? "").trim();
-    const sortOrder = Number(sortOrderValue || 0);
-
     if (!name) { setError("Please enter the category name."); return; }
-    if (!Number.isInteger(sortOrder) || sortOrder < 0) { setError("Please enter a valid sort order of 0 or greater."); return; }
 
     setSaving(true);
     try {
@@ -429,8 +450,7 @@ function MenuManagement() {
         name,
         slug: String(form.get("slug") ?? "").trim() || undefined,
         description: String(form.get("description") ?? "").trim() || undefined,
-        imageUrl: categoryImage || undefined,
-        sortOrder
+        imageUrl: categoryImage || undefined
       };
       if (categoryModal === "new") {
         await api("/api/v1/categories", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
@@ -478,7 +498,7 @@ function MenuManagement() {
     name: "", categoryId: activeCategories[0]?.id ?? 0, price: "", description: "", imageUrl: "", isVeg: false, isAvailable: true, stockQuantity: 0, lowStockThreshold: 5, lowStockAlertEnabled: true
   } : itemModal ? itemModal : null;
 
-  const categoryDefaults = categoryModal === "new" ? { name: "", slug: "", description: "", imageUrl: "", sortOrder: 0 } : categoryModal;
+  const categoryDefaults = categoryModal === "new" ? { name: "", slug: "", description: "", imageUrl: "" } : categoryModal;
 
   return <section className="menu-management">
     {lowStockAlert && <div className="inline-error low-stock-alert" role="alert"><strong>Low stock:</strong> {lowStockAlert.itemName} has {lowStockAlert.quantity} left (threshold {lowStockAlert.threshold}). It is now unavailable. <button onClick={() => setLowStockAlert(null)}>Dismiss</button></div>}
@@ -525,8 +545,8 @@ function MenuManagement() {
         <CustomSelect value={categoryStatusFilter} onChange={value => setCategoryStatusFilter(value as "all" | "active" | "inactive")} options={[{ value: "all", label: "All status" }, { value: "active", label: "Active" }, { value: "inactive", label: "Inactive" }]} />
       </div>
       {loading ? <p className="muted">Loading categories...</p> : <div className="menu-table-wrap"><table className="menu-table category-table"><thead><tr><th>Category</th><th>Description</th><th>Items</th><th>Status</th><th>Actions</th></tr></thead><tbody>
-        {visibleCategories.map(category => <tr key={category.id}>
-          <td><div className="category-name-cell"><div className="category-avatar">{category.imageUrl ? <img src={category.imageUrl} alt="" /> : <span>🍽️</span>}</div><div><strong>{category.name}</strong><small>/{category.slug}</small></div></div></td>
+        {visibleCategories.map(category => <tr key={category.id} draggable onDragStart={() => setDraggedCategoryId(category.id)} onDragOver={event => event.preventDefault()} onDrop={() => draggedCategoryId !== null && reorderCategories(draggedCategoryId, category.id)} className={draggedCategoryId === category.id ? "category-dragging" : ""}>
+          <td><div className="category-name-cell"><button type="button" className="category-drag-handle" draggable aria-label={`Drag ${category.name} to reorder`} title="Drag to reorder">⠿</button><div className="category-avatar">{category.imageUrl ? <img src={category.imageUrl} alt="" /> : <span>🍽️</span>}</div><div><strong>{category.name}</strong><small>/{category.slug}</small></div></div></td>
           <td>{category.description || "No description added"}</td>
           <td><span className="category-item-count">{items.filter(item => item.categoryId === category.id).length}</span></td>
           <td><span className={`category-status ${category.isActive ? "active" : "inactive"}`}><span className="status-dot" />{category.isActive ? "Active" : "Inactive"}</span></td>
@@ -607,7 +627,7 @@ function MenuManagement() {
               }} /></label>
             </div>
             <div className="editor-media-fields category-sort-field">
-              <label>Sort order<input name="sortOrder" type="number" defaultValue={categoryDefaults.sortOrder ?? 0} placeholder="Display order, e.g. 1" /></label>
+              <div className="category-order-hint"><strong>Order is managed from the Categories table.</strong><small>Drag and drop a category row to change its position.</small></div>
             </div>
           </div>
         </div>
