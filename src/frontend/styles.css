@@ -3748,8 +3748,9 @@ button {
 
 
 
-/* Orders status dropdown: slightly wider options, with a clean scrollbar-free menu. */
-.orders-page .order-status-menu {
+/* Orders status dropdown: slightly wider options, with a clean scrollbar-free menu.
+   The menu is portaled to <body>, so these rules can't be scoped to .orders-page. */
+.order-status-menu {
   width:114px;
   max-height:260px !important;
   overflow-y:auto;
@@ -3757,8 +3758,8 @@ button {
   scrollbar-width:none;
   -ms-overflow-style:none;
 }
-.orders-page .order-status-menu::-webkit-scrollbar { display:none; width:0; height:0; }
-.orders-page .order-status-menu .order-status-option {
+.order-status-menu::-webkit-scrollbar { display:none; width:0; height:0; }
+.order-status-menu .order-status-option {
   min-height:30px;
   margin:1px 0;
   padding:6px 8px;
