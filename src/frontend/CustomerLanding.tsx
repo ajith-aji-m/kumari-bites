@@ -49,6 +49,12 @@ export function CustomerLanding() {
   const visibleItems = useMemo(() => items.filter(i => selectedCategory === null || i.categoryId === selectedCategory), [items, selectedCategory]);
   const cartCount = Object.values(cart).reduce((s, n) => s + n, 0);
   const total = items.reduce((s, i) => s + Number(i.price ?? 0) * (cart[i.id] ?? 0), 0);
+  const goToStage = (target: number) => {
+    const root = document.querySelector<HTMLElement>(".customer-story");
+    if (!root) return;
+    const distance = Math.max(1, root.offsetHeight - window.innerHeight);
+    window.scrollTo({ top: window.scrollY + root.getBoundingClientRect().top + distance * target / 4, behavior: "smooth" });
+  };
   const add = (id: number) => setCart(c => ({ ...c, [id]: (c[id] ?? 0) + 1 }));
   const change = (id: number, delta: number) => setCart(c => { const n = { ...c, [id]: Math.max(0, (c[id] ?? 0) + delta) }; if (!n[id]) delete n[id]; return n; });
 
@@ -74,20 +80,20 @@ export function CustomerLanding() {
         <div className={"customer-story-categories " + (stage >= 2 ? "story-categories-visible" : "")}>
           <div className="story-panel-heading"><small>STEP 01 · PICK YOUR MOOD</small><h2>What are you <em>craving?</em></h2><p>Tap a category to help me find your favourites.</p></div>
           {loading ? <div className="customer-story-loading">Getting the menu ready…</div> : error ? <div className="customer-story-loading">{error}</div> : <div className="customer-category-bubbles">
-            {categories.map((c, i) => <button key={c.id} className={"customer-category-bubble category-tone-" + (i % 5) + (selectedCategory === c.id ? " selected" : "")} onClick={() => { setSelectedCategory(c.id); setStage(3); }}>
+            {categories.map((c, i) => <button key={c.id} className={"customer-category-bubble category-tone-" + (i % 5) + (selectedCategory === c.id ? " selected" : "")} onClick={() => { setSelectedCategory(c.id); goToStage(3); }}>
               {c.imageUrl ? <img src={c.imageUrl} alt="" /> : <span className="category-bubble-art">{["🥟", "🌯", "🍔", "🍟", "🍗"][i % 5]}</span>}<strong>{c.name}</strong><small>{items.filter(item => item.categoryId === c.id).length} bites</small>
             </button>)}
           </div>}
           <span className="story-scroll-hint">SCROLL TO MEET THE MENU <b>↓</b></span>
         </div>
         <div className={"customer-story-items " + (stage >= 3 ? "story-items-visible" : "")}>
-          <div className="story-items-topline"><button className="story-back-button" onClick={() => setStage(2)}>← Categories</button><small>STEP 02 · MADE FOR YOU</small></div>
+          <div className="story-items-topline"><button className="story-back-button" onClick={() => goToStage(2)}>← Categories</button><small>STEP 02 · MADE FOR YOU</small></div>
           <div className="story-items-title"><div><h2>{categories.find(c => c.id === selectedCategory)?.name ?? "All the good stuff"}</h2><p>Fresh picks, just a tap away.</p></div><span>{visibleItems.length} items</span></div>
           {visibleItems.length ? <div className="customer-food-grid">{visibleItems.map((item, i) => <article className={"customer-food-card food-card-" + (i % 4)} key={item.id}>
             <div className="customer-food-image">{item.imageUrl ? <img src={item.imageUrl} alt={item.name} loading="lazy" /> : <span>{["🥟", "🌯", "🍔", "🍗"][i % 4]}</span>}<span className={"customer-veg-mark " + (item.isVeg ? "veg" : "nonveg")} /></div>
             <div className="customer-food-info"><div><h4>{item.name}</h4><strong>{money(item.price)}</strong></div>{item.description && <p>{item.description}</p>}<button onClick={() => add(item.id)}>{cart[item.id] ? "Added · " + cart[item.id] : "+ Add to order"}</button>{cart[item.id] ? <div className="customer-quantity-controls"><button onClick={() => change(item.id, -1)}>−</button><span>{cart[item.id]} in your order</span><button onClick={() => add(item.id)}>+</button></div> : null}</div>
           </article>)}</div> : <div className="customer-empty">{loading ? "Loading menu…" : error || "No items in this category yet. Go back and choose another category."}</div>}
-          <button className="story-change-category" onClick={() => { setSelectedCategory(null); setStage(2); }}>Explore another category</button>
+          <button className="story-change-category" onClick={() => { setSelectedCategory(null); goToStage(2); }}>Explore another category</button>
         </div>
         <div className="customer-story-progress"><span className={stage >= 0 ? "active" : ""}/><span className={stage >= 1 ? "active" : ""}/><span className={stage >= 2 ? "active" : ""}/><span className={stage >= 3 ? "active" : ""}/></div>
         <div className="customer-story-bottom"><span className="story-bottom-line" /> SCROLL TO CONTINUE <span className="story-bottom-arrow">↓</span></div>
