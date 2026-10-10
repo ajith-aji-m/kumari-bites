@@ -477,9 +477,6 @@ function MenuManagement() {
         </div>
         <div className="editor-section editor-advanced">
           <div className="editor-section-head"><span className="editor-step">03</span><div><strong>Menu settings</strong><small>Optional internal details and availability.</small></div></div>
-          <div className="form-grid">
-            <label>Slug<input name="slug" defaultValue={itemDefaults.slug} placeholder="Auto-generated from item name" /></label>
-          </div>
           <div className="toggle-row">
             <label className="toggle-check"><input name="isVeg" type="checkbox" defaultChecked={itemDefaults.isVeg} /> <span><strong>Vegetarian</strong><small>Mark this dish as vegetarian</small></span></label>
             <label className="toggle-check"><input name="isAvailable" type="checkbox" defaultChecked={itemDefaults.isAvailable} /> <span><strong>Available</strong><small>Show this item as orderable</small></span></label>
