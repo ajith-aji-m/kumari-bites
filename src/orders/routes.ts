@@ -45,6 +45,8 @@ export async function registerOrderRoutes(app: FastifyInstance) {
     const subtotal = input.items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
     const orderNumber = makeOrderNumber();
 
+    const lowStockEvents: Array<{ menuItemId: number; itemName: string; quantity: number; threshold: number }> = [];
+
     const created = await db.transaction(async (tx) => {
       const orderResult = await tx.insert(orders).values({
         orderNumber,
@@ -79,14 +81,11 @@ export async function registerOrderRoutes(app: FastifyInstance) {
         }).where(eq(menuItems.id, menuItem.id));
 
         if (crossesThreshold) {
-          broadcast({
-            type: "menu.low_stock",
-            payload: {
-              menuItemId: menuItem.id,
-              itemName: menuItem.name,
-              quantity: remaining,
-              threshold: menuItem.lowStockThreshold
-            }
+          lowStockEvents.push({
+            menuItemId: menuItem.id,
+            itemName: menuItem.name,
+            quantity: remaining,
+            threshold: menuItem.lowStockThreshold
           });
         }
       }
@@ -111,6 +110,10 @@ export async function registerOrderRoutes(app: FastifyInstance) {
       type: "order.created",
       payload: created
     });
+
+    for (const payload of lowStockEvents) {
+      broadcast({ type: "menu.low_stock", payload });
+    }
 
     return reply.code(201).send(created);
   });
