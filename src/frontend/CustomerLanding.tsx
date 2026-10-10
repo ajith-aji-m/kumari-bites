@@ -22,7 +22,7 @@ export function CustomerLanding() {
   const [checkoutError, setCheckoutError] = useState("");
   const [placedOrder, setPlacedOrder] = useState<{ orderId: number; orderNumber: string; totalAmount?: string; trackingToken: string; status: string } | null>(() => {
     try {
-      const saved = window.sessionStorage.getItem("kb-active-order");
+      const saved = window.localStorage.getItem("kb-active-order");
       return saved ? JSON.parse(saved) : null;
     } catch { return null; }
   });
@@ -44,7 +44,7 @@ export function CustomerLanding() {
           setPlacedOrder(current => {
             if (!current || current.orderId !== placedOrder.orderId || current.status === data.status) return current;
             const next = { ...current, status: data.status! };
-            window.sessionStorage.setItem("kb-active-order", JSON.stringify(next));
+            window.localStorage.setItem("kb-active-order", JSON.stringify(next));
             return next;
           });
         }
@@ -167,7 +167,7 @@ export function CustomerLanding() {
       const order = { orderId: Number(data.orderId), orderNumber: String(data.orderNumber), totalAmount: data.totalAmount, trackingToken: String(data.trackingToken), status: String(data.status ?? "new") };
       setPlacedOrder(order);
       setTrackerMinimized(false);
-      window.sessionStorage.setItem("kb-active-order", JSON.stringify(order));
+      window.localStorage.setItem("kb-active-order", JSON.stringify(order));
       setCart({});
       setCartOpen(false);
       setStage(0);
@@ -179,7 +179,7 @@ export function CustomerLanding() {
   };
 
   return <main className="customer-landing customer-story-page">
-    <section className={"customer-story " + (categoryIntroPlaying ? "category-intro-playing" : "")} aria-label="Kumari Bites interactive menu story">
+    <section className={"customer-story " + (categoryIntroPlaying ? "category-intro-playing " : "") + (placedOrder ? "has-active-order" : "")} aria-label="Kumari Bites interactive menu story">
       <div className="customer-story-stage">
         <div className="customer-hero-shade" />
         <header className="customer-nav">
