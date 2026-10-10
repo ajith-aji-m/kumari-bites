@@ -939,3 +939,13 @@ input:not([type="checkbox"]):focus { border-color: #b85c38; box-shadow: 0 0 0 3p
   .menu-item-editor { padding:15px 17px 0; }
   .modal-actions { padding:14px 17px 17px; }
 }
+
+.menu-item-feedback {
+  margin:0 0 2px;
+  padding:10px 12px;
+  border-radius:14px;
+  background:rgba(255,248,242,.78);
+  border:1px solid rgba(184,92,56,.14);
+}
+.menu-item-feedback .chef-character img { width:58px; height:58px; object-fit:contain; }
+.menu-item-feedback .chef-bubble { box-shadow:0 8px 22px rgba(53,30,20,.08); }
