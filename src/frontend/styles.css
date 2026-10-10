@@ -2443,3 +2443,13 @@ button {
 .menu-management .category-modal-card .menu-action-primary {
   min-height: 42px;
 }
+
+
+/* Category drag-and-drop ordering */
+.category-table tbody tr { cursor: grab; }
+.category-table tbody tr:active { cursor: grabbing; }
+.category-table tbody tr.category-dragging { opacity: .55; }
+.category-drag-handle { border: 0; background: transparent; color: rgba(255,239,227,.5); cursor: grab; font-size: 20px; line-height: 1; padding: 4px 8px 4px 0; }
+.category-drag-handle:hover { color: #ff8a4c; }
+.category-order-hint { min-height: 100px; display: flex; flex-direction: column; justify-content: center; gap: 6px; color: #fff4eb; }
+.category-order-hint small { color: rgba(255,239,227,.55); }
