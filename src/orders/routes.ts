@@ -1,5 +1,5 @@
 import type { FastifyInstance } from "fastify";
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "../db/index.js";
 import { menuItems, orderItems, orders } from "../db/schema.js";
@@ -34,7 +34,7 @@ export async function registerOrderRoutes(app: FastifyInstance) {
     const user = await requirePermission(request, reply, "orders.view");
     if (!user) return;
 
-    const orderRows = await db.select().from(orders).orderBy(orders.createdAt);
+    const orderRows = await db.select().from(orders).orderBy(desc(orders.createdAt));
     const itemRows = await db.select().from(orderItems);
     return orderRows.map((order) => ({
       ...order,
