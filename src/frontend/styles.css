@@ -993,3 +993,130 @@ input:not([type="checkbox"]):focus { border-color: #b85c38; box-shadow: 0 0 0 3p
   line-height:1.45;
   opacity:1;
 }
+
+/* Menu editor: carry the login's dark cinematic glass language into the app */
+.menu-management .modal-backdrop {
+  background:
+    radial-gradient(circle at 18% 15%, rgba(255,139,76,.12), transparent 34%),
+    radial-gradient(circle at 82% 85%, rgba(255,190,130,.08), transparent 32%),
+    rgba(5,7,9,.78);
+  backdrop-filter:blur(14px) saturate(120%);
+  -webkit-backdrop-filter:blur(14px) saturate(120%);
+}
+.menu-management .modal-card {
+  color:#f8eee6;
+  border:1px solid rgba(255,255,255,.14);
+  background:
+    linear-gradient(145deg,rgba(28,22,19,.88),rgba(12,14,15,.94));
+  box-shadow:0 35px 100px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.08);
+  backdrop-filter:blur(24px) saturate(125%);
+  -webkit-backdrop-filter:blur(24px) saturate(125%);
+}
+.menu-management .modal-head {
+  background:rgba(255,255,255,.055);
+  border-bottom:1px solid rgba(255,255,255,.10);
+  backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);
+}
+.menu-management .modal-head h2 { color:#fff7f0; }
+.menu-management .modal-head .eyebrow { color:#f3c4a8; }
+.menu-management .icon-button {
+  color:#f5e4d8;
+  background:rgba(255,255,255,.08);
+  border-color:rgba(255,255,255,.14);
+}
+.menu-management .editor-section {
+  border-color:rgba(255,255,255,.10);
+  background:rgba(255,255,255,.055);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 12px 32px rgba(0,0,0,.16);
+  backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
+}
+.menu-management .editor-section-head strong { color:#fff4eb; }
+.menu-management .editor-section-head small { color:rgba(255,239,227,.58); }
+.menu-management .editor-step {
+  background:rgba(255,255,255,.09);
+  color:#f3c4a8;
+  border:1px solid rgba(255,255,255,.10);
+}
+.menu-management .form-grid label,
+.menu-management .editor-media-fields label { color:#f0ddd0; }
+.menu-management .menu-image-preview {
+  border-color:rgba(255,255,255,.14);
+  background:linear-gradient(145deg,rgba(255,255,255,.075),rgba(255,255,255,.025));
+}
+.menu-management .menu-image-preview strong { color:#f5e5da; }
+.menu-management .menu-image-preview small { color:rgba(255,239,227,.52); }
+.menu-management .menu-item-editor .form-grid input,
+.menu-management .menu-item-editor .form-grid textarea,
+.menu-management .editor-media-fields input,
+.menu-management .editor-media-fields textarea,
+.menu-management .custom-form-select .custom-select-trigger {
+  color:#fff4eb;
+  border-color:rgba(255,255,255,.14);
+  background:rgba(255,255,255,.075);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.045);
+}
+.menu-management .menu-item-editor input::placeholder,
+.menu-management .menu-item-editor textarea::placeholder { color:rgba(255,239,227,.38); }
+.menu-management .menu-item-editor .form-grid input:focus,
+.menu-management .menu-item-editor .form-grid textarea:focus,
+.menu-management .editor-media-fields input:focus,
+.menu-management .editor-media-fields textarea:focus,
+.menu-management .custom-form-select .custom-select-trigger:focus {
+  border-color:rgba(255,194,155,.45);
+  box-shadow:0 0 0 3px rgba(255,166,111,.10),inset 0 1px 0 rgba(255,255,255,.05);
+}
+.menu-management .custom-select-trigger { color:#fff4eb; }
+.menu-management .custom-select-chevron { color:#f3c4a8; }
+.menu-management .custom-select-menu {
+  background:rgba(24,20,18,.97);
+  border-color:rgba(255,255,255,.13);
+  box-shadow:0 20px 50px rgba(0,0,0,.45);
+  backdrop-filter:blur(22px);
+  -webkit-backdrop-filter:blur(22px);
+}
+.menu-management .custom-select-option { color:rgba(255,239,227,.78); }
+.menu-management .custom-select-option:hover,
+.menu-management .custom-select-option.selected {
+  background:rgba(255,255,255,.09);
+  color:#fff4eb;
+}
+.menu-management .editor-advanced { background:rgba(255,255,255,.04); }
+.menu-management .editor-advanced .toggle-row { border-top-color:rgba(255,255,255,.10); }
+.menu-management .editor-advanced .toggle-check { color:#f0ddd0; }
+.menu-management .editor-advanced .toggle-check small { color:rgba(255,239,227,.52); }
+.menu-management .modal-actions {
+  border-top-color:rgba(255,255,255,.10);
+  background:rgba(8,10,11,.68);
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+}
+.menu-management .modal-actions .secondary-button {
+  color:#f0ddd0;
+  background:rgba(255,255,255,.07);
+  border-color:rgba(255,255,255,.13);
+}
+.menu-management .modal-actions .primary-button {
+  background:rgba(255,255,255,.13);
+  color:#fff8f2;
+  border:1px solid rgba(255,255,255,.16);
+  box-shadow:0 10px 28px rgba(0,0,0,.24);
+}
+.menu-management .menu-item-feedback .chef-bubble {
+  background:rgba(255,255,255,.075);
+  border-color:rgba(255,194,155,.28);
+  color:#fff0e5;
+}
+.menu-management .menu-item-feedback .chef-bubble::before {
+  background:rgba(255,255,255,.075);
+  border-left-color:rgba(255,194,155,.28);
+  border-bottom-color:rgba(255,194,155,.28);
+}
+.menu-management .menu-item-feedback .chef-bubble strong { color:#f3c4a8; }
+.menu-management .menu-item-feedback .chef-bubble span { color:#fff0e5; }
+@media (max-width:650px) {
+  .menu-management .modal-card {
+    background:linear-gradient(145deg,rgba(24,20,18,.94),rgba(10,12,13,.97));
+  }
+}
