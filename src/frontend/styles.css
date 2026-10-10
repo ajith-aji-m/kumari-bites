@@ -1420,3 +1420,22 @@ button {
   .menu-tabs button,
   .nav-item { transition:none !important; }
 }
+
+/* Keep menu form dropdowns above modal content and visible when opened. */
+.menu-management .modal-card,
+.menu-management .editor-section,
+.menu-management .custom-form-select,
+.menu-management .custom-select {
+  overflow: visible;
+}
+
+.menu-management .custom-form-select,
+.menu-management .custom-select {
+  position: relative;
+  z-index: 20;
+}
+
+.menu-management .custom-select-menu {
+  position: absolute;
+  z-index: 9999;
+}
