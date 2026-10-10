@@ -997,9 +997,112 @@ function localDateInputValue(date: Date) {
   return `${year}-${month}-${day}`;
 }
 
+function formatReportDate(date: string) {
+  return new Date(`${date}T00:00:00`).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+}
+
+function shiftDate(date: Date, days: number) {
+  const next = new Date(date);
+  next.setDate(next.getDate() + days);
+  return next;
+}
+
+function CustomDateRangePicker({ startDate, endDate, onApply }: {
+  startDate: string;
+  endDate: string;
+  onApply: (range: { startDate: string; endDate: string }) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [draftStart, setDraftStart] = useState(startDate);
+  const [draftEnd, setDraftEnd] = useState(endDate);
+  const [visibleMonth, setVisibleMonth] = useState(() => {
+    const date = new Date(`${startDate}T00:00:00`);
+    return new Date(date.getFullYear(), date.getMonth(), 1);
+  });
+
+  useEffect(() => {
+    if (!open) {
+      setDraftStart(startDate);
+      setDraftEnd(endDate);
+    }
+  }, [startDate, endDate, open]);
+
+  const today = localDateInputValue(new Date());
+  const monthLabel = visibleMonth.toLocaleDateString("en-IN", { month: "long", year: "numeric" });
+  const firstDay = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth(), 1);
+  const gridStart = new Date(firstDay);
+  gridStart.setDate(1 - ((firstDay.getDay() + 6) % 7));
+  const calendarDays = Array.from({ length: 42 }, (_, index) => shiftDate(gridStart, index));
+  const presets = [
+    { label: "Today", getRange: () => ({ startDate: today, endDate: today }) },
+    { label: "Yesterday", getRange: () => { const day = localDateInputValue(shiftDate(new Date(), -1)); return { startDate: day, endDate: day }; } },
+    { label: "Last 7 days", getRange: () => ({ startDate: localDateInputValue(shiftDate(new Date(), -6)), endDate: today }) },
+    { label: "Last 30 days", getRange: () => ({ startDate: localDateInputValue(shiftDate(new Date(), -29)), endDate: today }) },
+    { label: "This month", getRange: () => ({ startDate: localDateInputValue(new Date(new Date().getFullYear(), new Date().getMonth(), 1)), endDate: today }) },
+    { label: "Last month", getRange: () => { const now = new Date(); const start = new Date(now.getFullYear(), now.getMonth() - 1, 1); const end = new Date(now.getFullYear(), now.getMonth(), 0); return { startDate: localDateInputValue(start), endDate: localDateInputValue(end) }; } }
+  ];
+
+  function selectDay(date: Date) {
+    const selected = localDateInputValue(date);
+    if (!draftStart || draftEnd || selected < draftStart) {
+      setDraftStart(selected);
+      setDraftEnd("");
+    } else {
+      setDraftEnd(selected);
+    }
+  }
+
+  function choosePreset(preset: typeof presets[number]) {
+    const range = preset.getRange();
+    setDraftStart(range.startDate);
+    setDraftEnd(range.endDate);
+    setVisibleMonth(new Date(`${range.startDate}T00:00:00`));
+  }
+
+  function applyRange() {
+    if (!draftStart || !draftEnd || draftStart > draftEnd) return;
+    onApply({ startDate: draftStart, endDate: draftEnd });
+    setOpen(false);
+  }
+
+  return <div className="reports-date-picker">
+    <button type="button" className={`reports-date-trigger ${open ? "is-open" : ""}`} aria-expanded={open} aria-haspopup="dialog" onClick={() => { setDraftStart(startDate); setDraftEnd(endDate); setOpen(value => !value); }}>
+      <span className="reports-date-trigger-icon" aria-hidden="true">▦</span>
+      <span className="reports-date-trigger-copy"><small>DATE RANGE</small><strong>{formatReportDate(startDate)} <i>→</i> {formatReportDate(endDate)}</strong></span>
+      <span className="reports-date-trigger-chevron" aria-hidden="true">⌄</span>
+    </button>
+    {open && <>
+      <button type="button" className="reports-date-dismiss" aria-label="Close date range picker" onClick={() => setOpen(false)} />
+      <section className="reports-date-popover" role="dialog" aria-label="Choose a custom date range">
+        <div className="reports-date-popover-heading"><div><strong>Choose date range</strong><span>Select a preset or pick your own dates.</span></div><button type="button" aria-label="Close calendar" onClick={() => setOpen(false)}>×</button></div>
+        <div className="reports-date-popover-content">
+          <div className="reports-date-presets"><span>QUICK RANGES</span>{presets.map(preset => {
+            const range = preset.getRange();
+            const active = draftStart === range.startDate && draftEnd === range.endDate;
+            return <button type="button" key={preset.label} className={active ? "active" : ""} onClick={() => choosePreset(preset)}>{preset.label}{active && <span aria-hidden="true">✓</span>}</button>;
+          })}</div>
+          <div className="reports-calendar">
+            <div className="reports-calendar-header"><button type="button" aria-label="Previous month" onClick={() => setVisibleMonth(month => new Date(month.getFullYear(), month.getMonth() - 1, 1))}>‹</button><strong>{monthLabel}</strong><button type="button" aria-label="Next month" onClick={() => setVisibleMonth(month => new Date(month.getFullYear(), month.getMonth() + 1, 1))}>›</button></div>
+            <div className="reports-calendar-grid reports-calendar-weekdays">{["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(day => <span key={day}>{day}</span>)}</div>
+            <div className="reports-calendar-grid">{calendarDays.map(date => {
+              const value = localDateInputValue(date);
+              const inMonth = date.getMonth() === visibleMonth.getMonth();
+              const inRange = Boolean(draftStart && draftEnd && value >= draftStart && value <= draftEnd);
+              const selected = value === draftStart || value === draftEnd;
+              return <button type="button" key={value} disabled={value > today} className={[`reports-calendar-day`, !inMonth ? "outside-month" : "", inRange ? "in-range" : "", selected ? "selected" : "", value === today ? "today" : ""].filter(Boolean).join(" ")} onClick={() => selectDay(date)} aria-pressed={selected} aria-label={formatReportDate(value)}>{date.getDate()}</button>;
+            })}</div>
+            <div className="reports-calendar-selection"><div><span>FROM</span><strong>{draftStart ? formatReportDate(draftStart) : "Select start date"}</strong></div><span className="reports-calendar-selection-arrow">→</span><div><span>TO</span><strong>{draftEnd ? formatReportDate(draftEnd) : "Select end date"}</strong></div></div>
+          </div>
+        </div>
+        <div className="reports-date-actions"><button type="button" className="reports-date-cancel" onClick={() => { setDraftStart(startDate); setDraftEnd(endDate); setOpen(false); }}>Cancel</button><button type="button" className="primary-button compact" disabled={!draftStart || !draftEnd || draftStart > draftEnd} onClick={applyRange}>Apply range</button></div>
+      </section>
+    </>}
+  </div>;
+}
+
 function Reports() {
   const today = localDateInputValue(new Date());
-  const initialStart = localDateInputValue(new Date(Date.now() - 6 * 24 * 60 * 60 * 1000));
+  const initialStart = localDateInputValue(shiftDate(new Date(), -6));
   const [startDate, setStartDate] = useState(initialStart);
   const [endDate, setEndDate] = useState(today);
   const [appliedRange, setAppliedRange] = useState({ startDate: initialStart, endDate: today });
@@ -1039,25 +1142,20 @@ function Reports() {
   const chartMax = Math.max(1, ...dailyRows.map(day => day.sales));
   const dateLabel = (date: string) => new Date(`${date}T00:00:00`).toLocaleDateString("en-IN", { day: "numeric", month: "short" });
 
-  function applyDateRange(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!startDate || !endDate) { setError("Choose both a start date and an end date."); return; }
-    if (startDate > endDate) { setError("Start date must be on or before the end date."); return; }
-    setAppliedRange({ startDate, endDate });
-  }
-
   return <section className="reports-page">
     <div className="reports-heading">
       <div><p className="eyebrow">BUSINESS PERFORMANCE</p><h1>Reports &amp; Analytics</h1><p className="muted">Understand sales, order volume, and best-selling menu items using your existing order data.</p></div>
       <button type="button" className="dashboard-refresh-button" onClick={loadReports} disabled={loading}><span aria-hidden="true">↻</span> {loading ? "Refreshing…" : "Refresh"}</button>
     </div>
 
-    <form className="reports-filter panel" onSubmit={applyDateRange}>
-      <div className="reports-filter-copy"><strong>Date range</strong><span>Choose the period you want to review.</span></div>
-      <label>From<input type="date" value={startDate} max={endDate || undefined} onChange={event => setStartDate(event.target.value)} /></label>
-      <label>To<input type="date" value={endDate} min={startDate || undefined} onChange={event => setEndDate(event.target.value)} /></label>
-      <button className="primary-button compact" type="submit" disabled={loading}>Apply filters</button>
-    </form>
+    <div className="reports-filter panel">
+      <div className="reports-filter-copy"><strong>Sales period</strong><span>Filter reports with a preset or a custom date range.</span></div>
+      <CustomDateRangePicker startDate={startDate} endDate={endDate} onApply={range => {
+        setStartDate(range.startDate);
+        setEndDate(range.endDate);
+        setAppliedRange(range);
+      }} />
+    </div>
 
     {error && <div className="inline-error" role="alert">{error} <button type="button" onClick={loadReports}>Retry</button></div>}
 
