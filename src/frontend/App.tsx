@@ -556,7 +556,7 @@ function MenuManagement() {
         <div className="editor-section">
           <div className="editor-section-head"><span className="editor-step">02</span><div><strong>Dish presentation</strong><small>Add the image and short description customers should see.</small></div></div>
           <div className="editor-media-grid">
-            <ImageUpload value={itemImage} onChange={setItemImage} name="imageUrl" alt="Selected dish" />
+            <ImageUpload value={itemImage} onChange={setItemImage} onError={setError} name="imageUrl" alt="Selected dish" />
             <div className="editor-media-fields">
               <label>Description<textarea name="description" defaultValue={itemDefaults.description ?? ""} placeholder="Short description customers should see..." /></label>
             </div>
@@ -592,7 +592,7 @@ function MenuManagement() {
         <div className="editor-section">
           <div className="editor-section-head"><span className="editor-step">02</span><div><strong>Category presentation</strong><small>Add a visual image that represents this category.</small></div></div>
           <div className="editor-media-grid category-media-grid">
-            <ImageUpload value={categoryImage} onChange={setCategoryImage} name="imageUrl" alt="Selected category" />
+            <ImageUpload value={categoryImage} onChange={setCategoryImage} onError={setError} name="imageUrl" alt="Selected category" />
           </div>
         </div>
       </div>
