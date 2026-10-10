@@ -123,13 +123,14 @@ function Login({ onLogin }: { onLogin: () => void }) {
               <button disabled={loginSuccess} type="button" className="link-button">Forgot password?</button>
             </div>
 
-            {error && <div className="chef-guide" role="alert"><div className="chef-character" aria-hidden="true"><img src="/assets/kumari-bites-chef.png" alt="" /></div><div className="chef-bubble"><strong>Chef says</strong><span>{error.replace(/^👨‍🍳 Chef says: /, "")}</span></div></div>}
+            <div className={`chef-guide${error ? " has-error" : ""}`} aria-hidden={!error}>
+              <div className="chef-character"><img src="/assets/kumari-bites-chef.png" alt="" /></div>
+              {error && <div className="chef-bubble" role="alert"><strong>Chef says</strong><span>{error.replace(/^👨‍🍳 Chef says: /, "")}</span></div>}
+            </div>
 
-            {loginSuccess && <div className="login-success-toast" role="status" aria-live="polite"><span className="login-success-icon">✓</span><div><strong>Welcome back!</strong><span>Login successful. Taking you to the dashboard.</span></div></div>}
-
-            <button className={`primary-button login-submit ${loginSuccess ? "unlocked" : ""}`} disabled={loading || loginSuccess}>
-              <span>{loginSuccess ? "✓" : loading ? "…" : ""}</span>
-              <span>{loginSuccess ? "Signed in" : loading ? "Signing in..." : "Sign In"}</span>
+            <button className="primary-button login-submit" disabled={loading || loginSuccess}>
+              <span>{loading ? "…" : ""}</span>
+              <span>{loading ? "Signing in..." : "Sign In"}</span>
             </button>
           </form>
 
