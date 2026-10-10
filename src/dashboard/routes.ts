@@ -4,6 +4,31 @@ import { db } from "../db/index.js";
 import { orderItems, orders } from "../db/schema.js";
 import { requirePermission } from "../auth/authorization.js";
 
+function rowsOf<T extends Record<string, unknown>>(result: unknown): T[] {
+  if (Array.isArray(result)) {
+    if (result.length === 2 && Array.isArray(result[0])) return result[0] as T[];
+    return result as T[];
+  }
+
+  if (result && typeof result === "object" && "rows" in result) {
+    const rows = (result as { rows?: unknown }).rows;
+    if (Array.isArray(rows)) return rows as T[];
+  }
+
+  return [];
+}
+
+function normalizeSqlDate(value: unknown): string {
+  if (value instanceof Date) {
+    const year = value.getFullYear();
+    const month = String(value.getMonth() + 1).padStart(2, "0");
+    const day = String(value.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  }
+
+  return String(value ?? "").slice(0, 10);
+}
+
 export async function registerDashboardRoutes(app: FastifyInstance) {
   app.get("/api/v1/dashboard", async (request, reply) => {
     const user = await requirePermission(request, reply, "dashboard.view");
@@ -12,8 +37,8 @@ export async function registerDashboardRoutes(app: FastifyInstance) {
     const stats = await db.execute(sql`
       SELECT
         COUNT(*) AS total_orders,
-        COALESCE(SUM(total_amount), 0) AS total_sales,
-        COALESCE(AVG(total_amount), 0) AS average_order,
+        COALESCE(SUM(CASE WHEN status <> 'cancelled' THEN total_amount ELSE 0 END), 0) AS total_sales,
+        COALESCE(AVG(CASE WHEN status <> 'cancelled' THEN total_amount ELSE NULL END), 0) AS average_order,
         SUM(CASE WHEN status IN ('new','confirmed','preparing','ready') THEN 1 ELSE 0 END) AS active_orders,
         SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) AS completed_orders,
         SUM(CASE WHEN status = 'cancelled' THEN 1 ELSE 0 END) AS cancelled_orders
@@ -73,8 +98,13 @@ export async function registerDashboardRoutes(app: FastifyInstance) {
       .orderBy(desc(orders.placedAt))
       .limit(8);
 
-    const statRow = (stats as unknown as Array<Record<string, unknown>>)[0] ?? {};
-    const completedRow = (completedToday as unknown as Array<Record<string, unknown>>)[0] ?? {};
+    const statRow = rowsOf<Record<string, unknown>>(stats)[0] ?? {};
+    const completedRow = rowsOf<Record<string, unknown>>(completedToday)[0] ?? {};
+    const normalizedSalesTrend = rowsOf<Record<string, unknown>>(salesTrend).map((row) => ({
+      sale_date: normalizeSqlDate(row.sale_date),
+      orders: Number(row.orders ?? 0),
+      sales: Number(row.sales ?? 0)
+    }));
 
     return {
       today: {
@@ -85,7 +115,7 @@ export async function registerDashboardRoutes(app: FastifyInstance) {
         completedOrders: Number(completedRow.completed_orders ?? 0),
         cancelledOrders: Number(statRow.cancelled_orders ?? 0)
       },
-      salesTrend: salesTrend as unknown,
+      salesTrend: normalizedSalesTrend,
       popularItems,
       recentOrders
     };
