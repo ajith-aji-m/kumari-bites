@@ -5353,3 +5353,123 @@ button {
 @media(prefers-reduced-motion:reduce){
   .customer-menu-bubble.adding-to-cart{animation:none!important}
 }
+
+
+/* Final dish layout: keep the waiter clear and remove the decorative arch entirely. */
+.customer-story-categories.menu-items-on-plate.story-categories-visible{
+  top:19%!important;
+  right:clamp(8px,2vw,30px)!important;
+  width:min(59vw,790px)!important;
+  max-height:73vh!important;
+  overflow:visible!important;
+}
+.customer-story-categories.menu-items-on-plate.story-categories-visible:before{
+  top:35%!important;
+  width:108%!important;
+  height:84%!important;
+}
+.customer-menu-bubbles{
+  gap:clamp(12px,1.4vw,20px)!important;
+  padding:10px 4% 16px!important;
+  justify-content:center!important;
+  align-items:flex-start!important;
+}
+.customer-menu-bubble{
+  width:clamp(104px,9.5vw,132px)!important;
+  min-height:0!important;
+  padding:6px 5px 8px!important;
+  gap:7px!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  overflow:visible!important;
+  transform:none;
+}
+.customer-menu-bubble:hover{
+  border:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+}
+.customer-menu-bubble-name{
+  position:static!important;
+  display:block!important;
+  width:100%!important;
+  min-height:0!important;
+  margin:0!important;
+  padding:0!important;
+  overflow:visible!important;
+  color:#59301c!important;
+  font-size:clamp(11px,.95vw,13px)!important;
+  line-height:1.2!important;
+  font-weight:850!important;
+  text-align:center!important;
+  -webkit-line-clamp:unset!important;
+}
+.customer-menu-bubble-name:before,
+.customer-menu-bubble-name:after{
+  content:none!important;
+  display:none!important;
+}
+.customer-menu-bubble-image{
+  width:clamp(64px,5.8vw,80px)!important;
+  height:clamp(64px,5.8vw,80px)!important;
+  margin:0 auto!important;
+  border:2px solid rgba(255,255,255,.95)!important;
+  border-radius:50%!important;
+  background:rgba(255,248,235,.72)!important;
+  box-shadow:0 4px 10px rgba(80,43,22,.13)!important;
+}
+.customer-menu-bubble-price{
+  margin-top:0!important;
+  color:#8f4023!important;
+  font-size:12px!important;
+  font-weight:900!important;
+}
+.customer-menu-bubble-add{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:6px!important;
+  min-height:26px!important;
+  margin-top:0!important;
+  padding:3px 0 5px!important;
+  border:0!important;
+  border-bottom:1px solid rgba(151,72,38,.45)!important;
+  border-radius:0!important;
+  background:transparent!important;
+  color:#813b22!important;
+  box-shadow:none!important;
+  font-size:10px!important;
+  font-weight:800!important;
+}
+.customer-menu-bubble-add:hover,
+.customer-menu-bubble-add.is-in-cart{
+  background:transparent!important;
+  color:#356447!important;
+  box-shadow:none!important;
+}
+.customer-menu-bubble.adding-to-cart{
+  animation:kbBiteFlyIntoCart .66s cubic-bezier(.45,.02,.25,1) both!important;
+}
+@media(max-width:760px){
+  .customer-story-categories.menu-items-on-plate.story-categories-visible{
+    top:15%!important;
+    right:2px!important;
+    width:67vw!important;
+    max-height:78vh!important;
+    overflow-y:auto!important;
+    overflow-x:visible!important;
+  }
+  .customer-story-categories.menu-items-on-plate.story-categories-visible:before{
+    top:28%!important;
+    width:115%!important;
+    height:94%!important;
+  }
+  .customer-menu-bubbles{gap:8px!important;padding:8px 1% 12px!important}
+  .customer-menu-bubble{width:clamp(82px,25vw,104px)!important;padding:5px 3px 7px!important;gap:5px!important}
+  .customer-menu-bubble-image{width:clamp(48px,13vw,60px)!important;height:clamp(48px,13vw,60px)!important}
+  .customer-menu-bubble-name{font-size:10px!important}
+  .customer-menu-bubble-price{font-size:11px!important}
+  .customer-menu-bubble-add{font-size:9px!important}
+}
