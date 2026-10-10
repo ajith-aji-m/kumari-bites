@@ -54,6 +54,7 @@ export function CustomerLanding() {
   const menuPageSize = 4;
   const menuPageCount = Math.max(1, Math.ceil(categoryItems.length / menuPageSize));
   const visibleItems = useMemo(() => categoryItems.slice(menuPage * menuPageSize, (menuPage + 1) * menuPageSize), [categoryItems, menuPage]);
+  useEffect(() => { setMenuPage(0); }, [selectedCategory]);
   const cartCount = Object.values(cart).reduce((s, n) => s + n, 0);
   const total = items.reduce((s, i) => s + Number(i.price ?? 0) * (cart[i.id] ?? 0), 0);
   const add = (id: number) => {
@@ -98,10 +99,9 @@ export function CustomerLanding() {
             </button>)}
           </div> : <div className="customer-menu-bubbles">
             {visibleItems.map((item, i) => <article key={item.id} style={{ animationDelay: `${i * 90}ms` }} className={"customer-menu-bubble " + (addingItemId === item.id ? "adding-to-cart" : "")}>
-              <div className="customer-menu-bubble-image">{item.imageUrl ? <img src={item.imageUrl} alt={item.name} loading="lazy" /> : <span>{["🥟", "🌯", "🍔", "🍗", "🍜"][i % 5]}</span>}<span className={"customer-veg-mark " + (item.isVeg ? "veg" : "nonveg")} /></div>
+              <div className="customer-menu-bubble-image">{item.imageUrl ? <img src={item.imageUrl} alt={item.name} loading="lazy" /> : <span>{["🥟", "🌯", "🍔", "🍗", "🍜"][i % 5]}</span>}{cart[item.id] ? <span className="customer-menu-image-count">{cart[item.id]}</span> : null}<button type="button" aria-label={`Add ${item.name} to your bites`} className="customer-menu-image-add" onClick={() => add(item.id)}>+</button></div>
               <strong className="customer-menu-bubble-name">{item.name}</strong>
               <span className="customer-menu-bubble-price">{money(item.price)}</span>
-              <button type="button" aria-label={`Add ${item.name} to your bites`} className={"customer-menu-bubble-add " + (cart[item.id] ? "is-in-cart" : "")} onClick={() => add(item.id)}>{cart[item.id] ? <><span className="menu-add-check">✓</span><span className="menu-add-count">{cart[item.id]} in your bites</span><span className="menu-add-plus">+</span></> : <><span className="menu-add-plus">+</span><span className="menu-add-count">Add a bite</span></>}</button>
             </article>)}
             {!categoryItems.length && <div className="customer-story-loading">No items in this category yet.</div>}
           </div>}
