@@ -576,10 +576,10 @@ input:not([type="checkbox"]):focus { border-color: #b85c38; box-shadow: 0 0 0 3p
   align-items:flex-end;
   gap:8px;
   padding:9px 11px 9px 8px;
-  border:1px solid rgba(106, 204, 139, .30);
+  border:1px solid rgba(245, 146, 38, .38);
   border-radius:13px;
-  background:rgba(24, 54, 34, .96);
-  color:#e4f8e9;
+  background:rgba(58, 36, 22, .96);
+  color:#fff1e3;
   box-shadow:0 14px 35px rgba(0,0,0,.30);
   backdrop-filter:blur(10px);
   -webkit-backdrop-filter:blur(10px);
@@ -616,35 +616,35 @@ input:not([type="checkbox"]):focus { border-color: #b85c38; box-shadow: 0 0 0 3p
   flex:1;
   min-width:0;
   padding:9px 11px;
-  border:1px solid rgba(106, 204, 139, .30);
-  border-radius:11px 11px 3px 11px;
-  background:rgba(52,112,76,.18);
-  color:#d6f2df;
+  border:1px solid rgba(245, 146, 38, .38);
+  border-radius:11px 11px 11px 3px;
+  background:rgba(245,146,38,.12);
+  color:#fff1e3;
   font-size:10px;
   line-height:1.45;
 }
 .chef-success-bubble::after {
   content:"";
   position:absolute;
-  right:-6px;
+  left:-6px;
   bottom:9px;
   width:10px;
   height:10px;
-  background:rgba(52,112,76,.18);
-  border-right:1px solid rgba(106, 204, 139, .30);
-  border-bottom:1px solid rgba(106, 204, 139, .30);
-  transform:rotate(-45deg);
+  background:rgba(245,146,38,.12);
+  border-left:1px solid rgba(245, 146, 38, .38);
+  border-bottom:1px solid rgba(245, 146, 38, .38);
+  transform:rotate(45deg);
 }
 .chef-success-bubble strong {
   display:block;
   margin-bottom:2px;
-  color:#8fe0a8;
+  color:#ffad57;
   font-size:9px;
   text-transform:uppercase;
   letter-spacing:.08em;
 }
 .chef-success-bubble span {
-  color:#d6f2df;
+  color:#ffe4cc;
   font-size:10px;
   line-height:1.4;
 }
