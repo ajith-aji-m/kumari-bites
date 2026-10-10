@@ -2543,3 +2543,44 @@ button {
     grid-column: auto;
   }
 }
+
+
+/* Keep Menu Items and Categories controls visually consistent. */
+.menu-management .category-toolbar {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) 190px;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+.menu-management .category-toolbar .search-input,
+.menu-management .category-toolbar .custom-select-trigger {
+  min-height: 42px;
+  background: rgba(255,255,255,.055);
+  border: 1px solid rgba(255,255,255,.12);
+  color: #fff4eb;
+  box-shadow: none;
+}
+.menu-management .category-toolbar .search-input::placeholder {
+  color: rgba(255,239,227,.45);
+}
+.menu-management .category-toolbar .custom-select-trigger:hover,
+.menu-management .category-toolbar .custom-select-trigger:focus {
+  border-color: rgba(255,138,76,.5);
+  box-shadow: 0 0 0 3px rgba(255,138,76,.10);
+}
+.menu-management .category-toolbar .custom-select-chevron { color: #ff9b62; }
+.menu-management .menu-table .price-cell {
+  color: #fff4eb !important;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  opacity: 1;
+}
+.menu-management .menu-table td.price-cell,
+.menu-management .menu-table td.price-cell strong {
+  color: #fff4eb !important;
+}
+@media (max-width: 600px) {
+  .menu-management .category-toolbar { grid-template-columns: 1fr; }
+}
