@@ -93,7 +93,7 @@ function Login({ onLogin }: { onLogin: () => void }) {
                 body: JSON.stringify({ identifier, password })
               });
               setLoginSuccess(true);
-              window.setTimeout(onLogin, 300);
+              window.setTimeout(onLogin, 700);
             } catch (err) {
               setError(err instanceof Error ? err.message : "Unable to sign in");
             } finally {
@@ -103,15 +103,15 @@ function Login({ onLogin }: { onLogin: () => void }) {
             <label className="login-field">
               <span>Email or phone</span>
               <div className="input-wrap">
-                <input value={identifier} onChange={e => { setIdentifier(e.target.value); setError(""); }} placeholder="Enter your email or phone" autoComplete="username" />
+                <input disabled={loginSuccess} value={identifier} onChange={e => { setIdentifier(e.target.value); setError(""); setLoginSuccess(false); }} placeholder="Enter your email or phone" autoComplete="username" />
               </div>
             </label>
 
             <label className="login-field">
               <span>Password</span>
               <div className="input-wrap">
-                <input type={showPassword ? "text" : "password"} value={password} onChange={e => { setPassword(e.target.value); setError(""); }} placeholder="Enter your password" autoComplete="current-password" />
-                <button type="button" className="password-toggle" onClick={() => setShowPassword(value => !value)} aria-label={showPassword ? "Hide password" : "Show password"}>
+                <input disabled={loginSuccess} type={showPassword ? "text" : "password"} value={password} onChange={e => { setPassword(e.target.value); setError(""); setLoginSuccess(false); }} placeholder="Enter your password" autoComplete="current-password" />
+                <button disabled={loginSuccess} type="button" className="password-toggle" onClick={() => setShowPassword(value => !value)} aria-label={showPassword ? "Hide password" : "Show password"}>
                   {showPassword ? "Hide" : "Show"}
                 </button>
               </div>
@@ -119,10 +119,12 @@ function Login({ onLogin }: { onLogin: () => void }) {
 
             <div className="login-options">
               <label className="checkbox"><input type="checkbox" /> <span>Remember me</span></label>
-              <button type="button" className="link-button">Forgot password?</button>
+              <button disabled={loginSuccess} type="button" className="link-button">Forgot password?</button>
             </div>
 
             {error && <div className="chef-guide" role="alert"><div className="chef-character" aria-hidden="true"><img src="/assets/kumari-bites-chef.png" alt="" /></div><div className="chef-bubble"><strong>Chef says</strong><span>{error.replace(/^👨‍🍳 Chef says: /, "")}</span></div></div>}
+
+            {loginSuccess && <div className="chef-guide success" role="status" aria-live="polite"><div className="chef-character" aria-hidden="true"><img src="/assets/kumari-bites-chef.png" alt="" /></div><div className="chef-bubble"><strong>Chef says</strong><span>Welcome back! You're all set.</span></div></div>}
 
             <button className={`primary-button login-submit ${loginSuccess ? "unlocked" : ""}`} disabled={loading || loginSuccess}>
               <span>{loginSuccess ? "✓" : loading ? "…" : ""}</span>
