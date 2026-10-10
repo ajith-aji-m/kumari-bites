@@ -138,9 +138,9 @@ export async function registerMenuRoutes(app: FastifyInstance) {
     if (!existing[0]) return reply.code(404).send({ message: "Menu item not found" });
 
     await db.transaction(async (tx) => {
-      const { price, slug: requestedSlug, ...itemInput } = input;
-      if (requestedSlug !== undefined || input.name !== undefined) {
-        itemInput.slug = requestedSlug || input.name!.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+      const { price, ...itemInput } = input;
+      if (itemInput.slug !== undefined || input.name !== undefined) {
+        itemInput.slug = itemInput.slug || input.name!.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
       }
       if (input.stockQuantity !== undefined || input.lowStockThreshold !== undefined || input.lowStockAlertEnabled !== undefined || input.isAvailable !== undefined) {
         const stock = input.stockQuantity ?? existing[0].stockQuantity;
