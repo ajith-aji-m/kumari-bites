@@ -1528,8 +1528,6 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
 }
 
 export function App() {
-  if (window.location.pathname === "/order" || window.location.pathname === "/customer") return <CustomerLanding />;
-
   const [loggedIn, setLoggedIn] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -1538,6 +1536,7 @@ export function App() {
       .catch(() => setLoggedIn(false));
   }, []);
 
+  if (window.location.pathname === "/order" || window.location.pathname === "/customer") return <CustomerLanding />;
   if (loggedIn === null) return <main className="login-page"><section className="login-card"><p className="muted">Checking your session...</p></section></main>;
   return loggedIn ? <Dashboard onLogout={() => setLoggedIn(false)} /> : <Login onLogin={() => setLoggedIn(true)} />;
 }
