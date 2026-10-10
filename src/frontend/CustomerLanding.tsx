@@ -62,7 +62,7 @@ export function CustomerLanding() {
             setPlacedOrder(current => {
               if (!current || current.orderId !== placedOrder.orderId) return current;
               const next = { ...current, status: message.payload!.status! };
-              window.sessionStorage.setItem("kb-active-order", JSON.stringify(next));
+              window.localStorage.setItem("kb-active-order", JSON.stringify(next));
               return next;
             });
           }
