@@ -55,6 +55,21 @@ function money(value: string | number | null | undefined) {
   return `₹${Number(value ?? 0).toLocaleString("en-IN", { maximumFractionDigits: 0 })}`;
 }
 
+const MAX_IMAGE_DIMENSION = 800;
+
+// Downscale and re-encode uploads so the data URL stays small enough to store and send.
+async function readImageAsDataUrl(file: File) {
+  const bitmap = await createImageBitmap(file);
+  const scale = Math.min(1, MAX_IMAGE_DIMENSION / Math.max(bitmap.width, bitmap.height));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.round(bitmap.width * scale);
+  canvas.height = Math.round(bitmap.height * scale);
+  canvas.getContext("2d")!.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  bitmap.close();
+  const webp = canvas.toDataURL("image/webp", 0.82);
+  return webp.startsWith("data:image/webp") ? webp : canvas.toDataURL("image/jpeg", 0.82);
+}
+
 function statusLabel(status: string) {
   return status.charAt(0).toUpperCase() + status.slice(1);
 }
@@ -534,9 +549,7 @@ function MenuManagement() {
                 if (!file) return;
                 if (!file.type.startsWith("image/")) { setError("Please choose an image file."); return; }
                 if (file.size > 5 * 1024 * 1024) { setError("Please choose an image smaller than 5 MB."); return; }
-                const reader = new FileReader();
-                reader.onload = () => setItemImage(String(reader.result ?? ""));
-                reader.readAsDataURL(file);
+                readImageAsDataUrl(file).then(setItemImage, () => setError("Could not read that image. Please try another file."));
               }} /></label>
               <input type="hidden" name="imageUrl" value={itemImage} readOnly />
             </div>
@@ -582,9 +595,7 @@ function MenuManagement() {
                 if (!file) return;
                 if (!file.type.startsWith("image/")) { setError("Please choose an image file."); return; }
                 if (file.size > 5 * 1024 * 1024) { setError("Please choose an image smaller than 5 MB."); return; }
-                const reader = new FileReader();
-                reader.onload = () => setCategoryImage(String(reader.result ?? ""));
-                reader.readAsDataURL(file);
+                readImageAsDataUrl(file).then(setCategoryImage, () => setError("Could not read that image. Please try another file."));
               }} /></label>
             </div>
             <div className="editor-media-fields category-sort-field">

@@ -10,7 +10,7 @@ import { registerOfferRoutes } from "../offers/routes.js";
 import { registerDashboardRoutes } from "../dashboard/routes.js";
 
 export function buildApp() {
-  const app = Fastify({ logger: true });
+  const app = Fastify({ logger: true, bodyLimit: 6 * 1024 * 1024 });
 
   app.register(cors, { origin: env.CORS_ORIGIN, credentials: true });
   app.register(cookie);
