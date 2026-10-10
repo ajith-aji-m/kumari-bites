@@ -416,7 +416,7 @@ function MenuManagement() {
 function Dashboard({ onLogout }: { onLogout: () => void }) {
   const [active, setActive] = useState("Dashboard");
 
-  return <div className="app-shell">
+  return <div className="app-shell dashboard-background">
     <aside className="sidebar">
       <div className="sidebar-brand"><span className="brand-mark small">KB</span><span>Kumari Bites</span></div>
       <nav>{menuItems.map(item => <button key={item.label} className={active === item.label ? "nav-item active" : "nav-item"} onClick={() => setActive(item.label)}><span>{item.icon}</span>{item.label}</button>)}</nav>
