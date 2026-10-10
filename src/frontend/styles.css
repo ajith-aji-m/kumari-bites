@@ -1234,3 +1234,19 @@ input:not([type="checkbox"]):focus { border-color: #b85c38; box-shadow: 0 0 0 3p
   .menu-management .modal-actions .menu-action-primary,
   .menu-management .modal-actions .menu-action-secondary { width:100%; min-width:0; }
 }
+
+
+/* Global scrollbar policy — keep scrolling usable without showing scrollbar UI */
+html, body, #root, * {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+#root::-webkit-scrollbar,
+*::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
