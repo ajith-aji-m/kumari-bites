@@ -106,7 +106,7 @@ function Login({ onLogin }: { onLogin: () => void }) {
               setLoading(false);
             }
           }}>
-            <label className="login-field"><span>Email or phone</span><div className="input-wrap"><input value={identifier} onChange={e => setIdentifier(e.target.value)} placeholder="you@example.com" autoComplete="username" required /></div></label>
+            <label className="login-field"><span>Email or phone</span><div className="input-wrap"><input value={identifier} onChange={e => setIdentifier(e.target.value)} placeholder="Enter your email or phone" autoComplete="username" required /></div></label>
             <label className="login-field"><span>Password</span><div className="input-wrap"><input type={showPassword ? "text" : "password"} value={password} onChange={e => setPassword(e.target.value)} placeholder="Enter your password" autoComplete="current-password" required /><button type="button" className="password-toggle" onClick={() => setShowPassword(value => !value)} aria-label={showPassword ? "Hide password" : "Show password"}>{showPassword ? "Hide" : "Show"}</button></div></label>
             <div className="login-options"><label className="checkbox"><input type="checkbox" /> <span>Remember me</span></label><button type="button" className="link-button">Forgot password?</button></div>
             {error && <p className="login-error" role="alert">{error}</p>}
