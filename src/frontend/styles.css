@@ -3231,7 +3231,7 @@ button {
 }
 
 
-/* Branded confirmation modal for terminal order actions */
+/* Branded confirmation modal: compact hierarchy, aligned icon and copy */
 .order-confirm-backdrop {
   position:fixed;
   inset:0;
@@ -3244,26 +3244,29 @@ button {
   -webkit-backdrop-filter:blur(12px) saturate(120%);
 }
 .order-confirm-modal {
-  width:min(440px,100%);
-  padding:30px;
+  width:min(420px,100%);
+  padding:26px;
   border:1px solid rgba(255,255,255,.13);
-  border-radius:22px;
+  border-radius:20px;
   background:linear-gradient(150deg,rgba(32,25,22,.98),rgba(13,15,16,.99));
   color:#fff4eb;
   box-shadow:0 32px 100px rgba(0,0,0,.58),inset 0 1px 0 rgba(255,255,255,.06);
   animation:orderConfirmEnter .18s ease-out both;
 }
+.order-confirm-heading { display:flex; align-items:center; gap:15px; min-width:0; }
+.order-confirm-heading-copy { min-width:0; }
 .order-confirm-icon {
   display:grid;
   place-items:center;
+  flex:0 0 48px;
   width:48px;
   height:48px;
-  margin-bottom:20px;
+  margin:0;
   border:1px solid rgba(105,207,137,.28);
   border-radius:15px;
   background:rgba(52,139,83,.16);
   color:#a8efbd;
-  font-size:24px;
+  font-size:23px;
   font-weight:850;
 }
 .order-confirm-modal.is-danger .order-confirm-icon {
@@ -3271,21 +3274,37 @@ button {
   background:rgba(173,62,55,.17);
   color:#ffaaa3;
 }
-.order-confirm-modal .eyebrow { margin-bottom:8px; color:#a8efbd; }
+.order-confirm-modal .eyebrow { margin:0 0 5px; color:#a8efbd; font-size:9px; font-weight:800; letter-spacing:.14em; line-height:1.4; }
 .order-confirm-modal.is-danger .eyebrow { color:#ffaaa3; }
-.order-confirm-modal h2 { margin:0 0 10px; color:#fff7f0; font-size:24px; letter-spacing:-.03em; }
-.order-confirm-modal p:not(.eyebrow) { margin:0; color:rgba(255,239,227,.65); font-size:13px; line-height:1.7; }
-.order-confirm-actions { display:flex; justify-content:flex-end; flex-wrap:wrap; gap:10px; margin-top:26px; }
+.order-confirm-modal h2 { margin:0; color:#fff7f0; font-size:22px; line-height:1.25; letter-spacing:-.03em; }
+.order-confirm-description { margin:19px 0 15px; color:rgba(255,239,227,.66); font-size:13px; line-height:1.55; }
+.order-confirm-order-ref {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  min-width:0;
+  padding:12px 13px;
+  border:1px solid rgba(255,255,255,.09);
+  border-radius:11px;
+  background:rgba(255,255,255,.045);
+}
+.order-confirm-order-ref span { color:rgba(255,239,227,.5); font-size:11px; }
+.order-confirm-order-ref strong { overflow-wrap:anywhere; color:#fff2e8; font-size:12px; font-weight:800; text-align:right; }
+.order-confirm-actions { display:flex; justify-content:flex-end; flex-wrap:wrap; gap:9px; margin-top:22px; }
 .order-confirm-actions .secondary-button {
+  min-height:40px;
+  padding:0 15px;
   border-color:rgba(255,255,255,.14);
+  border-radius:10px;
   background:rgba(255,255,255,.06);
   color:#f0ddd0;
 }
 .order-confirm-action {
-  min-height:42px;
-  padding:0 16px;
+  min-height:40px;
+  padding:0 15px;
   border:1px solid transparent;
-  border-radius:11px;
+  border-radius:10px;
   color:#fff;
   font:inherit;
   font-size:12px;
@@ -3310,8 +3329,10 @@ button {
   to { opacity:1; transform:translateY(0) scale(1); }
 }
 @media(max-width:520px) {
-  .order-confirm-modal { padding:23px 20px; border-radius:18px; }
-  .order-confirm-modal h2 { font-size:21px; }
+  .order-confirm-modal { padding:22px 19px; border-radius:17px; }
+  .order-confirm-heading { gap:12px; }
+  .order-confirm-icon { flex-basis:42px; width:42px; height:42px; border-radius:13px; font-size:21px; }
+  .order-confirm-modal h2 { font-size:19px; }
   .order-confirm-actions { flex-direction:column-reverse; }
   .order-confirm-actions button { width:100%; }
 }
