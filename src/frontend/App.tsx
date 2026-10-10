@@ -173,6 +173,14 @@ function DashboardHome() {
   }, []);
 
   useEffect(() => { load(); }, [load]);
+
+  useEffect(() => {
+    if (!itemModal) {
+      setItemImage("");
+      return;
+    }
+    setItemImage(itemModal === "new" ? "" : itemModal.imageUrl ?? "");
+  }, [itemModal]);
   useRealtimeRefresh(useCallback((event) => {
     if (event.type === "order.created" || event.type === "order.status_changed") load();
   }, [load]));
@@ -276,6 +284,7 @@ function MenuManagement() {
   const [itemModal, setItemModal] = useState<MenuItem | null | "new">(null);
   const [categoryModal, setCategoryModal] = useState<Category | "new" | null>(null);
   const [saving, setSaving] = useState(false);
+  const [itemImage, setItemImage] = useState("");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -312,13 +321,11 @@ function MenuManagement() {
     const name = String(form.get("name") ?? "").trim();
     const categoryId = String(form.get("categoryId") ?? "");
     const price = Number(form.get("price"));
-    const slug = String(form.get("slug") ?? "").trim();
+    const slug = String(form.get("slug") ?? "").trim() || name.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
 
     if (!name) { setError("Please enter the menu item name."); return; }
     if (!categoryId || categoryId === "0") { setError("Please choose a menu category."); return; }
     if (!Number.isFinite(price) || price <= 0) { setError("Please enter a valid price greater than ₹0."); return; }
-    if (!slug) { setError("Please add a menu slug."); return; }
-
     setSaving(true);
     try {
       const payload = {
@@ -326,12 +333,10 @@ function MenuManagement() {
         name,
         slug,
         description: String(form.get("description") ?? "").trim() || undefined,
-        imageUrl: String(form.get("imageUrl") ?? "").trim() || undefined,
-        sku: String(form.get("sku") ?? "").trim() || undefined,
+        imageUrl: itemImage || undefined,
         isVeg: form.get("isVeg") === "on",
         isAvailable: form.get("isAvailable") === "on",
-        price,
-        sortOrder: Number(form.get("sortOrder") ?? 0)
+        price
       };
       if (itemModal === "new") {
         await api("/api/v1/menu-items", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
@@ -397,7 +402,7 @@ function MenuManagement() {
   }
 
   const itemDefaults = itemModal === "new" ? {
-    name: "", slug: "", categoryId: categories[0]?.id ?? 0, price: "", description: "", imageUrl: "", sku: "", isVeg: false, isAvailable: true, sortOrder: 0
+    name: "", slug: "", categoryId: categories[0]?.id ?? 0, price: "", description: "", imageUrl: "", isVeg: false, isAvailable: true
   } : itemModal ? itemModal : null;
 
   const categoryDefaults = categoryModal === "new" ? { name: "", slug: "", description: "", imageUrl: "", sortOrder: 0 } : categoryModal;
@@ -443,7 +448,7 @@ function MenuManagement() {
         <div className="editor-section">
           <div className="editor-section-head"><span className="editor-step">01</span><div><strong>Basic details</strong><small>Name the dish and place it in the right menu category.</small></div></div>
           <div className="form-grid">
-            <label className="field-wide">Item name *<input name="name" defaultValue={itemDefaults.name} placeholder="e.g. Chicken Kathi Roll" /></label>
+            <label className="field-wide">Item name *<input name="name" defaultValue={itemDefaults.name} placeholder="e.g. Momos" /></label>
             <label>Category *<div className="custom-form-select"><CustomSelect value={String(itemDefaults.categoryId)} onChange={value => { const input = document.querySelector<HTMLInputElement>('input[name="categoryId"]'); if (input) input.value = value; }} options={categories.map(c => ({ value: String(c.id), label: c.name }))} /></div><input className="visually-hidden-field" name="categoryId" defaultValue={itemDefaults.categoryId} /></label>
             <label>Price *<div className="price-input"><span>₹</span><input name="price" type="number" min="0" step="0.01" defaultValue={itemDefaults.price ?? ""} placeholder="0" /></div></label>
           </div>
@@ -451,21 +456,28 @@ function MenuManagement() {
         <div className="editor-section">
           <div className="editor-section-head"><span className="editor-step">02</span><div><strong>Dish presentation</strong><small>Add the image and short description customers should see.</small></div></div>
           <div className="editor-media-grid">
-            <div className="menu-image-preview">
-              {itemDefaults.imageUrl ? <img src={itemDefaults.imageUrl} alt="" /> : <div><span>🍽️</span><strong>Dish image</strong><small>Paste an image URL</small></div>}
+            <div className="menu-image-preview menu-upload-preview">
+              {itemImage ? <img src={itemImage} alt="Selected dish" /> : <div><span>🍽️</span><strong>Dish image</strong><small>Upload a clear food image</small></div>}
+              <label className="menu-image-upload-button"><span>{itemImage ? "Change image" : "Upload image"}</span><input type="file" accept="image/png,image/jpeg,image/webp" onChange={event => {
+                const file = event.target.files?.[0];
+                if (!file) return;
+                if (!file.type.startsWith("image/")) { setError("Please choose an image file."); return; }
+                if (file.size > 5 * 1024 * 1024) { setError("Please choose an image smaller than 5 MB."); return; }
+                const reader = new FileReader();
+                reader.onload = () => setItemImage(String(reader.result ?? ""));
+                reader.readAsDataURL(file);
+              }} /></label>
+              <input type="hidden" name="imageUrl" value={itemImage} readOnly />
             </div>
             <div className="editor-media-fields">
-              <label>Image URL<input name="imageUrl" defaultValue={itemDefaults.imageUrl ?? ""} placeholder="https://..." /></label>
-              <label>Description<textarea name="description" defaultValue={itemDefaults.description ?? ""} placeholder="Short description for the menu..." /></label>
+              <label>Description<textarea name="description" defaultValue={itemDefaults.description ?? ""} placeholder="Short description customers should see..." /></label>
             </div>
           </div>
         </div>
         <div className="editor-section editor-advanced">
           <div className="editor-section-head"><span className="editor-step">03</span><div><strong>Menu settings</strong><small>Optional internal details and availability.</small></div></div>
           <div className="form-grid">
-            <label>SKU<input name="sku" defaultValue={itemDefaults.sku ?? ""} placeholder="Optional" /></label>
-            <label>Slug *<input name="slug" defaultValue={itemDefaults.slug} placeholder="chicken-kathi-roll" /></label>
-            <label>Sort order<input name="sortOrder" type="number" min="0" defaultValue={itemDefaults.sortOrder} /></label>
+            <label>Slug<input name="slug" defaultValue={itemDefaults.slug} placeholder="Auto-generated from item name" /></label>
           </div>
           <div className="toggle-row">
             <label className="toggle-check"><input name="isVeg" type="checkbox" defaultChecked={itemDefaults.isVeg} /> <span><strong>Vegetarian</strong><small>Mark this dish as vegetarian</small></span></label>
