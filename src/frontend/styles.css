@@ -623,12 +623,6 @@ input:not([type="checkbox"]):focus { border-color: #b85c38; box-shadow: 0 0 0 3p
   from { opacity:0; transform:translateY(-14px) scale(.97); }
   to { opacity:1; transform:translateY(0) scale(1); }
 }
-
-/* Keep the Chef mascot visible as the main login guide */
-.chef-guide:not(.has-error) {
-  justify-content:flex-start;
-  min-height:63px;
-}
 @media (max-width:600px) {
   .login-success-toast-top {
     top:14px;
