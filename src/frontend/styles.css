@@ -4823,3 +4823,83 @@ button {
     animation:none!important;
   }
 }
+
+
+/* Smooth final hand-off: keep the original background still and let the cloud exit cleanly. */
+.customer-story.category-intro-playing .customer-story-stage{
+  animation:none!important;
+}
+.customer-story.category-intro-playing .customer-order-taker img{
+  animation:none!important;
+}
+.customer-story.category-intro-playing .customer-story-bubble{
+  animation:kbCloudExitSmooth .42s cubic-bezier(.4,0,.2,1) both!important;
+  pointer-events:none;
+}
+@keyframes kbCloudExitSmooth{
+  from{opacity:1;filter:blur(0);transform:translateY(0) scale(1)}
+  to{opacity:0;filter:blur(2px);transform:translateY(-10px) scale(.985)}
+}
+.customer-story-categories.story-categories-visible{
+  animation:kbCategoriesArrive .55s cubic-bezier(.2,.75,.25,1) both;
+}
+.customer-story-categories.story-categories-visible:before{
+  animation:kbPlateSettle .7s cubic-bezier(.2,.75,.25,1) both;
+}
+@keyframes kbCategoriesArrive{
+  from{opacity:0;filter:blur(5px);transform:translateY(12px) scale(.985)}
+  to{opacity:1;filter:blur(0);transform:translateY(0) scale(1)}
+}
+@keyframes kbPlateSettle{
+  0%{opacity:0;transform:translate(-50%,-3%) scale(.92)}
+  70%{opacity:1;transform:translate(-50%,-8%) scale(1.015)}
+  100%{opacity:1;transform:translate(-50%,-8%) scale(1)}
+}
+/* Replace the heavy pill CTA with a quiet, editorial text link. */
+.customer-story-bubble-content .customer-story-link{
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  margin-top:18px;
+  padding:7px 0 9px;
+  border:0;
+  border-bottom:1px solid rgba(184,92,56,.48);
+  border-radius:0;
+  background:transparent;
+  color:#a64f30;
+  font-size:clamp(13px,1.05vw,15px);
+  font-weight:800;
+  letter-spacing:.005em;
+  box-shadow:none;
+  text-shadow:none;
+  transition:gap .2s ease,color .2s ease,border-color .2s ease;
+}
+.customer-story-bubble-content .customer-story-link:hover{
+  gap:15px;
+  border-color:#a64f30;
+  background:transparent;
+  color:#7e321b;
+}
+.customer-story-bubble-content .customer-story-link span{
+  display:inline-block;
+  font-size:18px;
+  line-height:1;
+  transition:transform .2s ease;
+}
+.customer-story-bubble-content .customer-story-link:hover span{
+  transform:translate(2px,-2px);
+}
+@media(max-width:760px){
+  .customer-story-bubble-content .customer-story-link{
+    margin-top:10px;
+    font-size:11px;
+    padding:5px 0 7px;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  .customer-story.category-intro-playing .customer-story-bubble,
+  .customer-story-categories.story-categories-visible,
+  .customer-story-categories.story-categories-visible:before{
+    animation:none!important;
+  }
+}
