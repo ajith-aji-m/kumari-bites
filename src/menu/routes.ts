@@ -1,5 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import { and, eq } from "drizzle-orm";
+import { broadcast } from "../realtime/socket.js";
 import { z } from "zod";
 import { db } from "../db/index.js";
 import { categories, menuItemPrices, menuItems } from "../db/schema.js";
@@ -16,11 +17,15 @@ const categorySchema = z.object({
 const menuItemSchema = z.object({
   categoryId: z.number().int().positive(),
   name: z.string().trim().min(1).max(150),
-  slug: z.string().trim().min(1).max(180),
+  slug: z.string().trim().min(1).max(180).optional(),
   description: z.string().trim().max(2000).optional(),
   imageUrl: z.string().url().max(500).optional(),
   sku: z.string().trim().max(80).optional(),
   isVeg: z.boolean().default(false),
+  isAvailable: z.boolean().default(true),
+  stockQuantity: z.number().int().min(0).default(0),
+  lowStockThreshold: z.number().int().min(0).default(5),
+  lowStockAlertEnabled: z.boolean().default(true),
   price: z.number().nonnegative(),
   sortOrder: z.number().int().min(0).default(0)
 });
@@ -83,6 +88,8 @@ export async function registerMenuRoutes(app: FastifyInstance) {
     if (!user) return;
 
     const input = menuItemSchema.parse(request.body);
+    const slug = input.slug || input.name.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+    const shouldBeAvailable = input.isAvailable && (!input.lowStockAlertEnabled || input.stockQuantity > input.lowStockThreshold);
 
     const category = await db.select({ id: categories.id })
       .from(categories)
@@ -95,11 +102,15 @@ export async function registerMenuRoutes(app: FastifyInstance) {
       const result = await tx.insert(menuItems).values({
         categoryId: input.categoryId,
         name: input.name,
-        slug: input.slug,
+        slug,
         description: input.description,
         imageUrl: input.imageUrl,
         sku: input.sku,
         isVeg: input.isVeg,
+        isAvailable: shouldBeAvailable,
+        stockQuantity: input.stockQuantity,
+        lowStockThreshold: input.lowStockThreshold,
+        lowStockAlertEnabled: input.lowStockAlertEnabled,
         sortOrder: input.sortOrder
       });
 
@@ -127,7 +138,16 @@ export async function registerMenuRoutes(app: FastifyInstance) {
     if (!existing[0]) return reply.code(404).send({ message: "Menu item not found" });
 
     await db.transaction(async (tx) => {
-      const { price, ...itemInput } = input;
+      const { price, slug: requestedSlug, ...itemInput } = input;
+      if (requestedSlug !== undefined || input.name !== undefined) {
+        itemInput.slug = requestedSlug || input.name!.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+      }
+      if (input.stockQuantity !== undefined || input.lowStockThreshold !== undefined || input.lowStockAlertEnabled !== undefined || input.isAvailable !== undefined) {
+        const stock = input.stockQuantity ?? existing[0].stockQuantity;
+        const threshold = input.lowStockThreshold ?? existing[0].lowStockThreshold;
+        const alerts = input.lowStockAlertEnabled ?? existing[0].lowStockAlertEnabled;
+        itemInput.isAvailable = alerts ? Boolean(input.isAvailable ?? existing[0].isAvailable) && stock > threshold : Boolean(input.isAvailable ?? existing[0].isAvailable);
+      }
       if (Object.keys(itemInput).length) {
         await tx.update(menuItems).set(itemInput).where(eq(menuItems.id, id));
       }
