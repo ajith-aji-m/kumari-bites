@@ -4072,3 +4072,95 @@ button {
   .customer-story-bubble p{font-size:10px}
   .customer-order-taker{width:88vw;height:61%;right:-7%}
 }
+
+
+/* Corrected composition: keep the chef on the left; place a soft cloud thought/speech shape on the right. */
+.customer-order-taker{
+  left:clamp(10px,5vw,76px);
+  right:auto;
+  bottom:-2%;
+  width:min(54vw,700px);
+  height:96%;
+  justify-content:flex-start;
+}
+.customer-order-taker img{
+  max-width:100%;
+  max-height:100%;
+  transform:scale(1.08);
+  transform-origin:bottom left;
+}
+.customer-story-bubble{
+  left:auto;
+  right:clamp(35px,8vw,125px);
+  top:22%;
+  width:min(470px,43vw);
+  padding:35px 38px;
+  border:0;
+  border-radius:44% 48% 42% 46% / 48% 42% 50% 44%;
+  background:#fff8ed;
+  box-shadow:0 18px 45px #14090432;
+  isolation:isolate;
+}
+.customer-story-bubble:before,
+.customer-story-bubble:after{
+  content:"";
+  position:absolute;
+  z-index:-1;
+  display:block;
+  border-radius:50%;
+  background:#fff8ed;
+  box-shadow:0 10px 25px #14090412;
+}
+.customer-story-bubble:before{
+  width:100px;height:88px;
+  left:12%;top:-22px;
+  box-shadow:90px -12px 0 8px #fff8ed,190px 0 0 0 #fff8ed;
+}
+.customer-story-bubble:after{
+  width:86px;height:78px;
+  right:8%;bottom:-18px;
+}
+.customer-story-bubble strong{
+  font-size:clamp(19px,2.1vw,26px);
+  line-height:1.2;
+  padding-right:10px;
+}
+.customer-story-bubble p{
+  font-size:clamp(13px,1.2vw,16px);
+  line-height:1.7;
+}
+.customer-story-bubble .bubble-tail{
+  display:none;
+}
+@media(max-width:760px){
+  .customer-order-taker{
+    left:-5%;right:auto;
+    bottom:-1%;
+    width:83vw;height:64%;
+    justify-content:flex-start;
+  }
+  .customer-order-taker img{
+    max-width:100%;max-height:100%;
+    transform:scale(1.04);
+    transform-origin:bottom left;
+  }
+  .customer-story-bubble{
+    left:auto;right:16px;top:18%;
+    width:min(67vw,330px);
+    padding:22px 23px;
+    border-radius:44% 48% 42% 46% / 48% 42% 50% 44%;
+  }
+  .customer-story-bubble:before{
+    width:50px;height:44px;left:12%;top:-12px;
+    box-shadow:46px -5px 0 3px #fff8ed,98px 0 0 -1px #fff8ed;
+  }
+  .customer-story-bubble:after{
+    width:42px;height:38px;right:8%;bottom:-8px;
+  }
+  .customer-story-bubble strong{font-size:15px;line-height:1.25}
+  .customer-story-bubble p{font-size:11px;line-height:1.55}
+}
+@media(max-width:390px){
+  .customer-story-bubble{right:10px;top:17%;width:70vw;padding:18px 19px}
+  .customer-order-taker{left:-7%;width:88vw;height:61%}
+}
