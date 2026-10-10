@@ -531,9 +531,13 @@ function MenuManagement() {
       <div className="chef-success-character" aria-hidden="true"><img src="/assets/kumari-bites-chef.png" alt="" /></div>
     </div>}
 
-    <div className="menu-tabs">
-      <button className={tab === "items" ? "active" : ""} onClick={() => setTab("items")}>Menu Items <span>{items.length}</span></button>
-      <button className={tab === "categories" ? "active" : ""} onClick={() => setTab("categories")}>Categories <span>{categories.length}</span></button>
+    <div className="menu-tabs" role="tablist" aria-label="Menu management sections">
+      <button type="button" role="tab" aria-selected={tab === "items"} className={tab === "items" ? "active" : ""} onClick={() => setTab("items")}>
+        <span>Menu Items</span><span className="menu-tab-count">{items.length}</span>
+      </button>
+      <button type="button" role="tab" aria-selected={tab === "categories"} className={tab === "categories" ? "active" : ""} onClick={() => setTab("categories")}>
+        <span>Categories</span><span className="menu-tab-count">{categories.length}</span>
+      </button>
     </div>
 
     {error && <div className="inline-error">{error} <button onClick={load}>Retry</button></div>}
@@ -573,6 +577,16 @@ function MenuManagement() {
         </tr>)}
       </tbody></table><Pagination currentPage={categoriesPage} totalPages={categoriesTotalPages} totalItems={visibleCategories.length} pageSize={pageSize} onPageChange={setCategoriesPage} />{!visibleCategories.length && <div className="empty-state"><span>🗂️</span><strong>No matching categories</strong><p className="muted">{categories.length ? "Try another search or status filter." : "Create a category before adding menu items."}</p></div>}</div>}
     </article>}
+
+    <button
+      type="button"
+      className="menu-add-fab"
+      aria-label={tab === "items" ? "Add menu item" : "Add category"}
+      title={tab === "items" ? "Add menu item" : "Add category"}
+      onClick={() => tab === "items" ? setItemModal("new") : setCategoryModal("new")}
+    >
+      <span aria-hidden="true">+</span>
+    </button>
 
     {itemDefaults && <div className="modal-backdrop" onMouseDown={e => e.currentTarget === e.target && setItemModal(null)}><form className="modal-card" onSubmit={saveItem}>
       <div className="modal-head"><div><p className="eyebrow">MENU ITEM</p><h2>{itemModal === "new" ? "Add menu item" : "Edit menu item"}</h2></div><button type="button" className="icon-button menu-action-close" onClick={() => setItemModal(null)} aria-label="Close menu item editor">×</button></div>
