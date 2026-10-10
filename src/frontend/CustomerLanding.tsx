@@ -112,8 +112,8 @@ export function CustomerLanding() {
             {!categoryItems.length && <div className="customer-story-loading">No items in this category yet.</div>}
           </div>}
           {selectedCategory !== null && categoryItems.length > menuPageSize && <div className="customer-menu-pagination" aria-label="Menu navigation">
-            {menuPage > 0 && <button type="button" className="menu-page-prev" aria-label="Previous menu items" onClick={() => setMenuPage(p => Math.max(0, p - 1))}>←</button>}
-            {menuPage < menuPageCount - 1 && <button type="button" className="menu-page-next" aria-label="More menu items" onClick={() => setMenuPage(p => Math.min(menuPageCount - 1, p + 1))}>→</button>}
+            {menuPage > 0 && <button type="button" className="menu-page-prev" aria-label="Previous menu items" onClick={() => setMenuPage(p => Math.max(0, p - 1))}></button>}
+            {menuPage < menuPageCount - 1 && <button type="button" className="menu-page-next" aria-label="More menu items" onClick={() => setMenuPage(p => Math.min(menuPageCount - 1, p + 1))}></button>}
           </div>}
           <div className="customer-plate-links">
             {selectedCategory !== null && <button type="button" className="customer-story-link" onClick={() => { setSelectedCategory(null); setMenuPage(0); }}>← All categories</button>}
