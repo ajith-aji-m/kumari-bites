@@ -200,6 +200,24 @@ input:not([type="checkbox"]):focus { border-color: #b85c38; box-shadow: 0 0 0 3p
   box-shadow:0 18px 45px rgba(40,24,17,.18); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
 }
 .custom-select-option { width:100%; border:0; background:transparent; text-align:left; padding:9px 10px; border-radius:8px; color:#5d4539; cursor:pointer; font:inherit; font-size:11px; }
+/* Portal dropdowns keep the same warm menu styling and scroll within the option list. */
+.custom-select-menu-portal {
+  max-height:220px;
+  overflow-y:auto;
+  overflow-x:hidden;
+  overscroll-behavior:contain;
+  scrollbar-width:thin;
+  scrollbar-color:#c88b6c #fff3e9;
+  background:#fffaf4;
+  border-color:#eadbcd;
+}
+.custom-select-menu-portal::-webkit-scrollbar { width:7px; }
+.custom-select-menu-portal::-webkit-scrollbar-track { background:#fff3e9; border-radius:8px; }
+.custom-select-menu-portal::-webkit-scrollbar-thumb { background:#c88b6c; border-radius:8px; }
+.custom-select-menu-portal .custom-select-option { color:#5d4539; }
+.custom-select-menu-portal .custom-select-option:hover,
+.custom-select-menu-portal .custom-select-option.selected { background:#f2ddd0; color:#9f492c; }
+
 .custom-select-option:hover,.custom-select-option.selected { background:#f2ddd0; color:#9f492c; font-weight:750; }
 .native-select-wrap select { width:100%; }
 .menu-item-editor .form-grid select {
