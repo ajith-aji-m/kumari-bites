@@ -617,7 +617,14 @@ function MenuManagement() {
           <div className="editor-section-head"><span className="editor-step">02</span><div><strong>Category presentation</strong><small>Add a visual image that represents this category.</small></div></div>
           <div className="editor-media-grid category-media-grid">
             <label className="menu-upload-preview category-upload-preview category-single-upload" aria-label={categoryImage ? "Change category image" : "Add category image"}>
-              {categoryImage ? <img src={categoryImage} alt="Selected category" /> : <div className="menu-image-empty"><span className="menu-upload-plus" aria-hidden="true">+</span><strong>Add image</strong><small>PNG, JPG or WEBP · Max 5 MB</small></div>}
+              {categoryImage ? <>
+                <img src={categoryImage} alt="Selected category" />
+                <button type="button" className="category-image-remove" aria-label="Remove category image" title="Remove image" onClick={event => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  setCategoryImage("");
+                }}>×</button>
+              </> : <div className="menu-image-empty"><span className="menu-upload-plus" aria-hidden="true">+</span><strong>Add image</strong><small>PNG, JPG or WEBP · Max 5 MB</small></div>}
               <input type="file" accept="image/png,image/jpeg,image/webp" onChange={event => {
                 const file = event.target.files?.[0];
                 if (!file) return;
