@@ -65,29 +65,21 @@ function Login({ onLogin }: { onLogin: () => void }) {
   return (
     <main className="login-page">
       <div className="login-shell">
-        <section className="login-visual">
-          <div className="login-visual-glow" />
-          <div className="login-brand-lockup">
-            <div className="brand-mark login-brand-mark">KB</div>
-            <div><strong>Kumari Bites</strong><span>Restaurant operations</span></div>
-          </div>
-          <div className="login-visual-content">
-            <span className="login-kicker">WELCOME BACK</span>
-            <h1>Good food.<br /><em>Beautifully managed.</em></h1>
-            <p>Keep your orders, menu and daily operations moving smoothly from one place.</p>
-            <div className="login-feature-list">
-              <span>✓ Live order updates</span><span>✓ Simple menu management</span><span>✓ Daily business insights</span>
-            </div>
-          </div>
-          <div className="login-food-card">
-            <span className="food-card-icon">🍛</span>
-            <div><strong>Made for busy kitchens</strong><small>Fast, focused and easy to use.</small></div>
-          </div>
+        <section className="login-visual" aria-hidden="true">
+          <div className="login-visual-vignette" />
         </section>
 
         <section className="login-form-panel">
-          <div className="login-mobile-brand"><div className="brand-mark">KB</div><p className="eyebrow">KUMARI BITES</p></div>
-          <div className="login-heading"><span className="login-kicker">ADMIN PORTAL</span><h2>Welcome back</h2><p>Sign in to continue to your restaurant dashboard.</p></div>
+          <div className="login-brand">
+            <div className="login-brand-name"><span>Kumari</span> <em>Bites</em></div>
+            <div className="login-brand-tagline">GOOD FOOD BRINGS PEOPLE TOGETHER</div>
+          </div>
+
+          <div className="login-heading">
+            <h2>Welcome Back</h2>
+            <p>Sign in to continue to Kumari Bites</p>
+          </div>
+
           <form onSubmit={async (event) => {
             event.preventDefault();
             setError("");
@@ -106,17 +98,37 @@ function Login({ onLogin }: { onLogin: () => void }) {
               setLoading(false);
             }
           }}>
-            <label className="login-field"><span>Email or phone</span><div className="input-wrap"><input value={identifier} onChange={e => setIdentifier(e.target.value)} placeholder="Enter your email or phone" autoComplete="username" required /></div></label>
-            <label className="login-field"><span>Password</span><div className="input-wrap"><input type={showPassword ? "text" : "password"} value={password} onChange={e => setPassword(e.target.value)} placeholder="Enter your password" autoComplete="current-password" required /><button type="button" className="password-toggle" onClick={() => setShowPassword(value => !value)} aria-label={showPassword ? "Hide password" : "Show password"}>{showPassword ? "Hide" : "Show"}</button></div></label>
-            <div className="login-options"><label className="checkbox"><input type="checkbox" /> <span>Remember me</span></label><button type="button" className="link-button">Forgot password?</button></div>
+            <label className="login-field">
+              <span>Email or phone</span>
+              <div className="input-wrap">
+                <input value={identifier} onChange={e => setIdentifier(e.target.value)} placeholder="Enter your email or phone" autoComplete="username" required />
+              </div>
+            </label>
+
+            <label className="login-field">
+              <span>Password</span>
+              <div className="input-wrap">
+                <input type={showPassword ? "text" : "password"} value={password} onChange={e => setPassword(e.target.value)} placeholder="Enter your password" autoComplete="current-password" required />
+                <button type="button" className="password-toggle" onClick={() => setShowPassword(value => !value)} aria-label={showPassword ? "Hide password" : "Show password"}>
+                  {showPassword ? "Hide" : "Show"}
+                </button>
+              </div>
+            </label>
+
+            <div className="login-options">
+              <label className="checkbox"><input type="checkbox" /> <span>Remember me</span></label>
+              <button type="button" className="link-button">Forgot password?</button>
+            </div>
+
             {error && <p className="login-error" role="alert">{error}</p>}
+
             <button className={`primary-button login-submit ${loginSuccess ? "unlocked" : ""}`} disabled={loading || loginSuccess}>
-              <span>{loginSuccess ? "✓" : loading ? "…" : "→"}</span>
-              <span>{loginSuccess ? "Signed in" : loading ? "Signing in..." : "Sign in to dashboard"}</span>
+              <span>{loginSuccess ? "✓" : loading ? "…" : ""}</span>
+              <span>{loginSuccess ? "Signed in" : loading ? "Signing in..." : "Sign In"}</span>
             </button>
           </form>
-          <div className="login-security"><span>●</span> Secure admin access</div>
-          <p className="login-footer">© {new Date().getFullYear()} Kumari Bites · Built for smooth operations</p>
+
+          <div className="login-divider"><span>or</span></div>
         </section>
       </div>
     </main>
