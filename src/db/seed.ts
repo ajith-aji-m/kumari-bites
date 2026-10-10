@@ -28,20 +28,16 @@ const passwordHash = await hashPassword(env.ADMIN_PASSWORD);
 if (!existingUser) await db.insert(users).values({ name: env.ADMIN_NAME, email: env.ADMIN_EMAIL, phone: env.ADMIN_PHONE || null, passwordHash, roleId });
 else await db.update(users).set({ name: env.ADMIN_NAME, passwordHash, roleId, isActive: true }).where(eq(users.id, existingUser.id));
 
-// Keep the original starter categories for existing installations and add the poster categories.
 const defaultCategories = [
-  { name: "Parotta", slug: "parotta", description: "Parotta and wraps", sortOrder: 0 },
-  { name: "Dosa", slug: "dosa", description: "Dosa varieties", sortOrder: 1 },
-  { name: "Rice & Curry", slug: "rice-curry", description: "Rice meals and curry", sortOrder: 2 },
-  { name: "Snacks", slug: "snacks", description: "Snacks and quick bites", sortOrder: 3 },
-  { name: "Drinks", slug: "drinks", description: "Cold drinks and beverages", sortOrder: 4 },
-  { name: "Katti Rolls", slug: "katti-rolls", description: "Crispy wraps with bold flavours", sortOrder: 5 },
-  { name: "Momos", slug: "momos", description: "Steamed and fried momos, 6 pieces per serving", sortOrder: 6 },
-  { name: "French Fries", slug: "french-fries", description: "Crispy golden fries", sortOrder: 7 },
-  { name: "Loaded Fries", slug: "loaded-fries", description: "Fries loaded with paneer or chicken", sortOrder: 8 },
-  { name: "Custom Chips", slug: "custom-chips", description: "Seasoned custom chips", sortOrder: 9 },
-  { name: "Mojito", slug: "mojito", description: "Refreshing flavoured mojitos", sortOrder: 10 },
-  { name: "Combo Treats", slug: "combo-treats", description: "Meal combos with a drink and sides", sortOrder: 11 }
+  { name: "Snacks", slug: "snacks", description: "Snacks and quick bites", sortOrder: 0 },
+  { name: "Drinks", slug: "drinks", description: "Cold drinks and beverages", sortOrder: 1 },
+  { name: "Katti Rolls", slug: "katti-rolls", description: "Crispy wraps with bold flavours", sortOrder: 2 },
+  { name: "Momos", slug: "momos", description: "Steamed and fried momos, 6 pieces per serving", sortOrder: 3 },
+  { name: "French Fries", slug: "french-fries", description: "Crispy golden fries", sortOrder: 4 },
+  { name: "Loaded Fries", slug: "loaded-fries", description: "Fries loaded with paneer or chicken", sortOrder: 5 },
+  { name: "Custom Chips", slug: "custom-chips", description: "Seasoned custom chips", sortOrder: 6 },
+  { name: "Mojito", slug: "mojito", description: "Refreshing flavoured mojitos", sortOrder: 7 },
+  { name: "Combo Treats", slug: "combo-treats", description: "Meal combos with a drink and sides", sortOrder: 8 }
 ] as const;
 
 const categoryIds = new Map<string, number>();
