@@ -113,12 +113,16 @@ for (const item of menuSeed) {
   const existing = (await db.select().from(menuItems).where(eq(menuItems.slug, item.slug)).limit(1))[0];
   let menuItemId: number;
 
+  const imageUrl = `/assets/menu/${item.slug}.webp`;
+
   if (existing) {
     menuItemId = existing.id;
     await db.update(menuItems).set({
       categoryId,
       name: item.name,
       description: item.description,
+      // Keep any image uploaded through the admin UI.
+      imageUrl: existing.imageUrl ?? imageUrl,
       isVeg: item.isVeg,
       isAvailable: true,
       lowStockThreshold: 5,
@@ -130,6 +134,7 @@ for (const item of menuSeed) {
       name: item.name,
       slug: item.slug,
       description: item.description,
+      imageUrl,
       isVeg: item.isVeg,
       isAvailable: true,
       stockQuantity: 100,
