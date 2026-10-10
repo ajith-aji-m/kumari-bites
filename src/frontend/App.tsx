@@ -245,6 +245,8 @@ function Orders() {
   const [query, setQuery] = useState("");
   const [orders, setOrders] = useState<DashboardData["recentOrders"]>([]);
   const [loading, setLoading] = useState(true);
+  const [ordersPage, setOrdersPage] = useState(1);
+  const pageSize = 5;
 
   const loadOrders = useCallback(() => {
     setLoading(true);
@@ -260,15 +262,26 @@ function Orders() {
     (status === "all" || o.status === status) &&
     [o.orderNumber, o.customerName ?? ""].some(v => v.toLowerCase().includes(query.toLowerCase()))
   );
+  const ordersTotalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const pagedOrders = filtered.slice((ordersPage - 1) * pageSize, ordersPage * pageSize);
+
+  useEffect(() => { setOrdersPage(1); }, [status, query]);
+  useEffect(() => { if (ordersPage > ordersTotalPages) setOrdersPage(ordersTotalPages); }, [ordersPage, ordersTotalPages]);
 
   return <section className="panel">
     <div className="panel-head"><div><p className="eyebrow">KITCHEN SERVICE</p><h3>Orders</h3><p className="muted">Keep every Kumari Bites order moving from new to ready.</p></div><span className="status-dot">Live</span></div>
     <div className="orders-toolbar"><input className="search-input" value={query} onChange={e => setQuery(e.target.value)} placeholder="Search order or customer" />
       <select aria-label="Filter orders by kitchen status" className="filter-select" value={status} onChange={e => setStatus(e.target.value)}><option value="all">All kitchen statuses</option>{["new","confirmed","preparing","ready","completed","cancelled"].map(s => <option key={s} value={s}>{statusLabel(s)}</option>)}</select>
     </div>
-    <div style={{ overflowX: "auto" }}>{loading ? <p className="muted" style={{ padding: 25 }}>Loading orders...</p> : <table className="orders-table"><thead><tr><th>Order</th><th>Customer</th><th>Kitchen status</th><th>Total</th></tr></thead><tbody>
-      {pagedOrders.map(o => <tr key={o.id}><td className="order-number">{o.orderNumber}</td><td><div className="order-customer"><strong>{o.customerName ?? "Walk-in customer"}</strong><small>{o.placedAt ? new Date(o.placedAt).toLocaleString("en-IN") : "—"}</small></div></td><td><span className={`order-status ${o.status}`}>{statusLabel(o.status)}</span></td><td><strong>{money(o.totalAmount)}</strong></td></tr>)}
-    </tbody></table><Pagination currentPage={ordersPage} totalPages={ordersTotalPages} totalItems={filtered.length} pageSize={pageSize} onPageChange={setOrdersPage} /></div>}{!loading && !filtered.length && <p className="muted" style={{ padding: 25, textAlign: "center" }}>No orders found.</p>}</div>
+    <div style={{ overflowX: "auto" }}>
+      {loading ? <p className="muted" style={{ padding: 25 }}>Loading orders...</p> : <>
+        <table className="orders-table"><thead><tr><th>Order</th><th>Customer</th><th>Kitchen status</th><th>Total</th></tr></thead><tbody>
+          {pagedOrders.map(o => <tr key={o.id}><td className="order-number">{o.orderNumber}</td><td><div className="order-customer"><strong>{o.customerName ?? "Walk-in customer"}</strong><small>{o.placedAt ? new Date(o.placedAt).toLocaleString("en-IN") : "—"}</small></div></td><td><span className={`order-status ${o.status}`}>{statusLabel(o.status)}</span></td><td><strong>{money(o.totalAmount)}</strong></td></tr>)}
+        </tbody></table>
+        <Pagination currentPage={ordersPage} totalPages={ordersTotalPages} totalItems={filtered.length} pageSize={pageSize} onPageChange={setOrdersPage} />
+      </>}
+      {!loading && !filtered.length && <p className="muted" style={{ padding: 25, textAlign: "center" }}>No orders found.</p>}
+    </div>
   </section>;
 }
 
