@@ -1213,6 +1213,160 @@ function Reports() {
   </section>;
 }
 
+
+type SiteSettings = {
+  siteName: string;
+  siteMotto: string;
+  siteLogo: string;
+  siteFavicon: string;
+  customerLandingUrl: string;
+};
+
+const emptySiteSettings: SiteSettings = {
+  siteName: "Kumari Bites",
+  siteMotto: "Good food brings people together",
+  siteLogo: "",
+  siteFavicon: "",
+  customerLandingUrl: ""
+};
+
+function SettingsPage() {
+  const [settings, setSettings] = useState<SiteSettings>(emptySiteSettings);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
+  const [generatedUrl, setGeneratedUrl] = useState("");
+
+  const loadSettings = useCallback(async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const result = await api<SiteSettings>("/api/v1/settings");
+      setSettings({ ...emptySiteSettings, ...result });
+      setGeneratedUrl(result.customerLandingUrl || "");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to load site settings");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { loadSettings(); }, [loadSettings]);
+
+  const update = (field: keyof SiteSettings, value: string) => {
+    setSettings(current => ({ ...current, [field]: value }));
+    setNotice("");
+  };
+
+  const saveSettings = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setSaving(true);
+    setError("");
+    setNotice("");
+    try {
+      const result = await api<{ message: string; settings: SiteSettings }>("/api/v1/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(settings)
+      });
+      setSettings({ ...emptySiteSettings, ...result.settings });
+      setNotice("Your site branding and customer link have been saved.");
+      window.dispatchEvent(new CustomEvent("site-settings-updated", { detail: result.settings }));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to save settings");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const qrImageUrl = generatedUrl
+    ? `https://api.qrserver.com/v1/create-qr-code/?size=320x320&margin=12&data=${encodeURIComponent(generatedUrl)}`
+    : "";
+
+  function generateQr() {
+    const value = settings.customerLandingUrl.trim();
+    try {
+      const parsed = new URL(value);
+      if (parsed.protocol !== "http:" && parsed.protocol !== "https:") throw new Error();
+      setGeneratedUrl(parsed.toString());
+      setError("");
+      setNotice("QR preview generated for the customer landing page URL.");
+    } catch {
+      setError("Enter a complete customer landing page URL starting with https:// or http:// before generating the QR code.");
+      setGeneratedUrl("");
+    }
+  }
+
+  function printQr() {
+    if (!generatedUrl || !qrImageUrl) return;
+    const printWindow = window.open("", "_blank", "width=520,height=720");
+    if (!printWindow) {
+      setError("Your browser blocked the print window. Allow pop-ups and try again.");
+      return;
+    }
+    const escapeHtml = (value: string) => value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+    printWindow.document.open();
+    printWindow.document.write(`<!doctype html><html><head><title>${escapeHtml(settings.siteName)} — Customer QR</title><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{font-family:Arial,sans-serif;text-align:center;color:#382117;padding:28px}img{width:280px;height:280px;object-fit:contain}h1{font-size:26px;margin:8px 0}p{font-size:15px;color:#6f5a4d;overflow-wrap:anywhere}.motto{font-style:italic;margin-bottom:22px}.url{font-size:11px;margin-top:18px}@media print{body{padding:8mm}}</style></head><body><h1>${escapeHtml(settings.siteName)}</h1><p class="motto">${escapeHtml(settings.siteMotto)}</p><img src="${escapeHtml(qrImageUrl)}" alt="Customer ordering QR code"><p>Scan to view our menu and order</p><p class="url">${escapeHtml(generatedUrl)}</p><script>window.onload=function(){setTimeout(function(){window.print()},500)};<\/script></body></html>`);
+    printWindow.document.close();
+  }
+
+  return <section className="settings-page">
+    <div className="settings-heading">
+      <div><p className="eyebrow">SITE CONFIGURATION</p><h1>Settings</h1><p>Manage your brand identity and the link customers open when they scan your QR code.</p></div>
+      <button type="submit" form="site-settings-form" className="primary-button settings-save-top" disabled={loading || saving}>{saving ? "Saving…" : "Save changes"}</button>
+    </div>
+
+    {error && <div className="inline-error" role="alert">{error}<button type="button" onClick={() => setError("")}>Dismiss</button></div>}
+    {notice && <div className="settings-success" role="status"><span aria-hidden="true">✓</span>{notice}</div>}
+    {loading ? <section className="panel settings-loading"><p className="muted">Loading settings…</p></section> : <form id="site-settings-form" className="settings-layout" onSubmit={saveSettings}>
+      <div className="settings-main-column">
+        <section className="panel settings-card">
+          <div className="settings-card-heading"><span className="settings-card-icon">✦</span><div><h2>Brand identity</h2><p>These details represent your business across the site.</p></div></div>
+          <div className="settings-fields">
+            <label className="settings-field"><span>Site name <i>Required</i></span><input required maxLength={120} value={settings.siteName} onChange={event => update("siteName", event.target.value)} placeholder="e.g. Kumari Bites" /><small>Used as your brand name and browser title.</small></label>
+            <label className="settings-field"><span>Site motto / tagline</span><input maxLength={240} value={settings.siteMotto} onChange={event => update("siteMotto", event.target.value)} placeholder="e.g. Good food brings people together" /><small>A short line displayed alongside your brand.</small></label>
+          </div>
+          <div className="settings-asset-grid">
+            <div className="settings-asset-field"><div><strong>Site logo</strong><p>Use a clear logo with a transparent background if possible.</p></div><ImageUpload value={settings.siteLogo} onChange={value => update("siteLogo", value)} onError={setError} alt="Site logo preview" className="settings-logo-upload" /></div>
+            <div className="settings-asset-field"><div><strong>Favicon</strong><p>The small icon shown in the browser tab. A square image works best.</p></div><ImageUpload value={settings.siteFavicon} onChange={value => update("siteFavicon", value)} onError={setError} alt="Favicon preview" className="settings-favicon-upload" /></div>
+          </div>
+        </section>
+
+        <section className="panel settings-card">
+          <div className="settings-card-heading"><span className="settings-card-icon">↗</span><div><h2>Customer landing page</h2><p>Set the exact URL customers should reach after scanning your printed QR code.</p></div></div>
+          <label className="settings-field"><span>Customer page URL <i>Required for QR</i></span><input type="url" maxLength={2000} value={settings.customerLandingUrl} onChange={event => { update("customerLandingUrl", event.target.value); setGeneratedUrl(""); }} placeholder="https://your-domain.com/menu" /><small>Use the full public URL, including https://. The QR code points to this exact address.</small></label>
+          <div className="settings-url-note"><span aria-hidden="true">ⓘ</span><p>Use a URL customers can open on their phones without signing in. The customer landing page is a separate phase; this setting stores its link for the QR code.</p></div>
+        </section>
+      </div>
+
+      <aside className="settings-side-column">
+        <section className="panel settings-preview-card">
+          <div className="settings-card-heading"><span className="settings-card-icon">◈</span><div><h2>Brand preview</h2><p>Preview the identity you are configuring.</p></div></div>
+          <div className="settings-brand-preview">
+            <div className="settings-brand-logo">{settings.siteLogo ? <img src={settings.siteLogo} alt="Site logo" /> : <span>KB</span>}</div>
+            <strong>{settings.siteName || "Your site name"}</strong>
+            <p>{settings.siteMotto || "Your site motto will appear here."}</p>
+            <div className="settings-favicon-preview"><span>Browser tab icon</span>{settings.siteFavicon ? <img src={settings.siteFavicon} alt="Favicon" /> : <span className="settings-favicon-placeholder">✦</span>}</div>
+          </div>
+        </section>
+
+        <section className="panel settings-qr-card">
+          <div className="settings-card-heading"><span className="settings-card-icon">▦</span><div><h2>Customer QR code</h2><p>Generate and print a QR code for your customer URL.</p></div></div>
+          <div className={generatedUrl ? "settings-qr-preview is-generated" : "settings-qr-preview"}>
+            {qrImageUrl ? <img src={qrImageUrl} alt="QR code for the customer landing page" /> : <div className="settings-qr-placeholder"><span>▦</span><strong>QR preview</strong><small>Enter a customer URL and generate your code.</small></div>}
+          </div>
+          {generatedUrl && <p className="settings-qr-target"><strong>QR destination</strong><span>{generatedUrl}</span></p>}
+          <button type="button" className="primary-button settings-qr-generate" onClick={generateQr} disabled={!settings.customerLandingUrl.trim()}>Generate QR code</button>
+          <button type="button" className="secondary-button settings-qr-print" onClick={printQr} disabled={!generatedUrl}>Print QR code</button>
+          <small className="settings-qr-footnote">For a clean print, use a dark QR code on a white background and test-scan it before displaying.</small>
+        </section>
+      </aside>
+      <div className="settings-form-footer"><span>Changes are stored in your application database.</span><button type="submit" className="primary-button" disabled={saving}>{saving ? "Saving…" : "Save settings"}</button></div>
+    </form>}
+  </section>;
+}
+
 const dashboardRoutes: Record<string, string> = {
   Dashboard: "/dashboard",
   Orders: "/orders",
@@ -1227,6 +1381,27 @@ const dashboardPages: Record<string, string> = Object.fromEntries(
 
 function Dashboard({ onLogout }: { onLogout: () => void }) {
   const [active, setActive] = useState(() => dashboardPages[window.location.pathname] ?? "Dashboard");
+  const [branding, setBranding] = useState<SiteSettings>(emptySiteSettings);
+
+  const loadBranding = useCallback(async () => {
+    try {
+      const result = await api<Partial<SiteSettings>>("/api/v1/public/settings");
+      setBranding(current => ({ ...current, ...result }));
+      document.title = result.siteName || "Kumari Bites";
+      if (result.siteFavicon) {
+        let iconLink = document.querySelector<HTMLLinkElement>('link[rel~="icon"]');
+        if (!iconLink) { iconLink = document.createElement("link"); iconLink.rel = "icon"; document.head.appendChild(iconLink); }
+        iconLink.href = result.siteFavicon;
+      }
+    } catch { /* Branding defaults remain available if the public settings endpoint is temporarily unavailable. */ }
+  }, []);
+
+  useEffect(() => {
+    loadBranding();
+    const onSettingsUpdated = () => loadBranding();
+    window.addEventListener("site-settings-updated", onSettingsUpdated);
+    return () => window.removeEventListener("site-settings-updated", onSettingsUpdated);
+  }, [loadBranding]);
 
   useEffect(() => {
     const syncRoute = () => setActive(dashboardPages[window.location.pathname] ?? "Dashboard");
@@ -1242,14 +1417,14 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
 
   return <div className="app-shell dashboard-background">
     <aside className="sidebar">
-      <div className="sidebar-brand"><span className="brand-mark small">KB</span><span>Kumari Bites</span></div>
+      <div className="sidebar-brand"><span className="brand-mark small">{branding.siteLogo ? <img src={branding.siteLogo} alt="" /> : "KB"}</span><span>{branding.siteName || "Kumari Bites"}</span></div>
       <nav>{menuItems.map(item => <button key={item.label} className={active === item.label ? "nav-item active" : "nav-item"} onClick={() => navigate(item.label)}><span>{item.icon}</span>{item.label}</button>)}</nav>
       <div className="sidebar-admin"><span className="avatar">A</span><div><strong>Admin</strong><small>Kumari Bites</small></div></div>
       <button className="nav-item logout" onClick={async () => { await fetch("/api/v1/auth/logout", { method: "POST", credentials: "include" }); window.history.replaceState({}, "", "/"); onLogout(); }}><span>↪</span> Sign out</button>
     </aside>
     <main className="dashboard">
       {active !== "Reports" && <header className="topbar"><div>{active === "Menu" || active === "Orders" || active === "Dashboard" ? <h2>{active === "Menu" ? "Menu Management" : active === "Orders" ? "Orders" : "Dashboard"}</h2> : <><p className="eyebrow">KUMARI BITES ADMIN</p><h2>{active}</h2></>}</div></header>}
-      {active === "Dashboard" ? <DashboardHome /> : active === "Orders" ? <Orders /> : active === "Menu" ? <MenuManagement /> : active === "Reports" ? <Reports /> : <section className="panel"><h3>{active}</h3><p className="muted">This module is coming next.</p></section>}
+      {active === "Dashboard" ? <DashboardHome /> : active === "Orders" ? <Orders /> : active === "Menu" ? <MenuManagement /> : active === "Reports" ? <Reports /> : active === "Settings" ? <SettingsPage /> : <section className="panel"><h3>{active}</h3><p className="muted">This module is coming next.</p></section>}
     </main>
   </div>;
 }
