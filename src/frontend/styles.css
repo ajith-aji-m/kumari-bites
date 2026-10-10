@@ -233,3 +233,16 @@ input:not([type="checkbox"]):focus { border-color: #b85c38; box-shadow: 0 0 0 3p
 /* Clean login fields: no decorative icons */
 .login-field .input-wrap input { padding-left:13px; }
 .login-field .field-icon { display:none; }
+
+
+/* Login food photography background */
+.login-visual {
+  background-image:
+    linear-gradient(90deg, rgba(76, 27, 14, .38) 0%, rgba(101, 37, 19, .16) 58%, rgba(42, 16, 10, .42) 100%),
+    url("/assets/kumari-bites-login.png.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+.login-visual::before { background:rgba(255,255,255,.055); }
+.login-visual::after { background:rgba(38,13,7,.18); }
