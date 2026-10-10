@@ -39,12 +39,6 @@ export function CustomerLanding() {
   const visibleItems = useMemo(() => items.filter(i => selectedCategory === null || i.categoryId === selectedCategory), [items, selectedCategory]);
   const cartCount = Object.values(cart).reduce((s, n) => s + n, 0);
   const total = items.reduce((s, i) => s + Number(i.price ?? 0) * (cart[i.id] ?? 0), 0);
-  const goToStage = (target: number) => {
-    const root = document.querySelector<HTMLElement>(".customer-story");
-    if (!root) return;
-    const distance = Math.max(1, root.offsetHeight - window.innerHeight);
-    window.scrollTo({ top: window.scrollY + root.getBoundingClientRect().top + distance * target / 3, behavior: "smooth" });
-  };
   const add = (id: number) => setCart(c => ({ ...c, [id]: (c[id] ?? 0) + 1 }));
   const change = (id: number, delta: number) => setCart(c => { const n = { ...c, [id]: Math.max(0, (c[id] ?? 0) + delta) }; if (!n[id]) delete n[id]; return n; });
 
