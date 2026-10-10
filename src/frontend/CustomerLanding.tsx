@@ -11,11 +11,19 @@ export function CustomerLanding() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [stage, setStage] = useState(0);
+  const [categoryIntroPlaying, setCategoryIntroPlaying] = useState(false);
   const [cart, setCart] = useState<Record<number, number>>({});
   const [cartOpen, setCartOpen] = useState(false);
 
   // The landing experience is click-driven; native page scrolling no longer changes stages.
-  const openCategories = () => setStage(1);
+  const openCategories = () => {
+    if (categoryIntroPlaying || stage !== 0) return;
+    setCategoryIntroPlaying(true);
+    window.setTimeout(() => {
+      setStage(1);
+      setCategoryIntroPlaying(false);
+    }, 1100);
+  };
   const openItems = (categoryId?: number) => {
     if (typeof categoryId === "number") setSelectedCategory(categoryId);
     setStage(2);
@@ -43,7 +51,7 @@ export function CustomerLanding() {
   const change = (id: number, delta: number) => setCart(c => { const n = { ...c, [id]: Math.max(0, (c[id] ?? 0) + delta) }; if (!n[id]) delete n[id]; return n; });
 
   return <main className="customer-landing customer-story-page">
-    <section className="customer-story" aria-label="Kumari Bites interactive menu story">
+    <section className={"customer-story " + (categoryIntroPlaying ? "category-intro-playing" : "")} aria-label="Kumari Bites interactive menu story">
       <div className="customer-story-stage">
         <div className="customer-hero-shade" />
         <header className="customer-nav">
@@ -61,7 +69,7 @@ export function CustomerLanding() {
           <img className="customer-story-cloud-image" src="/assets/welcome-cloud.png" alt="" aria-hidden="true" />
           <div className="customer-story-bubble-content">
             <strong>{stage === 0 ? "Vanakkam, food lover!" : "Choose your favourites!"}</strong>
-            <p>{stage === 0 ? "Welcome to Kumari Bites! 🍽️ What’s your feast today? Explore our menu and pick your favourites." : "Tap a category to explore our freshly made favourites."}</p>
+            <p>{stage === 0 ? "Welcome to Kumari Bites! 🍽️ Ready to discover your next favourite?" : "Tap a category to explore our freshly made favourites."}</p>
             {stage === 0 && <button type="button" className="customer-story-link" onClick={openCategories}>Click here to explore categories <span aria-hidden="true">→</span></button>}
           </div>
         </div>
@@ -69,7 +77,7 @@ export function CustomerLanding() {
           <div className="story-panel-heading"><small>STEP 01 · PICK YOUR MOOD</small><h2>What are you <em>craving?</em></h2><p>Tap a category to help me find your favourites.</p></div>
           {loading ? <div className="customer-story-loading">Getting the menu ready…</div> : error ? <div className="customer-story-loading">{error}</div> : <div className="customer-category-bubbles">
             {categories.map((c, i) => <button key={c.id} className={"customer-category-bubble category-tone-" + (i % 5) + (selectedCategory === c.id ? " selected" : "")} onClick={() => openItems(c.id)}>
-              {c.imageUrl ? <img src={c.imageUrl} alt="" /> : <span className="category-bubble-art">{["🥟", "🌯", "🍔", "🍟", "🍗"][i % 5]}</span>}<strong>{c.name}</strong><small>{items.filter(item => item.categoryId === c.id).length} bites</small>
+              {c.imageUrl ? <img src={c.imageUrl} alt="" /> : <span className="category-bubble-art">{["🥟", "🌯", "🍔", "🍟", "🍗"][i % 5]}</span>}<strong>{c.name}</strong>
             </button>)}
           </div>}
           <button type="button" className="story-scroll-hint customer-story-link" onClick={() => goToStage(0)}>← Back to welcome</button>
