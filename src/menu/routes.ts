@@ -19,7 +19,7 @@ const menuItemSchema = z.object({
   name: z.string().trim().min(1).max(150),
   slug: z.string().trim().min(1).max(180).optional(),
   description: z.string().trim().max(2000).optional(),
-  imageUrl: z.string().url().max(500).optional(),
+  imageUrl: z.string().trim().max(5000000).optional(),
   sku: z.string().trim().max(80).optional(),
   isVeg: z.boolean().default(false),
   isAvailable: z.boolean().default(true),
