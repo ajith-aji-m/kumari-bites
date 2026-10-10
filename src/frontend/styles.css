@@ -2911,26 +2911,18 @@ button {
 .orders-table-wrap { overflow-x:auto; }
 .orders-table { min-width:900px; }
 .orders-table td { vertical-align:middle; }
-.orders-table td:nth-child(6) { width:98px; min-width:98px; }
-.orders-table td:nth-child(6) .custom-select { width:90px; min-width:90px; }
+.orders-table td:nth-child(6) { width:124px; min-width:124px; }
+.orders-table td:nth-child(6) .custom-select { width:114px; min-width:114px; }
 .orders-table td:nth-child(6) .custom-select-trigger {
-  min-height:31px;
-  padding:0 6px;
-  gap:4px;
+  min-height:33px;
+  padding:0 8px;
+  gap:5px;
   border-radius:8px;
-  font-size:10px;
+  font-size:11px;
 }
 .orders-table td:nth-child(6) .custom-select-trigger > span:first-child { white-space:nowrap; }
-.orders-table td:nth-child(6) .custom-select-chevron { font-size:12px; flex:0 0 auto; }
-.orders-table td:nth-child(6) .order-status-select { min-width:90px; }
-.order-status-menu .order-status-option {
-  min-height:27px;
-  margin:1px 0;
-  padding:5px 6px;
-  border-radius:6px;
-  font-size:10px;
-  line-height:1.2;
-}
+.orders-table td:nth-child(6) .custom-select-chevron { font-size:13px; flex:0 0 auto; }
+.orders-table td:nth-child(6) .order-status-select { min-width:114px; }
 .order-main-cell, .order-items-cell { display:grid; gap:5px; min-width:110px; }
 .order-main-cell strong { color:#3c2118; }
 .order-main-cell small, .order-items-cell small { color:#9b897d; font-size:11px; }
@@ -3754,3 +3746,24 @@ button {
   z-index:4;
 }
 
+
+
+/* Orders status dropdown: slightly wider options, with a clean scrollbar-free menu. */
+.orders-page .order-status-menu {
+  width:114px;
+  max-height:260px !important;
+  overflow-y:auto;
+  overflow-x:hidden;
+  scrollbar-width:none;
+  -ms-overflow-style:none;
+}
+.orders-page .order-status-menu::-webkit-scrollbar { display:none; width:0; height:0; }
+.orders-page .order-status-menu .order-status-option {
+  min-height:30px;
+  margin:1px 0;
+  padding:6px 8px;
+  border-radius:7px;
+  font-size:11px;
+  line-height:1.25;
+  white-space:nowrap;
+}
