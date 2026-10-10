@@ -278,6 +278,7 @@ function MenuManagement() {
   const [categoryModal, setCategoryModal] = useState<Category | "new" | null>(null);
   const [saving, setSaving] = useState(false);
   const [itemImage, setItemImage] = useState("");
+  const [categoryImage, setCategoryImage] = useState("");
   const [lowStockAlert, setLowStockAlert] = useState<{ itemName: string; quantity: number; threshold: number } | null>(null);
 
   useEffect(() => {
@@ -287,6 +288,10 @@ function MenuManagement() {
     }
     setItemImage(itemModal === "new" ? "" : itemModal.imageUrl ?? "");
   }, [itemModal]);
+
+  useEffect(() => {
+    setCategoryImage(categoryModal === "new" ? "" : categoryModal?.imageUrl ?? "");
+  }, [categoryModal]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -384,7 +389,7 @@ function MenuManagement() {
         name: String(form.get("name") ?? "").trim(),
         slug: String(form.get("slug") ?? "").trim(),
         description: String(form.get("description") ?? "").trim() || undefined,
-        imageUrl: String(form.get("imageUrl") ?? "").trim() || undefined,
+        imageUrl: categoryImage || undefined,
         sortOrder: Number(form.get("sortOrder") ?? 0)
       };
       if (categoryModal === "new") {
@@ -504,7 +509,7 @@ function MenuManagement() {
 
     {categoryDefaults && <div className="modal-backdrop" onMouseDown={e => e.currentTarget === e.target && setCategoryModal(null)}><form className="modal-card small-modal" onSubmit={saveCategory}>
       <div className="modal-head"><div><p className="eyebrow">CATEGORY</p><h2>{categoryModal === "new" ? "Add category" : "Edit category"}</h2></div><button type="button" className="icon-button menu-action-close" onClick={() => setCategoryModal(null)} aria-label="Close category editor">×</button></div>
-      <div className="form-grid"><label>Category name *<input name="name" defaultValue={categoryDefaults.name} required placeholder="South Indian" /></label><label className="full-field">Description<textarea name="description" defaultValue={categoryDefaults.description ?? ""} /></label><label className="full-field category-image-field">Category image<div className="category-image-upload">{categoryDefaults.imageUrl ? <img src={categoryDefaults.imageUrl} alt="" /> : <span className="category-upload-plus">+</span>}<label className="category-upload-button">{categoryDefaults.imageUrl ? "Change image" : "Add image"}<input type="file" accept="image/png,image/jpeg,image/webp" onChange={event => { const file = event.target.files?.[0]; if (!file) return; if (file.size > 5 * 1024 * 1024) { setError("Please choose an image smaller than 5 MB."); return; } const reader = new FileReader(); reader.onload = () => { const hidden = document.querySelector<HTMLInputElement>('input[name="imageUrl"]'); if (hidden) hidden.value = String(reader.result ?? ""); }; reader.readAsDataURL(file); }} /></label><input type="hidden" name="imageUrl" defaultValue={categoryDefaults.imageUrl ?? ""} /></div></label><label>Sort order<input name="sortOrder" type="number" min="0" defaultValue={categoryDefaults.sortOrder} /></label></div>
+      <div className="form-grid"><label>Category name *<input name="name" defaultValue={categoryDefaults.name} required placeholder="South Indian" /></label><label className="full-field">Description<textarea name="description" defaultValue={categoryDefaults.description ?? ""} /></label><div className="full-field category-image-field">Category image<div className="category-image-upload">{categoryImage ? <img src={categoryImage} alt="Selected category" /> : <span className="category-upload-plus">+</span>}<label className="category-upload-button">{categoryImage ? "Change image" : "Add image"}<input type="file" accept="image/png,image/jpeg,image/webp" onChange={event => { const file = event.target.files?.[0]; if (!file) return; if (file.size > 5 * 1024 * 1024) { setError("Please choose an image smaller than 5 MB."); return; } const reader = new FileReader(); reader.onload = () => setCategoryImage(String(reader.result ?? "")); reader.readAsDataURL(file); }} /></label></div></div><label>Sort order<input name="sortOrder" type="number" min="0" defaultValue={categoryDefaults.sortOrder} /></label></div>
       <div className="modal-actions"><button type="button" className="secondary-button menu-action-secondary" onClick={() => setCategoryModal(null)}><span className="button-icon">×</span><span>Cancel</span></button><button className="primary-button menu-action-primary" disabled={saving}><span className="button-icon">{saving ? "…" : "✓"}</span><span>{saving ? "Saving..." : categoryModal === "new" ? "Save category" : "Update category"}</span></button></div>
     </form></div>}
   </section>;
