@@ -278,6 +278,7 @@ function MenuManagement() {
   const [categoryModal, setCategoryModal] = useState<Category | "new" | null>(null);
   const [saving, setSaving] = useState(false);
   const [itemImage, setItemImage] = useState("");
+  const [lowStockAlert, setLowStockAlert] = useState<{ itemName: string; quantity: number; threshold: number } | null>(null);
 
   useEffect(() => {
     if (!itemModal) {
@@ -306,6 +307,14 @@ function MenuManagement() {
 
   useEffect(() => { load(); }, [load]);
 
+  useRealtimeRefresh(useCallback((event) => {
+    if (event.type === "menu.low_stock") {
+      const payload = event.payload as { itemName?: string; quantity?: number; threshold?: number } | undefined;
+      if (payload?.itemName) setLowStockAlert({ itemName: payload.itemName, quantity: Number(payload.quantity ?? 0), threshold: Number(payload.threshold ?? 0) });
+      load();
+    }
+  }, [load]));
+
   const visibleItems = useMemo(() => items.filter(item => {
     const matchesQuery = item.name.toLowerCase().includes(query.toLowerCase());
     const matchesCategory = categoryFilter === "all" || String(item.categoryId) === categoryFilter;
@@ -322,8 +331,6 @@ function MenuManagement() {
     const name = String(form.get("name") ?? "").trim();
     const categoryId = String(form.get("categoryId") ?? "");
     const price = Number(form.get("price"));
-    const slug = String(form.get("slug") ?? "").trim() || name.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
-
     if (!name) { setError("Please enter the menu item name."); return; }
     if (!categoryId || categoryId === "0") { setError("Please choose a menu category."); return; }
     if (!Number.isFinite(price) || price <= 0) { setError("Please enter a valid price greater than ₹0."); return; }
@@ -332,11 +339,13 @@ function MenuManagement() {
       const payload = {
         categoryId: Number(categoryId),
         name,
-        slug,
         description: String(form.get("description") ?? "").trim() || undefined,
         imageUrl: itemImage || undefined,
         isVeg: form.get("isVeg") === "on",
         isAvailable: form.get("isAvailable") === "on",
+        stockQuantity: Number(form.get("stockQuantity") ?? 0),
+        lowStockThreshold: Number(form.get("lowStockThreshold") ?? 5),
+        lowStockAlertEnabled: form.get("lowStockAlertEnabled") === "on",
         price
       };
       if (itemModal === "new") {
@@ -403,12 +412,14 @@ function MenuManagement() {
   }
 
   const itemDefaults = itemModal === "new" ? {
-    name: "", slug: "", categoryId: categories[0]?.id ?? 0, price: "", description: "", imageUrl: "", isVeg: false, isAvailable: true
+    name: "", categoryId: categories[0]?.id ?? 0, price: "", description: "", imageUrl: "", isVeg: false, isAvailable: true, stockQuantity: 0, lowStockThreshold: 5, lowStockAlertEnabled: true
   } : itemModal ? itemModal : null;
 
   const categoryDefaults = categoryModal === "new" ? { name: "", slug: "", description: "", imageUrl: "", sortOrder: 0 } : categoryModal;
 
   return <section className="menu-management">
+    {lowStockAlert && <div className="inline-error low-stock-alert" role="alert"><strong>Low stock:</strong> {lowStockAlert.itemName} has {lowStockAlert.quantity} left (threshold {lowStockAlert.threshold}). It is now unavailable. <button onClick={() => setLowStockAlert(null)}>Dismiss</button></div>}
+
     <div className="welcome menu-heading">
       <div><p className="eyebrow">MENU MANAGEMENT</p><h1>Menu</h1><p className="muted">Keep categories, dishes and pricing simple and up to date.</p></div>
       <button className="primary-button compact menu-action-primary" onClick={() => tab === "items" ? setItemModal("new") : setCategoryModal("new")}><span className="button-icon">+</span><span>{tab === "items" ? "Add menu item" : "Add category"}</span></button>
@@ -429,7 +440,7 @@ function MenuManagement() {
       </div>
       {loading ? <p className="muted">Loading menu...</p> : <div className="menu-table-wrap"><table className="menu-table"><thead><tr><th>Item</th><th>Category</th><th>Price</th><th>Type</th><th>Availability</th><th></th></tr></thead><tbody>
         {visibleItems.map(item => <tr key={item.id}>
-          <td><div className="item-cell">{item.imageUrl ? <img src={item.imageUrl} alt="" /> : <div className="image-placeholder">🍽️</div>}<div><strong>{item.name}</strong><small>{item.sku || "No SKU"}</small></div></div></td>
+          <td><div className="item-cell">{item.imageUrl ? <img src={item.imageUrl} alt="" /> : <div className="image-placeholder">🍽️</div>}<div><strong>{item.name}</strong><small>{item.stockQuantity} in stock</small></div></div></td>
           <td>{categoryName(item.categoryId)}</td><td className="price-cell">{money(item.price)}</td>
           <td><span className={item.isVeg ? "veg-badge" : "nonveg-badge"}>{item.isVeg ? "VEG" : "NON-VEG"}</span></td>
           <td><button className={`switch ${item.isAvailable ? "on" : ""}`} onClick={() => toggleItem(item)} aria-label={item.isAvailable ? "Disable item" : "Enable item"}><span /></button></td>
@@ -477,7 +488,12 @@ function MenuManagement() {
         </div>
         <div className="editor-section editor-advanced">
           <div className="editor-section-head"><span className="editor-step">03</span><div><strong>Menu settings</strong><small>Optional internal details and availability.</small></div></div>
+          <div className="form-grid stock-settings-grid">
+            <label>Stock quantity<input name="stockQuantity" type="number" min="0" step="1" defaultValue={itemDefaults.stockQuantity ?? 0} /></label>
+            <label>Low stock threshold<input name="lowStockThreshold" type="number" min="0" step="1" defaultValue={itemDefaults.lowStockThreshold ?? 5} /></label>
+          </div>
           <div className="toggle-row">
+            <label className="toggle-check"><input name="lowStockAlertEnabled" type="checkbox" defaultChecked={itemDefaults.lowStockAlertEnabled ?? true} /> <span><strong>Low stock alert</strong><small>Notify and mark unavailable at the threshold</small></span></label>
             <label className="toggle-check"><input name="isVeg" type="checkbox" defaultChecked={itemDefaults.isVeg} /> <span><strong>Vegetarian</strong><small>Mark this dish as vegetarian</small></span></label>
             <label className="toggle-check"><input name="isAvailable" type="checkbox" defaultChecked={itemDefaults.isAvailable} /> <span><strong>Available</strong><small>Show this item as orderable</small></span></label>
           </div>
@@ -488,7 +504,7 @@ function MenuManagement() {
 
     {categoryDefaults && <div className="modal-backdrop" onMouseDown={e => e.currentTarget === e.target && setCategoryModal(null)}><form className="modal-card small-modal" onSubmit={saveCategory}>
       <div className="modal-head"><div><p className="eyebrow">CATEGORY</p><h2>{categoryModal === "new" ? "Add category" : "Edit category"}</h2></div><button type="button" className="icon-button menu-action-close" onClick={() => setCategoryModal(null)} aria-label="Close category editor">×</button></div>
-      <div className="form-grid"><label>Category name *<input name="name" defaultValue={categoryDefaults.name} required placeholder="South Indian" /></label><label>Slug *<input name="slug" defaultValue={categoryDefaults.slug} required placeholder="south-indian" /></label><label className="full-field">Description<textarea name="description" defaultValue={categoryDefaults.description ?? ""} /></label><label className="full-field">Image URL<input name="imageUrl" defaultValue={categoryDefaults.imageUrl ?? ""} placeholder="https://..." /></label><label>Sort order<input name="sortOrder" type="number" min="0" defaultValue={categoryDefaults.sortOrder} /></label></div>
+      <div className="form-grid"><label>Category name *<input name="name" defaultValue={categoryDefaults.name} required placeholder="South Indian" /></label><label className="full-field">Description<textarea name="description" defaultValue={categoryDefaults.description ?? ""} /></label><label className="full-field category-image-field">Category image<div className="category-image-upload">{categoryDefaults.imageUrl ? <img src={categoryDefaults.imageUrl} alt="" /> : <span className="category-upload-plus">+</span>}<label className="category-upload-button">{categoryDefaults.imageUrl ? "Change image" : "Add image"}<input type="file" accept="image/png,image/jpeg,image/webp" onChange={event => { const file = event.target.files?.[0]; if (!file) return; if (file.size > 5 * 1024 * 1024) { setError("Please choose an image smaller than 5 MB."); return; } const reader = new FileReader(); reader.onload = () => { const hidden = document.querySelector<HTMLInputElement>('input[name="imageUrl"]'); if (hidden) hidden.value = String(reader.result ?? ""); }; reader.readAsDataURL(file); }} /></label><input type="hidden" name="imageUrl" defaultValue={categoryDefaults.imageUrl ?? ""} /></div></label><label>Sort order<input name="sortOrder" type="number" min="0" defaultValue={categoryDefaults.sortOrder} /></label></div>
       <div className="modal-actions"><button type="button" className="secondary-button menu-action-secondary" onClick={() => setCategoryModal(null)}><span className="button-icon">×</span><span>Cancel</span></button><button className="primary-button menu-action-primary" disabled={saving}><span className="button-icon">{saving ? "…" : "✓"}</span><span>{saving ? "Saving..." : categoryModal === "new" ? "Save category" : "Update category"}</span></button></div>
     </form></div>}
   </section>;
