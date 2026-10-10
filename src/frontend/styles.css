@@ -1471,23 +1471,26 @@ button {
   z-index: 1;
 }
 
-/* Menu editor: keep the modal vertically scrollable while hiding scrollbar UI. */
+/* Menu editor: scroll the modal itself, never the page behind it. */
 .menu-management .modal-backdrop {
-  align-items: start;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  -webkit-overflow-scrolling: touch;
+  align-items: center;
+  overflow: hidden;
+  overscroll-behavior: none;
 }
 
 .menu-management .modal-card {
   max-height: calc(100vh - 40px);
   overflow-y: auto;
-  overflow-x: visible;
+  overflow-x: hidden;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
 }
 
 @media (max-width: 650px) {
+  .menu-management .modal-backdrop {
+    align-items: start;
+  }
+
   .menu-management .modal-card {
     max-height: calc(100vh - 16px);
   }
