@@ -285,6 +285,7 @@ function MenuManagement() {
   const [itemImage, setItemImage] = useState("");
   const [categoryImage, setCategoryImage] = useState("");
   const [lowStockAlert, setLowStockAlert] = useState<{ itemName: string; quantity: number; threshold: number } | null>(null);
+  const [categorySuccess, setCategorySuccess] = useState("");
 
   useEffect(() => {
     if (!itemModal) {
@@ -412,20 +413,36 @@ function MenuManagement() {
       }
       setCategoryModal(null);
       await load();
+      setCategorySuccess(categoryModal === "new" ? "Category added successfully." : "Category updated successfully.");
+      window.setTimeout(() => setCategorySuccess(""), 3200);
     } catch (err) {
-      window.alert(err instanceof Error ? err.message : "Unable to save category");
+      setError(err instanceof Error ? err.message : "Unable to save category");
     } finally {
       setSaving(false);
     }
   }
 
   async function toggleCategory(category: Category) {
+    const nextActive = !category.isActive;
+    setError("");
+    setCategorySuccess("");
+    setCategories(current => current.map(entry => entry.id === category.id ? { ...entry, isActive: nextActive } : entry));
+
     try {
-      if (category.isActive) await api(`/api/v1/categories/${category.id}`, { method: "DELETE" });
-      else await api(`/api/v1/categories/${category.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ isActive: true }) });
-      await load();
+      if (category.isActive) {
+        await api(`/api/v1/categories/${category.id}`, { method: "DELETE" });
+      } else {
+        await api(`/api/v1/categories/${category.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ isActive: true })
+        });
+      }
+      setCategorySuccess(`${category.name} is now ${nextActive ? "active" : "inactive"}.`);
+      window.setTimeout(() => setCategorySuccess(""), 3200);
     } catch (err) {
-      window.alert(err instanceof Error ? err.message : "Unable to update category");
+      setCategories(current => current.map(entry => entry.id === category.id ? { ...entry, isActive: category.isActive } : entry));
+      setError(err instanceof Error ? err.message : "Unable to update category");
     }
   }
 
@@ -437,6 +454,10 @@ function MenuManagement() {
 
   return <section className="menu-management">
     {lowStockAlert && <div className="inline-error low-stock-alert" role="alert"><strong>Low stock:</strong> {lowStockAlert.itemName} has {lowStockAlert.quantity} left (threshold {lowStockAlert.threshold}). It is now unavailable. <button onClick={() => setLowStockAlert(null)}>Dismiss</button></div>}
+    {categorySuccess && <div className="chef-success-toast category-success-toast" role="status" aria-live="polite">
+      <div className="chef-success-bubble"><strong>Chef says</strong><span>{categorySuccess}</span></div>
+      <div className="chef-success-character" aria-hidden="true"><img src="/assets/kumari-bites-chef.png" alt="" /></div>
+    </div>}
 
     <div className="welcome menu-heading">
       <div><p className="eyebrow">MENU MANAGEMENT</p><h1>Menu</h1><p className="muted">Keep categories, dishes and pricing simple and up to date.</p></div>
@@ -535,11 +556,40 @@ function MenuManagement() {
       <div className="modal-actions"><button type="button" className="secondary-button menu-action-secondary" onClick={() => setItemModal(null)}><span className="button-icon">×</span><span>Cancel</span></button><button className="primary-button editor-save menu-action-primary" disabled={saving}><span className="button-icon">{saving ? "…" : "＋"}</span><span>{saving ? "Saving..." : itemModal === "new" ? "Add menu item" : "Save changes"}</span></button></div>
     </form></div>}
 
-    {categoryDefaults && <div className="modal-backdrop" onMouseDown={e => e.currentTarget === e.target && setCategoryModal(null)}><form className="modal-card small-modal" onSubmit={saveCategory}>
-      <div className="modal-head"><div><p className="eyebrow">CATEGORY</p><h2>{categoryModal === "new" ? "Add category" : "Edit category"}</h2></div><button type="button" className="icon-button menu-action-close" onClick={() => setCategoryModal(null)} aria-label="Close category editor">×</button></div>
-      <div className="form-grid"><label>Category name *<input name="name" defaultValue={categoryDefaults.name} required placeholder="South Indian" /></label><label className="full-field">Description<textarea name="description" defaultValue={categoryDefaults.description ?? ""} /></label><div className="full-field category-image-field">Category image<div className="category-image-upload">{categoryImage ? <img src={categoryImage} alt="Selected category" /> : <span className="category-upload-plus">+</span>}<label className="category-upload-button">{categoryImage ? "Change image" : "Add image"}<input type="file" accept="image/png,image/jpeg,image/webp" onChange={event => { const file = event.target.files?.[0]; if (!file) return; if (file.size > 5 * 1024 * 1024) { setError("Please choose an image smaller than 5 MB."); return; } const reader = new FileReader(); reader.onload = () => setCategoryImage(String(reader.result ?? "")); reader.readAsDataURL(file); }} /></label></div></div><label>Sort order<input name="sortOrder" type="number" min="0" defaultValue={categoryDefaults.sortOrder} /></label></div>
+    {categoryDefaults && <div className="modal-backdrop" onMouseDown={e => e.currentTarget === e.target && setCategoryModal(null)}><form className="modal-card category-modal-card" onSubmit={saveCategory}>
+      <div className="modal-head"><div><p className="eyebrow">CATEGORY</p><h2>{categoryModal === "new" ? "Add category" : "Edit category"}</h2><p className="modal-subtitle">Create a clean category for your menu and keep it easy to recognise.</p></div><button type="button" className="icon-button menu-action-close" onClick={() => setCategoryModal(null)} aria-label="Close category editor">×</button></div>
+      <div className="menu-item-editor category-editor">
+        {error && <div className="chef-guide menu-item-feedback has-error" role="alert" aria-live="polite"><div className="chef-character" aria-hidden="true"><img src="/assets/kumari-bites-chef.png" alt="" /></div><div className="chef-bubble"><strong>Chef says</strong><span>{error}</span></div></div>}
+        <div className="editor-section">
+          <div className="editor-section-head"><span className="editor-step">01</span><div><strong>Basic details</strong><small>Name the category and add a short description for your menu.</small></div></div>
+          <div className="form-grid">
+            <label className="field-wide">Category name *<input name="name" defaultValue={categoryDefaults.name} required placeholder="e.g. South Indian" /></label>
+            <label className="field-wide">Description<textarea name="description" defaultValue={categoryDefaults.description ?? ""} placeholder="Short description customers should see..." /></label>
+          </div>
+        </div>
+        <div className="editor-section">
+          <div className="editor-section-head"><span className="editor-step">02</span><div><strong>Category presentation</strong><small>Add a visual image that represents this category.</small></div></div>
+          <div className="editor-media-grid category-media-grid">
+            <div className="menu-upload-preview category-upload-preview">
+              {categoryImage ? <img src={categoryImage} alt="Selected category" /> : <div className="menu-image-empty"><span className="menu-upload-plus" aria-hidden="true">+</span><strong>Add image</strong><small>PNG, JPG or WEBP · Max 5 MB</small></div>}
+              <label className={`menu-image-upload-button${categoryImage ? " has-image" : ""}`} aria-label={categoryImage ? "Change image" : "Add image"}>{categoryImage && <span className="menu-upload-plus" aria-hidden="true">+</span>}<input type="file" accept="image/png,image/jpeg,image/webp" onChange={event => {
+                const file = event.target.files?.[0];
+                if (!file) return;
+                if (!file.type.startsWith("image/")) { setError("Please choose an image file."); return; }
+                if (file.size > 5 * 1024 * 1024) { setError("Please choose an image smaller than 5 MB."); return; }
+                const reader = new FileReader();
+                reader.onload = () => setCategoryImage(String(reader.result ?? ""));
+                reader.readAsDataURL(file);
+              }} /></label>
+            </div>
+            <div className="editor-media-fields category-sort-field">
+              <label>Sort order<input name="sortOrder" type="number" min="0" step="1" defaultValue={categoryDefaults.sortOrder ?? 0} placeholder="Display order, e.g. 1" /></label>
+            </div>
+          </div>
+        </div>
+      </div>
       <div className="modal-actions"><button type="button" className="secondary-button menu-action-secondary" onClick={() => setCategoryModal(null)}><span className="button-icon">×</span><span>Cancel</span></button><button className="primary-button menu-action-primary" disabled={saving}><span className="button-icon">{saving ? "…" : "✓"}</span><span>{saving ? "Saving..." : categoryModal === "new" ? "Save category" : "Update category"}</span></button></div>
-    </form></div>}
+    </form></div>
   </section>;
 }
 
