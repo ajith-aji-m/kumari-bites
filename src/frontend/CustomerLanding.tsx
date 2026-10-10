@@ -17,6 +17,13 @@ export function CustomerLanding() {
   const [categoryIntroPlaying, setCategoryIntroPlaying] = useState(false);
   const [cart, setCart] = useState<Record<number, number>>({});
   const [cartOpen, setCartOpen] = useState(false);
+  const [customerName, setCustomerName] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
+  const [deliveryAddress, setDeliveryAddress] = useState("");
+  const [orderNotes, setOrderNotes] = useState("");
+  const [placingOrder, setPlacingOrder] = useState(false);
+  const [checkoutError, setCheckoutError] = useState("");
+  const [placedOrder, setPlacedOrder] = useState<{ orderId: number; orderNumber: string; totalAmount?: string } | null>(null);
   const [addingItemId, setAddingItemId] = useState<number | null>(null);
   const [flyingBite, setFlyingBite] = useState<{ id: number; imageUrl: string | null; x: number; y: number; dx: number; dy: number } | null>(null);
 
@@ -83,6 +90,40 @@ export function CustomerLanding() {
     }
   };
   const change = (id: number, delta: number) => setCart(c => { const n = { ...c, [id]: Math.max(0, (c[id] ?? 0) + delta) }; if (!n[id]) delete n[id]; return n; });
+  const placeOrder = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (placingOrder || !cartCount) return;
+    setPlacingOrder(true);
+    setCheckoutError("");
+    try {
+      const notes = ["Delivery address: " + deliveryAddress.trim(), orderNotes.trim() ? "Order notes: " + orderNotes.trim() : ""].filter(Boolean).join("\n");
+      const response = await fetch("/api/v1/public/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          customerName: customerName.trim(),
+          customerPhone: customerPhone.trim(),
+          source: "qr",
+          paymentMethod: "cash",
+          notes,
+          items: Object.entries(cart).filter(([, quantity]) => quantity > 0).map(([menuItemId, quantity]) => ({ menuItemId: Number(menuItemId), quantity }))
+        })
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.message || data.error || "We couldn't place your order. Please try again.");
+      setPlacedOrder({ orderId: Number(data.orderId), orderNumber: String(data.orderNumber), totalAmount: data.totalAmount });
+      setCart({});
+      setCustomerName("");
+      setCustomerPhone("");
+      setDeliveryAddress("");
+      setOrderNotes("");
+    } catch (e) {
+      setCheckoutError(e instanceof Error ? e.message : "We couldn't place your order. Please try again.");
+    } finally {
+      setPlacingOrder(false);
+    }
+  };
 
   return <main className="customer-landing customer-story-page">
     <section className={"customer-story " + (categoryIntroPlaying ? "category-intro-playing" : "")} aria-label="Kumari Bites interactive menu story">
@@ -155,7 +196,27 @@ export function CustomerLanding() {
     </button>}
     {cartOpen && <aside className="customer-cart-panel" aria-label="Your cart"><div className="customer-cart-title"><div><small>YOUR ORDER</small><h3>Your bites</h3></div><button onClick={() => setCartOpen(false)} aria-label="Close cart">×</button></div>
       {items.filter(i => cart[i.id]).map(i => <div className="customer-cart-line" key={i.id}><div><strong>{i.name}</strong><small>{money(i.price)} each</small></div><div className="customer-quantity-controls"><button onClick={() => change(i.id, -1)}>−</button><span>{cart[i.id]}</span><button onClick={() => add(i.id)}>+</button></div><button className="customer-cart-remove" onClick={() => setCart(c => { const n = { ...c }; delete n[i.id]; return n; })}>Remove</button><strong>{money(Number(i.price ?? 0) * cart[i.id])}</strong></div>)}
-      <div className="customer-cart-total"><span>Subtotal</span><strong>{money(total)}</strong></div><p className="customer-cart-note">Cart preview only — checkout integration comes next.</p>
+      {placedOrder ? <div className="customer-order-success" role="status">
+        <span className="customer-order-success-icon">✓</span>
+        <small>ORDER PLACED</small>
+        <h4>Thank you, {customerName || "food lover"}!</h4>
+        <p>Your order has been received. Pay by cash when it arrives.</p>
+        <div className="customer-order-number"><span>Order number</span><strong>{placedOrder.orderNumber}</strong></div>
+        <button type="button" onClick={() => { setPlacedOrder(null); setCartOpen(false); }}>Continue exploring</button>
+      </div> : <>
+        <div className="customer-cart-total"><span>Subtotal</span><strong>{money(total)}</strong></div>
+        <form className="customer-checkout-form" onSubmit={placeOrder}>
+          <h4>Delivery details</h4>
+          <label>Full name<input value={customerName} onChange={e => setCustomerName(e.target.value)} autoComplete="name" required maxLength={120} placeholder="Your name" /></label>
+          <label>Phone number<input type="tel" value={customerPhone} onChange={e => setCustomerPhone(e.target.value)} autoComplete="tel" required minLength={7} maxLength={30} placeholder="For order updates" /></label>
+          <label>Delivery address<textarea value={deliveryAddress} onChange={e => setDeliveryAddress(e.target.value)} autoComplete="street-address" required maxLength={800} rows={3} placeholder="House / street, area, city, PIN code" /></label>
+          <label>Order notes <span>(optional)</span><textarea value={orderNotes} onChange={e => setOrderNotes(e.target.value)} maxLength={500} rows={2} placeholder="Any special instructions?" /></label>
+          <div className="customer-cod-option"><span className="customer-cod-radio">✓</span><span><strong>Cash on Delivery</strong><small>Pay when your order arrives</small></span><span className="customer-cod-tag">COD</span></div>
+          {checkoutError && <p className="customer-checkout-error" role="alert">{checkoutError}</p>}
+          <button className="customer-place-order" type="submit" disabled={placingOrder || cartCount === 0}>{placingOrder ? "Placing order…" : "Place Order · " + money(total)}</button>
+          <p className="customer-checkout-footnote">No online payment required. You’ll pay in cash on delivery.</p>
+        </form>
+      </>}
     </aside>}
   </main>;
 }
