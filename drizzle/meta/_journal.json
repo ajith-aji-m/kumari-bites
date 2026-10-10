@@ -22,6 +22,13 @@
       "when": 1791639000000,
       "tag": "0002_menu_image_mediumtext",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1791645000000,
+      "tag": "0003_settings_brand_assets",
+      "breakpoints": true
     }
   ]
 }
