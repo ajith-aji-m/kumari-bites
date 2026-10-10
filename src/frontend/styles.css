@@ -139,13 +139,13 @@ input:not([type="checkbox"]):focus { border-color: #b85c38; box-shadow: 0 0 0 3p
   background:#fffaf6;
 }
 .menu-add-fab {
-  position:sticky;
-  align-self:end;
-  bottom:20px;
-  z-index:8;
+  position:fixed;
+  right:32px;
+  bottom:28px;
+  z-index:80;
   width:52px;
   height:52px;
-  margin:0 4px 4px auto;
+  margin:0;
   border:1px solid rgba(255,255,255,.14);
   border-radius:50%;
   display:grid;
@@ -175,9 +175,10 @@ input:not([type="checkbox"]):focus { border-color: #b85c38; box-shadow: 0 0 0 3p
 
 @media (max-width:600px) {
   .menu-add-fab {
+    right:20px;
+    bottom:20px;
     width:48px;
     height:48px;
-    margin-right:2px;
   }
   .menu-add-fab span { font-size:25px; }
 }
