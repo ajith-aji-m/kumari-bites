@@ -104,11 +104,11 @@ export async function registerOrderRoutes(app: FastifyInstance) {
   // Public customer checkout: server validates stock and prices; no staff session required.
   app.post("/api/v1/public/orders", async (request, reply) => {
     const input = createOrderSchema.extend({
-      customerName: z.string().trim().min(2).max(120),
+      customerName: z.string().trim().max(120).optional(),
       customerPhone: z.string().trim().min(7).max(30),
       source: z.literal("qr").default("qr"),
       paymentMethod: z.literal("cash").default("cash"),
-      notes: z.string().trim().min(1).max(1000)
+      notes: z.never().optional()
     }).parse(request.body);
     const created = await createOrder(input, true);
     return reply.code(201).send(created);
