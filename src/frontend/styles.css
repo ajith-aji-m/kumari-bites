@@ -4497,3 +4497,31 @@ button {
     right:6px!important;
   }
 }
+
+
+/* Widen the cloud horizontally only; preserve its height and shift it left. */
+.customer-story-bubble{
+  width:min(820px,59vw)!important;
+  aspect-ratio:auto!important;
+  height:calc(min(760px,55vw) / 1.55)!important;
+  right:auto!important;
+  left:clamp(36px,39vw,600px)!important;
+  transform:translateX(-50%);
+}
+@media(max-width:760px){
+  .customer-story-bubble{
+    width:min(88vw,460px)!important;
+    height:calc(min(84vw,440px) / 1.55)!important;
+    left:auto!important;
+    right:8px!important;
+    transform:none;
+  }
+}
+@media(max-width:390px){
+  .customer-story-bubble{
+    width:86vw!important;
+    height:calc(84vw / 1.55)!important;
+    left:auto!important;
+    right:6px!important;
+  }
+}
