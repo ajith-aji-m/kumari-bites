@@ -230,7 +230,7 @@ function DashboardHome() {
     </div>
 
     <section className="dashboard-metrics" aria-label="Today's business metrics">
-      <article className="dashboard-metric-card"><span className="dashboard-metric-label">Today's sales</span><strong>{money(data?.today.sales)}</strong><small>{data?.today.completedOrders ?? 0} completed orders</small></article>
+      <article className="dashboard-metric-card"><span className="dashboard-metric-label">Today's sales</span><strong>{money(data?.today.sales)}</strong><small>Revenue recorded today</small></article>
       <article className="dashboard-metric-card"><span className="dashboard-metric-label">Orders today</span><strong>{data?.today.orders ?? 0}</strong><small>{data?.today.cancelledOrders ?? 0} cancelled</small></article>
       <article className="dashboard-metric-card dashboard-completed-metric"><span className="dashboard-metric-label">Completed today</span><strong>{data?.today.completedOrders ?? 0}</strong><small>Orders successfully completed</small></article>
       <article className="dashboard-metric-card"><span className="dashboard-metric-label">Preparing now</span><strong>{preparingOrders}</strong><small>Orders in preparation</small></article>
