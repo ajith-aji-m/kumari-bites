@@ -318,12 +318,25 @@ function Pagination({ currentPage, totalPages, totalItems, pageSize, onPageChang
   if (totalItems <= pageSize) return null;
   const start = (currentPage - 1) * pageSize + 1;
   const end = Math.min(currentPage * pageSize, totalItems);
+  const pageNumbers = new Set<number>();
+  // Keep the first and last two pages visible, plus the current page and its neighbors.
+  [1, 2, totalPages - 1, totalPages, currentPage - 1, currentPage, currentPage + 1].forEach(page => {
+    if (page >= 1 && page <= totalPages) pageNumbers.add(page);
+  });
+  const visiblePages = [...pageNumbers].sort((a, b) => a - b);
+  const paginationItems: Array<number | "ellipsis"> = [];
+  visiblePages.forEach((page, index) => {
+    if (index > 0 && page - visiblePages[index - 1] > 1) paginationItems.push("ellipsis");
+    paginationItems.push(page);
+  });
+
   return <div className="table-pagination">
     <span>Showing {start}–{end} of {totalItems}</span>
     <div className="table-pagination-controls">
       <button type="button" disabled={currentPage === 1} onClick={() => onPageChange(currentPage - 1)} aria-label="Previous page">‹</button>
-      {Array.from({ length: totalPages }, (_, index) => index + 1).map(page =>
-        <button type="button" key={page} className={page === currentPage ? "active" : ""} onClick={() => onPageChange(page)}>{page}</button>
+      {paginationItems.map((item, index) => item === "ellipsis"
+        ? <span className="table-pagination-ellipsis" key={`ellipsis-${index}`} aria-hidden="true">…</span>
+        : <button type="button" key={item} className={item === currentPage ? "active" : ""} aria-current={item === currentPage ? "page" : undefined} onClick={() => onPageChange(item)}>{item}</button>
       )}
       <button type="button" disabled={currentPage === totalPages} onClick={() => onPageChange(currentPage + 1)} aria-label="Next page">›</button>
     </div>
