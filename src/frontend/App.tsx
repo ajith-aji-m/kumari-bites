@@ -1126,6 +1126,12 @@ function Reports() {
 
   useEffect(() => { loadReports(); }, [loadReports]);
 
+  useRealtimeRefresh(useCallback((event) => {
+    if (event.type === "order.created" || event.type === "order.status_changed") {
+      loadReports();
+    }
+  }, [loadReports]));
+
   const dailyRows = useMemo(() => {
     const existing = new Map((data?.dailySales ?? []).map(day => [day.date, day]));
     const days: Array<{ date: string; orders: number; sales: number }> = [];
@@ -1144,12 +1150,12 @@ function Reports() {
 
   return <section className="reports-page">
     <div className="reports-heading">
-      <div><p className="eyebrow">BUSINESS PERFORMANCE</p><h1>Reports &amp; Analytics</h1><p className="muted">Understand sales, order volume, and best-selling menu items using your existing order data.</p></div>
+      <h1>Reports &amp; Analytics</h1>
       <button type="button" className="dashboard-refresh-button" onClick={loadReports} disabled={loading}><span aria-hidden="true">↻</span> {loading ? "Refreshing…" : "Refresh"}</button>
     </div>
 
     <div className="reports-filter panel">
-      <div className="reports-filter-copy"><strong>Sales period</strong><span>Filter reports with a preset or a custom date range.</span></div>
+      <div className="reports-filter-copy"><strong>Sales period</strong></div>
       <CustomDateRangePicker startDate={startDate} endDate={endDate} onApply={range => {
         setStartDate(range.startDate);
         setEndDate(range.endDate);
@@ -1238,7 +1244,7 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
       <button className="nav-item logout" onClick={async () => { await fetch("/api/v1/auth/logout", { method: "POST", credentials: "include" }); window.history.replaceState({}, "", "/"); onLogout(); }}><span>↪</span> Sign out</button>
     </aside>
     <main className="dashboard">
-      <header className="topbar"><div>{active === "Menu" || active === "Orders" || active === "Dashboard" ? <h2>{active === "Menu" ? "Menu Management" : active === "Orders" ? "Orders" : "Dashboard"}</h2> : <><p className="eyebrow">KUMARI BITES ADMIN</p><h2>{active}</h2></>}</div></header>
+      {active !== "Reports" && <header className="topbar"><div>{active === "Menu" || active === "Orders" || active === "Dashboard" ? <h2>{active === "Menu" ? "Menu Management" : active === "Orders" ? "Orders" : "Dashboard"}</h2> : <><p className="eyebrow">KUMARI BITES ADMIN</p><h2>{active}</h2></>}</div></header>}
       {active === "Dashboard" ? <DashboardHome /> : active === "Orders" ? <Orders /> : active === "Menu" ? <MenuManagement /> : active === "Reports" ? <Reports /> : <section className="panel"><h3>{active}</h3><p className="muted">This module is coming next.</p></section>}
     </main>
   </div>;
