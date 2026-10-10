@@ -414,7 +414,6 @@ function Orders() {
       <div className="menu-toolbar menu-index-controls orders-toolbar">
         <input className="search-input" value={query} onChange={e => setQuery(e.target.value)} placeholder="Search order, customer or phone..." />
         <CustomSelect value={status} onChange={setStatus} options={[{ value: "all", label: "All statuses" }, ...["new","confirmed","preparing","ready","completed","cancelled"].map(s => ({ value: s, label: statusLabel(s) }))]} />
-        <button type="button" className="primary-button compact order-add-icon-button" onClick={() => { resetCreateForm(); setShowCreate(true); }} aria-label="Create order" title="Create order"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg></button>
       </div>
       {loading ? <p className="muted">Loading orders...</p> : <div className="menu-table-wrap orders-table-wrap">
         <table className="menu-table orders-table">
@@ -432,6 +431,8 @@ function Orders() {
         <Pagination currentPage={ordersPage} totalPages={ordersTotalPages} totalItems={filtered.length} pageSize={pageSize} onPageChange={setOrdersPage} />
       </div>}
     </article>
+
+    <button type="button" className="menu-add-fab" aria-label="Create order" title="Create order" onClick={() => { resetCreateForm(); setShowCreate(true); }}><span aria-hidden="true">+</span></button>
 
     {showCreate && <div className="order-modal-backdrop" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget && !saving) setShowCreate(false); }}>
       <section className="order-modal" role="dialog" aria-modal="true" aria-labelledby="add-order-title">
@@ -861,7 +862,7 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
       <button className="nav-item logout" onClick={async () => { await fetch("/api/v1/auth/logout", { method: "POST", credentials: "include" }); window.history.replaceState({}, "", "/"); onLogout(); }}><span>↪</span> Sign out</button>
     </aside>
     <main className="dashboard">
-      {active !== "Orders" && <header className="topbar"><div>{active === "Menu" ? <h2>Menu Management</h2> : <><p className="eyebrow">KUMARI BITES ADMIN</p><h2>{active}</h2></>}</div></header>}
+      <header className="topbar"><div>{active === "Menu" ? <h2>Menu Management</h2> : <><p className="eyebrow">KUMARI BITES ADMIN</p><h2>{active}</h2></>}</div></header>
       {active === "Dashboard" ? <DashboardHome /> : active === "Orders" ? <Orders /> : active === "Menu" ? <MenuManagement /> : <section className="panel"><h3>{active}</h3><p className="muted">This module is coming next.</p></section>}
     </main>
   </div>;
