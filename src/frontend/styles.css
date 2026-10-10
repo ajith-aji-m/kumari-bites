@@ -2462,3 +2462,9 @@ button {
 
 .category-image-remove { position: absolute; top: 10px; right: 10px; z-index: 3; width: 30px; height: 30px; border: 0; border-radius: 50%; background: rgba(0,0,0,.78); color: #fff; font-size: 21px; line-height: 1; display: grid; place-items: center; cursor: pointer; }
 .category-image-remove:hover { background: rgba(190,45,45,.95); }
+
+.image-upload-component { position: relative; cursor: pointer; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.image-upload-component .image-upload-hit-area { position: absolute; inset: 0; z-index: 2; cursor: pointer; }
+.image-upload-component .image-upload-hit-area input[type="file"] { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+.image-upload-component .category-image-remove { z-index: 4; }
+.image-upload-component img { width: 100%; height: 100%; object-fit: cover; border-radius: inherit; display: block; }
