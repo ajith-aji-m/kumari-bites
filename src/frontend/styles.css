@@ -668,3 +668,80 @@ input:not([type="checkbox"]):focus { border-color: #b85c38; box-shadow: 0 0 0 3p
     height:60px;
   }
 }
+
+/* Dashboard food photography background — scoped to the authenticated app */
+.app-shell.dashboard-background {
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: #140b08;
+}
+.app-shell.dashboard-background::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    linear-gradient(135deg, rgba(20, 11, 8, .78), rgba(43, 20, 12, .64) 52%, rgba(20, 11, 8, .82)),
+    url("/assets/dashboard-bites.png") center / cover no-repeat;
+}
+.app-shell.dashboard-background .sidebar {
+  background: rgba(24, 14, 10, .84);
+  border-right-color: rgba(255, 190, 148, .14);
+  color: #fff1e5;
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+}
+.app-shell.dashboard-background .sidebar-brand { color: #fff1e5; }
+.app-shell.dashboard-background .nav-item { color: rgba(255, 235, 220, .72); }
+.app-shell.dashboard-background .nav-item.active {
+  background: rgba(255, 107, 26, .19);
+  color: #ffb17e;
+}
+.app-shell.dashboard-background .nav-item:hover { background: rgba(255, 235, 220, .09); }
+.app-shell.dashboard-background .dashboard { color: #fff4ea; }
+.app-shell.dashboard-background .dashboard .eyebrow { color: #ff9b61; }
+.app-shell.dashboard-background .dashboard .muted { color: rgba(255, 235, 220, .67); }
+.app-shell.dashboard-background .dashboard h1,
+.app-shell.dashboard-background .dashboard h2,
+.app-shell.dashboard-background .dashboard h3 { color: #fff3e9; }
+.app-shell.dashboard-background .stats article,
+.app-shell.dashboard-background .panel {
+  background: rgba(31, 20, 15, .72);
+  border-color: rgba(255, 208, 177, .15);
+  color: #fff1e5;
+  box-shadow: 0 18px 42px rgba(0, 0, 0, .16);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+.app-shell.dashboard-background .stats span,
+.app-shell.dashboard-background .order-row span,
+.app-shell.dashboard-background .popular-row { color: rgba(255, 235, 220, .76); }
+.app-shell.dashboard-background .stats strong,
+.app-shell.dashboard-background .popular-row strong,
+.app-shell.dashboard-background .order-row strong { color: #fff3e9; }
+.app-shell.dashboard-background .order-row,
+.app-shell.dashboard-background .popular-row { border-top-color: rgba(255, 208, 177, .12); }
+.app-shell.dashboard-background .admin-chip {
+  background: rgba(31, 20, 15, .65);
+  border-color: rgba(255, 208, 177, .18);
+  color: #fff1e5;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+.app-shell.dashboard-background .status-dot {
+  background: rgba(80, 160, 104, .18);
+  color: #a6e3b7;
+}
+.app-shell.dashboard-background .trend-row span {
+  background: rgba(255, 235, 220, .1);
+  color: #ffe2ce;
+}
+@media (max-width: 650px) {
+  .app-shell.dashboard-background .sidebar {
+    background: rgba(24, 14, 10, .92);
+  }
+}
+
