@@ -22,6 +22,14 @@ export async function registerDashboardRoutes(app: FastifyInstance) {
         AND placed_at < DATE_ADD(CURDATE(), INTERVAL 1 DAY)
     `);
 
+    const completedToday = await db.execute(sql`
+      SELECT COUNT(*) AS completed_orders
+      FROM orders
+      WHERE status = 'completed'
+        AND completed_at >= CURDATE()
+        AND completed_at < DATE_ADD(CURDATE(), INTERVAL 1 DAY)
+    `);
+
     const salesTrend = await db.execute(sql`
       SELECT
         DATE(placed_at) AS sale_date,
@@ -66,6 +74,7 @@ export async function registerDashboardRoutes(app: FastifyInstance) {
       .limit(8);
 
     const statRow = (stats as unknown as Array<Record<string, unknown>>)[0] ?? {};
+    const completedRow = (completedToday as unknown as Array<Record<string, unknown>>)[0] ?? {};
 
     return {
       today: {
@@ -73,7 +82,7 @@ export async function registerDashboardRoutes(app: FastifyInstance) {
         sales: Number(statRow.total_sales ?? 0),
         averageOrder: Number(statRow.average_order ?? 0),
         activeOrders: Number(statRow.active_orders ?? 0),
-        completedOrders: Number(statRow.completed_orders ?? 0),
+        completedOrders: Number(completedRow.completed_orders ?? 0),
         cancelledOrders: Number(statRow.cancelled_orders ?? 0)
       },
       salesTrend: salesTrend as unknown,
