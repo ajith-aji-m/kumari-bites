@@ -225,7 +225,7 @@ function DashboardHome() {
 
   return <section className="dashboard-home">
     <div className="dashboard-home-heading">
-      <div><p className="eyebrow">OVERVIEW</p><h1>Dashboard</h1><p className="muted">{dateLabel}</p></div>
+      <div><p className="eyebrow">LIVE SUMMARY</p><h1>Today’s overview</h1><p className="muted">{dateLabel}</p></div>
       <button type="button" className="dashboard-refresh-button" onClick={() => { load(); loadOrders(); loadMenu(); }}><span aria-hidden="true">↻</span> Refresh</button>
     </div>
 
@@ -954,7 +954,7 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
       <button className="nav-item logout" onClick={async () => { await fetch("/api/v1/auth/logout", { method: "POST", credentials: "include" }); window.history.replaceState({}, "", "/"); onLogout(); }}><span>↪</span> Sign out</button>
     </aside>
     <main className="dashboard">
-      <header className="topbar"><div>{active === "Menu" || active === "Orders" ? <h2>{active === "Menu" ? "Menu Management" : "Orders"}</h2> : <><p className="eyebrow">KUMARI BITES ADMIN</p><h2>{active}</h2></>}</div></header>
+      <header className="topbar"><div>{active === "Menu" || active === "Orders" || active === "Dashboard" ? <h2>{active === "Menu" ? "Menu Management" : active === "Orders" ? "Orders" : "Dashboard"}</h2> : <><p className="eyebrow">KUMARI BITES ADMIN</p><h2>{active}</h2></>}</div></header>
       {active === "Dashboard" ? <DashboardHome /> : active === "Orders" ? <Orders /> : active === "Menu" ? <MenuManagement /> : <section className="panel"><h3>{active}</h3><p className="muted">This module is coming next.</p></section>}
     </main>
   </div>;
