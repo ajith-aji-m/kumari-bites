@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 import { and, desc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "../db/index.js";
-import { menuItemPrices, menuItems, orderItems, orders } from "../db/schema.js";
+import { menuItemPrices, menuItems, orderItems, orders, payments } from "../db/schema.js";
 import { requirePermission } from "../auth/authorization.js";
 import { broadcast } from "../realtime/socket.js";
 
@@ -34,6 +34,60 @@ function conflict(message: string) {
   return Object.assign(new Error(message), { statusCode: 409 });
 }
 
+async function createOrder(input: z.infer<typeof createOrderSchema>, recordCashPayment = false) {
+  const lowStockEvents: Array<{ menuItemId: number; itemName: string; quantity: number; threshold: number }> = [];
+
+  const created = await db.transaction(async (tx) => {
+    const lines: Array<{ menuItemId: number; itemName: string; unitPrice: number; quantity: number; notes?: string }> = [];
+    for (const item of input.items) {
+      const menuItem = (await tx.select().from(menuItems).where(eq(menuItems.id, item.menuItemId)).limit(1).for("update"))[0];
+      if (!menuItem) throw conflict("A selected menu item was not found.");
+      if (!menuItem.isAvailable) throw conflict(menuItem.name + " is currently unavailable.");
+      if (menuItem.stockQuantity < item.quantity) throw conflict(menuItem.name + " has only " + menuItem.stockQuantity + " left in stock.");
+
+      const price = (await tx.select().from(menuItemPrices).where(
+        and(eq(menuItemPrices.menuItemId, menuItem.id), eq(menuItemPrices.isActive, true))
+      ).limit(1))[0];
+      if (!price) throw conflict(menuItem.name + " has no active price.");
+
+      const remaining = menuItem.stockQuantity - item.quantity;
+      const crossesThreshold = menuItem.lowStockAlertEnabled && remaining <= menuItem.lowStockThreshold;
+      await tx.update(menuItems).set({
+        stockQuantity: remaining,
+        isAvailable: crossesThreshold ? false : menuItem.isAvailable
+      }).where(eq(menuItems.id, menuItem.id));
+
+      if (crossesThreshold) lowStockEvents.push({
+        menuItemId: menuItem.id, itemName: menuItem.name, quantity: remaining, threshold: menuItem.lowStockThreshold
+      });
+
+      lines.push({ menuItemId: menuItem.id, itemName: menuItem.name, unitPrice: Number(price.price), quantity: item.quantity, notes: item.notes });
+    }
+
+    const subtotal = lines.reduce((sum, line) => sum + line.unitPrice * line.quantity, 0);
+    const orderResult = await tx.insert(orders).values({
+      orderNumber: randomUUID(), customerName: input.customerName, customerPhone: input.customerPhone,
+      source: input.source, paymentStatus: "pending", subtotal: subtotal.toFixed(2),
+      discountAmount: "0.00", taxAmount: "0.00", totalAmount: subtotal.toFixed(2), notes: input.notes
+    });
+    const orderId = Number(orderResult[0].insertId);
+    const orderNumber = makeOrderNumber(orderId);
+    await tx.update(orders).set({ orderNumber }).where(eq(orders.id, orderId));
+    await tx.insert(orderItems).values(lines.map(line => ({
+      orderId, menuItemId: line.menuItemId, itemName: line.itemName, unitPrice: line.unitPrice.toFixed(2),
+      quantity: line.quantity, discountAmount: "0.00", lineTotal: (line.unitPrice * line.quantity).toFixed(2), notes: line.notes
+    })));
+    if (recordCashPayment) {
+      await tx.insert(payments).values({ orderId, method: "cash", amount: subtotal.toFixed(2), status: "pending" });
+    }
+    return { orderId, orderNumber, totalAmount: subtotal.toFixed(2) };
+  });
+
+  broadcast({ type: "order.created", payload: { orderId: created.orderId, orderNumber: created.orderNumber } });
+  for (const payload of lowStockEvents) broadcast({ type: "menu.low_stock", payload });
+  return created;
+}
+
 export async function registerOrderRoutes(app: FastifyInstance) {
   app.get("/api/v1/orders", async (request, reply) => {
     const user = await requirePermission(request, reply, "orders.view");
@@ -47,92 +101,25 @@ export async function registerOrderRoutes(app: FastifyInstance) {
     }));
   });
 
+  // Public customer checkout: server validates stock and prices; no staff session required.
+  app.post("/api/v1/public/orders", async (request, reply) => {
+    const input = createOrderSchema.extend({
+      customerName: z.string().trim().min(2).max(120),
+      customerPhone: z.string().trim().min(7).max(30),
+      source: z.literal("qr").default("qr"),
+      paymentMethod: z.literal("cash").default("cash"),
+      notes: z.string().trim().min(1).max(1000)
+    }).parse(request.body);
+    const created = await createOrder(input, true);
+    return reply.code(201).send(created);
+  });
+
   app.post("/api/v1/orders", async (request, reply) => {
     const user = await requirePermission(request, reply, "orders.manage");
     if (!user) return;
-
     const input = createOrderSchema.parse(request.body);
-    const lowStockEvents: Array<{ menuItemId: number; itemName: string; quantity: number; threshold: number }> = [];
-
-    const created = await db.transaction(async (tx) => {
-      const lines = [];
-      for (const item of input.items) {
-        const menuItem = (await tx.select().from(menuItems).where(eq(menuItems.id, item.menuItemId)).limit(1).for("update"))[0];
-        if (!menuItem) throw conflict(`Menu item ${item.menuItemId} was not found.`);
-        if (!menuItem.isAvailable) throw conflict(`${menuItem.name} is currently unavailable.`);
-        if (menuItem.stockQuantity < item.quantity) {
-          throw conflict(`${menuItem.name} has only ${menuItem.stockQuantity} left in stock.`);
-        }
-
-        const price = (await tx.select().from(menuItemPrices).where(
-          and(eq(menuItemPrices.menuItemId, menuItem.id), eq(menuItemPrices.isActive, true))
-        ).limit(1))[0];
-        if (!price) throw conflict(`${menuItem.name} has no active price.`);
-
-        const remaining = menuItem.stockQuantity - item.quantity;
-        const crossesThreshold = menuItem.lowStockAlertEnabled && remaining <= menuItem.lowStockThreshold;
-        await tx.update(menuItems).set({
-          stockQuantity: remaining,
-          isAvailable: crossesThreshold ? false : menuItem.isAvailable
-        }).where(eq(menuItems.id, menuItem.id));
-
-        if (crossesThreshold) {
-          lowStockEvents.push({
-            menuItemId: menuItem.id,
-            itemName: menuItem.name,
-            quantity: remaining,
-            threshold: menuItem.lowStockThreshold
-          });
-        }
-
-        const unitPrice = Number(price.price);
-        lines.push({ menuItemId: menuItem.id, itemName: menuItem.name, unitPrice, quantity: item.quantity, notes: item.notes });
-      }
-
-      const subtotal = lines.reduce((sum, line) => sum + line.unitPrice * line.quantity, 0);
-      const orderResult = await tx.insert(orders).values({
-        orderNumber: randomUUID(),
-        customerName: input.customerName,
-        customerPhone: input.customerPhone,
-        source: input.source,
-        paymentStatus: "pending",
-        subtotal: subtotal.toFixed(2),
-        discountAmount: "0.00",
-        taxAmount: "0.00",
-        totalAmount: subtotal.toFixed(2),
-        notes: input.notes
-      });
-
-      const orderId = Number(orderResult[0].insertId);
-      const orderNumber = makeOrderNumber(orderId);
-      await tx.update(orders).set({ orderNumber }).where(eq(orders.id, orderId));
-
-      await tx.insert(orderItems).values(
-        lines.map((line) => ({
-          orderId,
-          menuItemId: line.menuItemId,
-          itemName: line.itemName,
-          unitPrice: line.unitPrice.toFixed(2),
-          quantity: line.quantity,
-          discountAmount: "0.00",
-          lineTotal: (line.unitPrice * line.quantity).toFixed(2),
-          notes: line.notes
-        }))
-      );
-
-      return { orderId, orderNumber };
-    });
-
-    broadcast({
-      type: "order.created",
-      payload: created
-    });
-
-    for (const payload of lowStockEvents) {
-      broadcast({ type: "menu.low_stock", payload });
-    }
-
-    return reply.code(201).send(created);
+    const created = await createOrder(input);
+    return reply.code(201).send({ orderId: created.orderId, orderNumber: created.orderNumber });
   });
 
   app.patch("/api/v1/orders/:id/status", async (request, reply) => {
