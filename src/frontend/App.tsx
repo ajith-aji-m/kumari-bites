@@ -455,7 +455,7 @@ function Orders() {
 
   async function updateStatus(orderId: number, nextStatus: string, confirmed = false) {
     const current = orders.find(order => order.id === orderId);
-    if (!current || current.status === nextStatus || current.status === "completed" || statusSaving) return;
+    if (!current || current.status === nextStatus || current.status === "completed" || current.status === "cancelled" || statusSaving) return;
     if (!confirmed && (nextStatus === "completed" || nextStatus === "cancelled")) {
       setPendingStatusChange({ orderId, orderNumber: current.orderNumber, status: nextStatus });
       return;
@@ -496,7 +496,7 @@ function Orders() {
             <td><div className="order-items-cell">{order.items?.length ? order.items.map(item => <span key={item.id}>{item.itemName} <small>× {item.quantity}</small></span>) : <span className="muted">Items unavailable</span>}</div></td>
             <td><span className={"order-status " + order.status}>{statusLabel(order.status)}</span></td>
             <td><strong>{money(order.totalAmount)}</strong></td>
-            <td>{order.status === "completed" ? <span className="order-status-lock" title="Completed orders cannot be changed"><span aria-hidden="true">🔒</span> Locked</span> : <CustomSelect value={order.status} onChange={value => updateStatus(order.id, value)} portalMenu statusTone options={["new","confirmed","preparing","ready","completed","cancelled"].map(s => ({ value: s, label: statusLabel(s) }))} />}</td>
+            <td>{order.status === "completed" || order.status === "cancelled" ? <span className="order-status-lock" title={`${statusLabel(order.status)} orders cannot be changed`}><span aria-hidden="true">🔒</span> Locked</span> : <CustomSelect value={order.status} onChange={value => updateStatus(order.id, value)} portalMenu statusTone options={["new","confirmed","preparing","ready","completed","cancelled"].map(s => ({ value: s, label: statusLabel(s) }))} />}</td>
           </tr>)}</tbody>
         </table>
         {!filtered.length && <div className="empty-state orders-empty-state"><span className="orders-empty-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 6h12M8 12h12M8 18h12M3.5 6h.01M3.5 12h.01M3.5 18h.01" /></svg></span><strong>{query || status !== "all" ? "No matching orders" : "No orders yet"}</strong><p className="muted">{query || status !== "all" ? "Try changing your search or status filter." : "Use the + button at the bottom-right to create your first order."}</p></div>}
@@ -516,7 +516,7 @@ function Orders() {
           </div>
         </div>
         <p id="order-confirm-description" className="order-confirm-description">{pendingStatusChange.status === "cancelled"
-          ? "This order will be marked as cancelled."
+          ? "Its items go back into stock, and the order can’t be reopened."
           : "After completion, this order’s status can’t be changed."}</p>
         <div className="order-confirm-order-ref"><span>Order</span><strong>{pendingStatusChange.orderNumber}</strong></div>
         <div className="order-confirm-actions">

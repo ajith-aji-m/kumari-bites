@@ -1,8 +1,9 @@
 import type { FastifyInstance } from "fastify";
-import { desc, eq } from "drizzle-orm";
+import { randomUUID } from "node:crypto";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "../db/index.js";
-import { menuItems, orderItems, orders } from "../db/schema.js";
+import { menuItemPrices, menuItems, orderItems, orders } from "../db/schema.js";
 import { requirePermission } from "../auth/authorization.js";
 import { broadcast } from "../realtime/socket.js";
 
@@ -12,10 +13,9 @@ const createOrderSchema = z.object({
   source: z.enum(["qr", "admin", "walk_in"]).default("qr"),
   paymentMethod: z.enum(["cash", "upi", "card", "online", "other"]).default("cash"),
   notes: z.string().trim().max(1000).optional(),
+  // Name and price always come from the menu; any client-sent values are ignored.
   items: z.array(z.object({
-    menuItemId: z.number().int().positive().optional(),
-    itemName: z.string().trim().min(1).max(150),
-    unitPrice: z.number().nonnegative(),
+    menuItemId: z.number().int().positive(),
     quantity: z.number().int().positive(),
     notes: z.string().trim().max(500).optional()
   })).min(1)
@@ -25,8 +25,13 @@ const statusSchema = z.object({
   status: z.enum(["new", "confirmed", "preparing", "ready", "completed", "cancelled"])
 });
 
-function makeOrderNumber() {
-  return `KB-${Date.now().toString().slice(-8)}`;
+// Derived from the auto-increment id, so concurrent orders can never collide.
+function makeOrderNumber(orderId: number) {
+  return `KB-${String(orderId).padStart(6, "0")}`;
+}
+
+function conflict(message: string) {
+  return Object.assign(new Error(message), { statusCode: 409 });
 }
 
 export async function registerOrderRoutes(app: FastifyInstance) {
@@ -47,36 +52,22 @@ export async function registerOrderRoutes(app: FastifyInstance) {
     if (!user) return;
 
     const input = createOrderSchema.parse(request.body);
-    const subtotal = input.items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
-    const orderNumber = makeOrderNumber();
-
     const lowStockEvents: Array<{ menuItemId: number; itemName: string; quantity: number; threshold: number }> = [];
 
     const created = await db.transaction(async (tx) => {
-      const orderResult = await tx.insert(orders).values({
-        orderNumber,
-        customerName: input.customerName,
-        customerPhone: input.customerPhone,
-        source: input.source,
-        paymentStatus: "pending",
-        subtotal: subtotal.toFixed(2),
-        discountAmount: "0.00",
-        taxAmount: "0.00",
-        totalAmount: subtotal.toFixed(2),
-        notes: input.notes
-      });
-
-      const orderId = Number(orderResult[0].insertId);
-
+      const lines = [];
       for (const item of input.items) {
-        if (!item.menuItemId) continue;
-
-        const menuItem = (await tx.select().from(menuItems).where(eq(menuItems.id, item.menuItemId)).limit(1))[0];
-        if (!menuItem) throw new Error(`Menu item ${item.itemName} was not found.`);
-        if (!menuItem.isAvailable) throw new Error(`${menuItem.name} is currently unavailable.`);
+        const menuItem = (await tx.select().from(menuItems).where(eq(menuItems.id, item.menuItemId)).limit(1).for("update"))[0];
+        if (!menuItem) throw conflict(`Menu item ${item.menuItemId} was not found.`);
+        if (!menuItem.isAvailable) throw conflict(`${menuItem.name} is currently unavailable.`);
         if (menuItem.stockQuantity < item.quantity) {
-          throw new Error(`${menuItem.name} has only ${menuItem.stockQuantity} left in stock.`);
+          throw conflict(`${menuItem.name} has only ${menuItem.stockQuantity} left in stock.`);
         }
+
+        const price = (await tx.select().from(menuItemPrices).where(
+          and(eq(menuItemPrices.menuItemId, menuItem.id), eq(menuItemPrices.isActive, true))
+        ).limit(1))[0];
+        if (!price) throw conflict(`${menuItem.name} has no active price.`);
 
         const remaining = menuItem.stockQuantity - item.quantity;
         const crossesThreshold = menuItem.lowStockAlertEnabled && remaining <= menuItem.lowStockThreshold;
@@ -93,18 +84,39 @@ export async function registerOrderRoutes(app: FastifyInstance) {
             threshold: menuItem.lowStockThreshold
           });
         }
+
+        const unitPrice = Number(price.price);
+        lines.push({ menuItemId: menuItem.id, itemName: menuItem.name, unitPrice, quantity: item.quantity, notes: item.notes });
       }
 
+      const subtotal = lines.reduce((sum, line) => sum + line.unitPrice * line.quantity, 0);
+      const orderResult = await tx.insert(orders).values({
+        orderNumber: randomUUID(),
+        customerName: input.customerName,
+        customerPhone: input.customerPhone,
+        source: input.source,
+        paymentStatus: "pending",
+        subtotal: subtotal.toFixed(2),
+        discountAmount: "0.00",
+        taxAmount: "0.00",
+        totalAmount: subtotal.toFixed(2),
+        notes: input.notes
+      });
+
+      const orderId = Number(orderResult[0].insertId);
+      const orderNumber = makeOrderNumber(orderId);
+      await tx.update(orders).set({ orderNumber }).where(eq(orders.id, orderId));
+
       await tx.insert(orderItems).values(
-        input.items.map((item) => ({
+        lines.map((line) => ({
           orderId,
-          menuItemId: item.menuItemId,
-          itemName: item.itemName,
-          unitPrice: item.unitPrice.toFixed(2),
-          quantity: item.quantity,
+          menuItemId: line.menuItemId,
+          itemName: line.itemName,
+          unitPrice: line.unitPrice.toFixed(2),
+          quantity: line.quantity,
           discountAmount: "0.00",
-          lineTotal: (item.unitPrice * item.quantity).toFixed(2),
-          notes: item.notes
+          lineTotal: (line.unitPrice * line.quantity).toFixed(2),
+          notes: line.notes
         }))
       );
 
@@ -133,22 +145,38 @@ export async function registerOrderRoutes(app: FastifyInstance) {
     }
 
     const input = statusSchema.parse(request.body);
-    const existing = await db.select().from(orders).where(eq(orders.id, orderId)).limit(1);
-    if (!existing[0]) return reply.code(404).send({ message: "Order not found" });
-    if (existing[0].status === "completed") {
-      return reply.code(409).send({ message: "This order is completed and locked. Its status cannot be changed." });
-    }
+    const existing = await db.transaction(async (tx) => {
+      const order = (await tx.select().from(orders).where(eq(orders.id, orderId)).limit(1).for("update"))[0];
+      if (!order) return null;
+      if (order.status === "completed" || order.status === "cancelled") {
+        throw conflict(`This order is ${order.status} and locked. Its status cannot be changed.`);
+      }
 
-    await db.update(orders).set({
-      status: input.status,
-      completedAt: input.status === "completed" ? new Date() : existing[0].completedAt
-    }).where(eq(orders.id, orderId));
+      await tx.update(orders).set({
+        status: input.status,
+        completedAt: input.status === "completed" ? new Date() : order.completedAt
+      }).where(eq(orders.id, orderId));
+
+      // Return the cancelled quantities to stock.
+      if (input.status === "cancelled") {
+        const lines = await tx.select().from(orderItems).where(eq(orderItems.orderId, orderId));
+        for (const line of lines) {
+          if (!line.menuItemId) continue;
+          await tx.update(menuItems).set({
+            stockQuantity: sql`${menuItems.stockQuantity} + ${line.quantity}`
+          }).where(eq(menuItems.id, line.menuItemId));
+        }
+      }
+
+      return order;
+    });
+    if (!existing) return reply.code(404).send({ message: "Order not found" });
 
     broadcast({
       type: "order.status_changed",
       payload: {
         orderId,
-        orderNumber: existing[0].orderNumber,
+        orderNumber: existing.orderNumber,
         status: input.status
       }
     });

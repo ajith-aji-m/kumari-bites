@@ -197,6 +197,11 @@ Percentage discounts are capped at 100%, offer/coupon date ranges are validated,
 
 Order creation broadcasts `order.created`. Status changes broadcast `order.status_changed`.
 
+- Every order line must reference a menu item; the server takes the item name and active price from the menu and ignores client-sent prices.
+- Order numbers are derived from the order id (`KB-000123`), so concurrent orders cannot collide.
+- Completed and cancelled orders are locked. Cancelling an order returns its quantities to stock (item availability is not changed automatically).
+- Invalid request bodies return `400` with the first validation issue; business-rule failures such as unavailable or out-of-stock items return `409`.
+
 ### Realtime
 
 WebSocket endpoint: `/ws`
