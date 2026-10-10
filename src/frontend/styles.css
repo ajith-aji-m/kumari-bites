@@ -539,3 +539,31 @@ input:not([type="checkbox"]):focus { border-color: #b85c38; box-shadow: 0 0 0 3p
   margin-bottom: 0;
   transform: translateY(8px);
 }
+
+
+/* Keep the chef mascot clear of the Remember me row */
+.chef-guide {
+  margin-top: 2px;
+  margin-bottom: 0;
+  transform: none;
+  gap: 8px;
+  align-items: flex-end;
+}
+.chef-character {
+  width: 48px;
+  height: 58px;
+  flex: 0 0 48px;
+  overflow: hidden;
+}
+.chef-character img {
+  width: 48px;
+  height: 58px;
+  max-width: 48px;
+  object-fit: contain;
+  object-position: center bottom;
+}
+@media (max-width: 600px) {
+  .chef-guide { margin-top: 4px; }
+  .chef-character { width: 42px; height: 52px; flex-basis: 42px; }
+  .chef-character img { width: 42px; height: 52px; max-width: 42px; }
+}
