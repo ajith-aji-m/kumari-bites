@@ -2687,6 +2687,7 @@ button {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform .18s ease;
 }
 .table-image-button:hover img {
   transform: scale(1.05);
@@ -2698,69 +2699,133 @@ button {
 .category-table-image-button + div {
   min-width: 0;
 }
-.image-preview-backdrop {
+
+.image-preview-drawer-backdrop {
   position: fixed;
   inset: 0;
   z-index: 1200;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-  background: rgba(18, 12, 8, 0.78);
-  backdrop-filter: blur(5px);
+  justify-content: flex-end;
+  background: rgba(10, 7, 5, .38);
+  backdrop-filter: blur(3px);
+  animation: imagePreviewBackdropIn .18s ease both;
 }
-.image-preview-modal {
-  position: relative;
+.image-preview-drawer {
+  width: min(430px, 92vw);
+  height: 100%;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  max-width: min(900px, 94vw);
-  max-height: 92vh;
-  padding: 14px;
-  border: 1px solid rgba(255,255,255,0.14);
-  border-radius: 18px;
-  background: #fffaf5;
-  box-shadow: 0 24px 80px rgba(0,0,0,0.35);
+  overflow-y: auto;
+  background: #171311;
+  border-left: 1px solid rgba(255,255,255,.10);
+  box-shadow: -20px 0 60px rgba(0,0,0,.28);
+  animation: imagePreviewDrawerIn .24s cubic-bezier(.2,.8,.2,1) both;
 }
-.image-preview-image {
-  display: block;
-  max-width: min(860px, 88vw);
-  max-height: 78vh;
-  width: auto;
-  height: auto;
-  object-fit: contain;
-  border-radius: 12px;
+.image-preview-drawer-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 24px 24px 18px;
 }
-.image-preview-close {
-  position: absolute;
-  top: -14px;
-  right: -14px;
-  z-index: 1;
-  width: 38px;
-  height: 38px;
-  border: 0;
-  border-radius: 50%;
-  background: #1d1713;
-  color: #fff;
-  font-size: 24px;
+.image-preview-drawer-head .eyebrow {
+  margin-bottom: 5px;
+  color: #ff9b62;
+}
+.image-preview-drawer-head h2 {
+  margin: 0;
+  color: #fff4eb;
+  font-size: 22px;
+  line-height: 1.2;
+}
+.image-preview-drawer-close {
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  border: 1px solid rgba(255,255,255,.10);
+  border-radius: 10px;
+  background: rgba(255,255,255,.05);
+  color: #fff4eb;
+  font-size: 22px;
   line-height: 1;
   cursor: pointer;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.25);
 }
-.image-preview-close:hover {
-  background: #d85b2a;
+.image-preview-drawer-close:hover {
+  background: rgba(255,138,76,.16);
+  border-color: rgba(255,138,76,.35);
+  color: #ffad7b;
 }
-.image-preview-caption {
+.image-preview-drawer-image-wrap {
+  margin: 0 24px;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: 16px;
+  background: rgba(255,255,255,.04);
+}
+.image-preview-drawer-image {
+  display: block;
   width: 100%;
-  padding: 10px 4px 2px;
-  color: #34251d;
-  font-size: 14px;
-  font-weight: 700;
-  text-align: center;
+  height: 100%;
+  object-fit: cover;
+}
+.image-preview-drawer-details {
+  display: grid;
+  gap: 0;
+  margin: 20px 24px 28px;
+  border-top: 1px solid rgba(255,255,255,.08);
+}
+.preview-detail-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  min-height: 48px;
+  border-bottom: 1px solid rgba(255,255,255,.07);
+  color: rgba(255,239,227,.55);
+  font-size: 12px;
+}
+.preview-detail-row strong {
+  color: #fff4eb;
+  font-size: 13px;
+  text-align: right;
+}
+.preview-description {
+  padding-top: 18px;
+}
+.preview-description > span {
+  display: block;
+  margin-bottom: 7px;
+  color: rgba(255,239,227,.55);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+.preview-description p {
+  margin: 0;
+  color: rgba(255,239,227,.82);
+  font-size: 13px;
+  line-height: 1.6;
+}
+@keyframes imagePreviewDrawerIn {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+@keyframes imagePreviewBackdropIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 @media (max-width: 640px) {
-  .image-preview-backdrop { padding: 16px; }
-  .image-preview-modal { max-width: 96vw; padding: 10px; border-radius: 14px; }
-  .image-preview-image { max-width: 90vw; max-height: 76vh; }
-  .image-preview-close { top: -10px; right: -10px; }
+  .image-preview-drawer {
+    width: min(100%, 420px);
+  }
+  .image-preview-drawer-head {
+    padding: 18px 18px 14px;
+  }
+  .image-preview-drawer-image-wrap {
+    margin: 0 18px;
+  }
+  .image-preview-drawer-details {
+    margin: 18px 18px 24px;
+  }
 }
