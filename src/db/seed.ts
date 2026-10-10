@@ -17,7 +17,7 @@ const existingRole = (await db.select().from(roles).where(eq(roles.name, "Super 
 const roleId = existingRole?.id ?? (await db.insert(roles).values({ name: "Super Admin", description: "Full access to Kumari Bites admin" }).$returningId())[0]!.id;
 
 for (const key of permissionKeys) {
-  const existing = (await db.select().from(permissions).where(eq(permissions.key, key).limit(1)))[0];
+  const existing = (await db.select().from(permissions).where(eq(permissions.key, key)).limit(1))[0];
   const permissionId = existing?.id ?? (await db.insert(permissions).values({ key, description: key }).$returningId())[0]!.id;
   const links = await db.select().from(rolePermissions).where(eq(rolePermissions.roleId, roleId)).limit(50);
   if (!links.some((item) => item.permissionId === permissionId)) await db.insert(rolePermissions).values({ roleId, permissionId });
