@@ -39,6 +39,15 @@ const menuItems = [
   { label: "Settings", icon: "⚙" }
 ];
 
+const featuredMenuItems = [
+  "Momos",
+  "Veg Mojito",
+  "Combo Platter",
+  "Custom Chips",
+  "French Fries",
+  "Kathi Rolls"
+];
+
 function money(value: string | number | null | undefined) {
   return `₹${Number(value ?? 0).toLocaleString("en-IN", { maximumFractionDigits: 0 })}`;
 }
@@ -175,26 +184,36 @@ function DashboardHome() {
 
   return <>
     <section className="welcome">
-      <div><p className="eyebrow">TODAY</p><h1>Good morning, Admin</h1><p className="muted">Here’s what’s happening with Kumari Bites today.</p></div>
+      <div><p className="eyebrow">KITCHEN TODAY</p><h1>Good morning, Admin</h1><p className="muted">A live view of today’s orders, sales and the Kumari Bites menu.</p></div>
       <button className="primary-button compact">+ New order</button>
     </section>
+    <section className="menu-spotlight">
+      <div className="menu-spotlight-copy">
+        <p className="eyebrow">FROM OUR MENU</p>
+        <h3>Fresh favourites, ready to serve</h3>
+        <p className="muted">The menu behind today’s kitchen activity.</p>
+      </div>
+      <div className="menu-spotlight-items">
+        {featuredMenuItems.map(item => <span key={item}>{item}</span>)}
+      </div>
+    </section>
     <section className="stats">
-      <article><span>Today's sales</span><strong>{money(data.today.sales)}</strong><small>{data.today.completedOrders} completed orders</small></article>
-      <article><span>Orders</span><strong>{data.today.orders}</strong><small>{data.today.activeOrders} currently active</small></article>
-      <article><span>Average order</span><strong>{money(data.today.averageOrder)}</strong><small>Today's average</small></article>
-      <article><span>Top item</span><strong>{top?.itemName ?? "—"}</strong><small>{top?.quantity ?? 0} sold today</small></article>
+      <article><span>Today's sales</span><strong>{money(data.today.sales)}</strong><small>{data.today.completedOrders} orders completed</small></article>
+      <article><span>Live orders</span><strong>{data.today.orders}</strong><small>{data.today.activeOrders} in the kitchen</small></article>
+      <article><span>Average order</span><strong>{money(data.today.averageOrder)}</strong><small>Per order today</small></article>
+      <article><span>Menu favourite</span><strong>{top?.itemName ?? "—"}</strong><small>{top?.quantity ?? 0} sold today</small></article>
     </section>
     <section className="dashboard-grid">
-      <article className="panel"><div className="panel-head"><div><h3>Recent orders</h3><p className="muted">Latest customer activity</p></div><span className="status-dot">Live</span></div>
+      <article className="panel"><div className="panel-head"><div><h3>Fresh from the kitchen</h3><p className="muted">Latest orders and service status</p></div><span className="status-dot">Live</span></div>
         {data.recentOrders.slice(0, 5).map(o => <div className="order-row" key={o.id}><div><strong>{o.orderNumber}</strong><span>{o.customerName ?? "Walk-in customer"}</span></div><span className={`badge ${o.status}`}>{statusLabel(o.status)}</span><strong>{money(o.totalAmount)}</strong></div>)}
         {!data.recentOrders.length && <p className="muted">No orders yet.</p>}
       </article>
-      <article className="panel"><div className="panel-head"><div><h3>Popular today</h3><p className="muted">Top selling items</p></div></div>
+      <article className="panel"><div className="panel-head"><div><h3>Menu favourites</h3><p className="muted">What customers are ordering today</p></div></div>
         {data.popularItems.map((item, i) => <div className="popular-row" key={item.itemName}><span className="rank">{i + 1}</span><span>{item.itemName}</span><strong>{item.quantity}</strong></div>)}
         {!data.popularItems.length && <p className="muted">No sales yet.</p>}
       </article>
     </section>
-    <section className="panel"><div className="panel-head"><div><h3>Sales trend</h3><p className="muted">Last 7 days</p></div></div>
+    <section className="panel"><div className="panel-head"><div><h3>Sales rhythm</h3><p className="muted">Last 7 days of Kumari Bites orders</p></div></div>
       <div className="trend-row">{data.salesTrend.map(day => <span key={String(day.sale_date)}>{String(day.sale_date).slice(5)} · {money(day.sales)}</span>)}</div>
     </section>
   </>;
@@ -222,11 +241,11 @@ function Orders() {
   );
 
   return <section className="panel">
-    <div className="panel-head"><div><h3>Orders</h3><p className="muted">Manage customer orders and kitchen status.</p></div><span className="status-dot">Live</span></div>
+    <div className="panel-head"><div><p className="eyebrow">KITCHEN SERVICE</p><h3>Orders</h3><p className="muted">Keep every Kumari Bites order moving from new to ready.</p></div><span className="status-dot">Live</span></div>
     <div className="orders-toolbar"><input className="search-input" value={query} onChange={e => setQuery(e.target.value)} placeholder="Search order or customer" />
-      <select className="filter-select" value={status} onChange={e => setStatus(e.target.value)}><option value="all">All statuses</option>{["new","confirmed","preparing","ready","completed","cancelled"].map(s => <option key={s} value={s}>{statusLabel(s)}</option>)}</select>
+      <select aria-label="Filter orders by kitchen status" className="filter-select" value={status} onChange={e => setStatus(e.target.value)}><option value="all">All kitchen statuses</option>{["new","confirmed","preparing","ready","completed","cancelled"].map(s => <option key={s} value={s}>{statusLabel(s)}</option>)}</select>
     </div>
-    <div style={{ overflowX: "auto" }}>{loading ? <p className="muted" style={{ padding: 25 }}>Loading orders...</p> : <table className="orders-table"><thead><tr><th>Order</th><th>Customer</th><th>Status</th><th>Total</th></tr></thead><tbody>
+    <div style={{ overflowX: "auto" }}>{loading ? <p className="muted" style={{ padding: 25 }}>Loading orders...</p> : <table className="orders-table"><thead><tr><th>Order</th><th>Customer</th><th>Kitchen status</th><th>Total</th></tr></thead><tbody>
       {filtered.map(o => <tr key={o.id}><td className="order-number">{o.orderNumber}</td><td><div className="order-customer"><strong>{o.customerName ?? "Walk-in customer"}</strong><small>{o.placedAt ? new Date(o.placedAt).toLocaleString("en-IN") : "—"}</small></div></td><td><span className={`order-status ${o.status}`}>{statusLabel(o.status)}</span></td><td><strong>{money(o.totalAmount)}</strong></td></tr>)}
     </tbody></table>}{!loading && !filtered.length && <p className="muted" style={{ padding: 25, textAlign: "center" }}>No orders found.</p>}</div>
   </section>;
