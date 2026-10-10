@@ -17,10 +17,7 @@ export function CustomerLanding() {
   const [categoryIntroPlaying, setCategoryIntroPlaying] = useState(false);
   const [cart, setCart] = useState<Record<number, number>>({});
   const [cartOpen, setCartOpen] = useState(false);
-  const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
-  const [deliveryAddress, setDeliveryAddress] = useState("");
-  const [orderNotes, setOrderNotes] = useState("");
   const [placingOrder, setPlacingOrder] = useState(false);
   const [checkoutError, setCheckoutError] = useState("");
   const [placedOrder, setPlacedOrder] = useState<{ orderId: number; orderNumber: string; totalAmount?: string } | null>(null);
@@ -96,17 +93,14 @@ export function CustomerLanding() {
     setPlacingOrder(true);
     setCheckoutError("");
     try {
-      const notes = ["Delivery address: " + deliveryAddress.trim(), orderNotes.trim() ? "Order notes: " + orderNotes.trim() : ""].filter(Boolean).join("\n");
       const response = await fetch("/api/v1/public/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
-          customerName: customerName.trim(),
           customerPhone: customerPhone.trim(),
           source: "qr",
           paymentMethod: "cash",
-          notes,
           items: Object.entries(cart).filter(([, quantity]) => quantity > 0).map(([menuItemId, quantity]) => ({ menuItemId: Number(menuItemId), quantity }))
         })
       });
@@ -195,18 +189,15 @@ export function CustomerLanding() {
       {placedOrder ? <div className="customer-order-success" role="status">
         <span className="customer-order-success-icon">✓</span>
         <small>ORDER PLACED</small>
-        <h4>Thank you, {customerName || "food lover"}!</h4>
-        <p>Your order has been received. Pay by cash when it arrives.</p>
+        <h4>Hi there! 👋</h4>
+        <p>Hi, this is Kumari Bites! Your order has been received. Please pay by cash when your order arrives.</p>
         <div className="customer-order-number"><span>Order number</span><strong>{placedOrder.orderNumber}</strong></div>
-        <button type="button" onClick={() => { setPlacedOrder(null); setCartOpen(false); setCustomerName(""); setCustomerPhone(""); setDeliveryAddress(""); setOrderNotes(""); }}>Continue exploring</button>
+        <button type="button" onClick={() => { setPlacedOrder(null); setCartOpen(false); setCustomerPhone(""); }}>Continue exploring</button>
       </div> : <>
         <div className="customer-cart-total"><span>Subtotal</span><strong>{money(total)}</strong></div>
         <form className="customer-checkout-form" onSubmit={placeOrder}>
-          <h4>Delivery details</h4>
-          <label>Full name<input value={customerName} onChange={e => setCustomerName(e.target.value)} autoComplete="name" required maxLength={120} placeholder="Your name" /></label>
+          <h4>Contact details</h4>
           <label>Phone number<input type="tel" value={customerPhone} onChange={e => setCustomerPhone(e.target.value)} autoComplete="tel" required minLength={7} maxLength={30} placeholder="For order updates" /></label>
-          <label>Delivery address<textarea value={deliveryAddress} onChange={e => setDeliveryAddress(e.target.value)} autoComplete="street-address" required maxLength={800} rows={3} placeholder="House / street, area, city, PIN code" /></label>
-          <label>Order notes <span>(optional)</span><textarea value={orderNotes} onChange={e => setOrderNotes(e.target.value)} maxLength={500} rows={2} placeholder="Any special instructions?" /></label>
           <div className="customer-cod-option"><span className="customer-cod-radio">✓</span><span><strong>Cash on Delivery</strong><small>Pay when your order arrives</small></span><span className="customer-cod-tag">COD</span></div>
           {checkoutError && <p className="customer-checkout-error" role="alert">{checkoutError}</p>}
           <button className="customer-place-order" type="submit" disabled={placingOrder || cartCount === 0}>{placingOrder ? "Placing order…" : "Place Order · " + money(total)}</button>
