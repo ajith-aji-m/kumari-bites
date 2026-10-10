@@ -2468,3 +2468,14 @@ button {
 .image-upload-component .image-upload-hit-area input[type="file"] { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
 .image-upload-component .category-image-remove { z-index: 4; }
 .image-upload-component img { width: 100%; height: 100%; object-fit: cover; border-radius: inherit; display: block; }
+
+.table-pagination { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 4px 2px; color: rgba(255,239,227,.58); font-size: 12px; }
+.table-pagination-controls { display: flex; align-items: center; gap: 5px; }
+.table-pagination-controls button { min-width: 30px; height: 30px; padding: 0 8px; border: 1px solid rgba(255,239,227,.12); border-radius: 8px; background: rgba(255,255,255,.025); color: rgba(255,239,227,.78); cursor: pointer; }
+.table-pagination-controls button:hover:not(:disabled), .table-pagination-controls button.active { border-color: rgba(255,138,76,.55); background: rgba(255,138,76,.12); color: #ff9b62; }
+.table-pagination-controls button:disabled { opacity: .35; cursor: not-allowed; }
+.sidebar-admin { display: flex; align-items: center; gap: 10px; margin: auto 12px 10px; padding: 10px 12px; border: 1px solid rgba(255,239,227,.09); border-radius: 12px; background: rgba(255,255,255,.025); }
+.sidebar-admin .avatar { width: 32px; height: 32px; display: grid; place-items: center; border-radius: 50%; background: rgba(255,138,76,.16); color: #ff9b62; font-weight: 700; }
+.sidebar-admin div { display: grid; gap: 2px; }
+.sidebar-admin strong { color: rgba(255,239,227,.9); font-size: 13px; }
+.sidebar-admin small { color: rgba(255,239,227,.45); font-size: 10px; }
