@@ -427,7 +427,7 @@ function Orders() {
             <td><CustomSelect value={order.status} onChange={value => updateStatus(order.id, value)} options={["new","confirmed","preparing","ready","completed","cancelled"].map(s => ({ value: s, label: statusLabel(s) }))} /></td>
           </tr>)}</tbody>
         </table>
-        {!filtered.length && <div className="empty-state orders-empty-state"><span className="orders-empty-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 6h12M8 12h12M8 18h12M3.5 6h.01M3.5 12h.01M3.5 18h.01" /></svg></span><strong>{query || status !== "all" ? "No matching orders" : "No orders yet"}</strong><p className="muted">{query || status !== "all" ? "Try changing your search or status filter." : "Create your first order using the + button above."}</p></div>}
+        {!filtered.length && <div className="empty-state orders-empty-state"><span className="orders-empty-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 6h12M8 12h12M8 18h12M3.5 6h.01M3.5 12h.01M3.5 18h.01" /></svg></span><strong>{query || status !== "all" ? "No matching orders" : "No orders yet"}</strong><p className="muted">{query || status !== "all" ? "Try changing your search or status filter." : "Use the + button at the bottom-right to create your first order."}</p></div>}
         <Pagination currentPage={ordersPage} totalPages={ordersTotalPages} totalItems={filtered.length} pageSize={pageSize} onPageChange={setOrdersPage} />
       </div>}
     </article>
