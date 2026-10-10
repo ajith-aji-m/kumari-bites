@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 type Category = { id: number; name: string; slug: string; description: string | null; imageUrl: string | null; isActive?: boolean; is_active?: boolean; active?: boolean; status?: string };
 type MenuItem = { id: number; categoryId: number; name: string; description: string | null; imageUrl: string | null; isVeg: boolean; price: string | number | null; isActive?: boolean; is_active?: boolean; active?: boolean; status?: string };
 const money = (v: string | number | null) => "₹" + Number(v ?? 0).toLocaleString("en-IN", { maximumFractionDigits: 2 });
-const isMenuEntryActive = (entry: { isActive?: boolean; is_active?: boolean; active?: boolean; status?: string }) => entry.isActive !== false && entry.is_active !== false && entry.active !== false && !["inactive", "disabled", "draft", "archived"].includes(String(entry.status ?? "").toLowerCase());
+const isMenuEntryActive = (entry: { isActive?: boolean | number | string; is_active?: boolean | number | string; active?: boolean | number | string; status?: string }) => { const flags = [entry.isActive, entry.is_active, entry.active].filter(v => v !== undefined && v !== null); const explicitlyOff = flags.some(v => v === false || v === 0 || ["false", "0", "inactive", "disabled", "draft", "archived"].includes(String(v).toLowerCase())); return !explicitlyOff && !["inactive", "disabled", "draft", "archived"].includes(String(entry.status ?? "").toLowerCase()); };
 
 export function CustomerLanding() {
   const [categories, setCategories] = useState<Category[]>([]);
