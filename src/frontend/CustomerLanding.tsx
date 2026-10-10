@@ -114,10 +114,6 @@ export function CustomerLanding() {
       if (!response.ok) throw new Error(data.message || data.error || "We couldn't place your order. Please try again.");
       setPlacedOrder({ orderId: Number(data.orderId), orderNumber: String(data.orderNumber), totalAmount: data.totalAmount });
       setCart({});
-      setCustomerName("");
-      setCustomerPhone("");
-      setDeliveryAddress("");
-      setOrderNotes("");
     } catch (e) {
       setCheckoutError(e instanceof Error ? e.message : "We couldn't place your order. Please try again.");
     } finally {
@@ -202,7 +198,7 @@ export function CustomerLanding() {
         <h4>Thank you, {customerName || "food lover"}!</h4>
         <p>Your order has been received. Pay by cash when it arrives.</p>
         <div className="customer-order-number"><span>Order number</span><strong>{placedOrder.orderNumber}</strong></div>
-        <button type="button" onClick={() => { setPlacedOrder(null); setCartOpen(false); }}>Continue exploring</button>
+        <button type="button" onClick={() => { setPlacedOrder(null); setCartOpen(false); setCustomerName(""); setCustomerPhone(""); setDeliveryAddress(""); setOrderNotes(""); }}>Continue exploring</button>
       </div> : <>
         <div className="customer-cart-total"><span>Subtotal</span><strong>{money(total)}</strong></div>
         <form className="customer-checkout-form" onSubmit={placeOrder}>
