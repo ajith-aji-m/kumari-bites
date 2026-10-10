@@ -1,11 +1,12 @@
 import type { FastifyInstance } from "fastify";
-import { randomUUID } from "node:crypto";
+import { createHmac, randomUUID, timingSafeEqual } from "node:crypto";
 import { and, desc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "../db/index.js";
 import { menuItemPrices, menuItems, orderItems, orders, payments } from "../db/schema.js";
 import { requirePermission } from "../auth/authorization.js";
 import { broadcast } from "../realtime/socket.js";
+import { env } from "../config/env.js";
 
 const createOrderSchema = z.object({
   customerName: z.string().trim().max(120).optional(),
@@ -28,6 +29,16 @@ const statusSchema = z.object({
 // Derived from the auto-increment id, so concurrent orders can never collide.
 function makeOrderNumber(orderId: number) {
   return `KB-${String(orderId).padStart(6, "0")}`;
+}
+
+function makeTrackingToken(orderId: number) {
+  return createHmac("sha256", env.DATABASE_URL).update(`kumari-bites-order:${orderId}`).digest("hex");
+}
+
+function isValidTrackingToken(orderId: number, token: string) {
+  const expected = Buffer.from(makeTrackingToken(orderId), "hex");
+  const provided = Buffer.from(token, "hex");
+  return provided.length === expected.length && timingSafeEqual(provided, expected);
 }
 
 function conflict(message: string) {
@@ -80,7 +91,7 @@ async function createOrder(input: z.infer<typeof createOrderSchema>, recordCashP
     if (recordCashPayment) {
       await tx.insert(payments).values({ orderId, method: "cash", amount: subtotal.toFixed(2), status: "pending" });
     }
-    return { orderId, orderNumber, totalAmount: subtotal.toFixed(2) };
+    return { orderId, orderNumber, totalAmount: subtotal.toFixed(2), trackingToken: makeTrackingToken(orderId), status: "new" as const };
   });
 
   broadcast({ type: "order.created", payload: { orderId: created.orderId, orderNumber: created.orderNumber } });
@@ -99,6 +110,19 @@ export async function registerOrderRoutes(app: FastifyInstance) {
       ...order,
       items: itemRows.filter((item) => item.orderId === order.id)
     }));
+  });
+
+  // Public order tracking requires the unguessable token returned at checkout.
+  app.get("/api/v1/public/orders/:id/status", async (request, reply) => {
+    const { id } = request.params as { id: string };
+    const { token } = z.object({ token: z.string().regex(/^[a-f0-9]{64}$/i) }).parse(request.query);
+    const orderId = Number(id);
+    if (!Number.isSafeInteger(orderId) || orderId <= 0 || !isValidTrackingToken(orderId, token)) {
+      return reply.code(404).send({ message: "Order tracking link is invalid." });
+    }
+    const order = (await db.select({ id: orders.id, orderNumber: orders.orderNumber, status: orders.status, updatedAt: orders.updatedAt }).from(orders).where(eq(orders.id, orderId)).limit(1))[0];
+    if (!order) return reply.code(404).send({ message: "Order not found." });
+    return order;
   });
 
   // Public customer checkout: server validates stock and prices; no staff session required.
