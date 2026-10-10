@@ -34,7 +34,12 @@ export async function registerOrderRoutes(app: FastifyInstance) {
     const user = await requirePermission(request, reply, "orders.view");
     if (!user) return;
 
-    return db.select().from(orders).orderBy(orders.createdAt);
+    const orderRows = await db.select().from(orders).orderBy(orders.createdAt);
+    const itemRows = await db.select().from(orderItems);
+    return orderRows.map((order) => ({
+      ...order,
+      items: itemRows.filter((item) => item.orderId === order.id)
+    }));
   });
 
   app.post("/api/v1/orders", async (request, reply) => {
