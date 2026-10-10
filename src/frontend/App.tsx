@@ -60,43 +60,65 @@ function Login({ onLogin }: { onLogin: () => void }) {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [loginSuccess, setLoginSuccess] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   return (
     <main className="login-page">
-      <section className="login-card">
-        <div className="brand-mark">KB</div>
-        <p className="eyebrow">KUMARI BITES</p>
-        <h1>Welcome back</h1>
-        <p className="muted">Sign in to manage your orders, menu and business.</p>
-        <form onSubmit={async (event) => {
-          event.preventDefault();
-          setError("");
-          setLoading(true);
-          try {
-            await api("/api/v1/auth/login", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ identifier, password })
-            });
-            setLoginSuccess(true);
-            window.setTimeout(onLogin, 300);
-          } catch (err) {
-            setError(err instanceof Error ? err.message : "Unable to sign in");
-          } finally {
-            setLoading(false);
-          }
-        }}>
-          <label>Phone or email<input value={identifier} onChange={e => setIdentifier(e.target.value)} placeholder="Enter your phone or email" autoComplete="username" /></label>
-          <label>Password<input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Enter your password" autoComplete="current-password" /></label>
-          <label className="checkbox"><input type="checkbox" /> Remember me</label>
-          {error && <p className="login-error">{error}</p>}
-          <button className={`primary-button login-submit ${loginSuccess ? "unlocked" : ""}`} disabled={loading || loginSuccess}>
-            <span className="lock-icon">{loginSuccess ? "🔓" : "🔒"}</span>
-            <span>{loginSuccess ? "Signed in" : loading ? "Signing in..." : "Sign in"}</span>
-          </button>
-        </form>
-        <p className="login-footer">Kumari Bites Admin · Secure access</p>
-      </section>
+      <div className="login-shell">
+        <section className="login-visual">
+          <div className="login-visual-glow" />
+          <div className="login-brand-lockup">
+            <div className="brand-mark login-brand-mark">KB</div>
+            <div><strong>Kumari Bites</strong><span>Restaurant operations</span></div>
+          </div>
+          <div className="login-visual-content">
+            <span className="login-kicker">WELCOME BACK</span>
+            <h1>Good food.<br /><em>Beautifully managed.</em></h1>
+            <p>Keep your orders, menu and daily operations moving smoothly from one place.</p>
+            <div className="login-feature-list">
+              <span>✓ Live order updates</span><span>✓ Simple menu management</span><span>✓ Daily business insights</span>
+            </div>
+          </div>
+          <div className="login-food-card">
+            <span className="food-card-icon">🍛</span>
+            <div><strong>Made for busy kitchens</strong><small>Fast, focused and easy to use.</small></div>
+          </div>
+        </section>
+
+        <section className="login-form-panel">
+          <div className="login-mobile-brand"><div className="brand-mark">KB</div><p className="eyebrow">KUMARI BITES</p></div>
+          <div className="login-heading"><span className="login-kicker">ADMIN PORTAL</span><h2>Welcome back</h2><p>Sign in to continue to your restaurant dashboard.</p></div>
+          <form onSubmit={async (event) => {
+            event.preventDefault();
+            setError("");
+            setLoading(true);
+            try {
+              await api("/api/v1/auth/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ identifier, password })
+              });
+              setLoginSuccess(true);
+              window.setTimeout(onLogin, 300);
+            } catch (err) {
+              setError(err instanceof Error ? err.message : "Unable to sign in");
+            } finally {
+              setLoading(false);
+            }
+          }}>
+            <label className="login-field"><span>Email or phone</span><div className="input-wrap"><span className="field-icon">✉</span><input value={identifier} onChange={e => setIdentifier(e.target.value)} placeholder="you@example.com" autoComplete="username" required /></div></label>
+            <label className="login-field"><span>Password</span><div className="input-wrap"><span className="field-icon">⌁</span><input type={showPassword ? "text" : "password"} value={password} onChange={e => setPassword(e.target.value)} placeholder="Enter your password" autoComplete="current-password" required /><button type="button" className="password-toggle" onClick={() => setShowPassword(value => !value)} aria-label={showPassword ? "Hide password" : "Show password"}>{showPassword ? "Hide" : "Show"}</button></div></label>
+            <div className="login-options"><label className="checkbox"><input type="checkbox" /> <span>Remember me</span></label><button type="button" className="link-button">Forgot password?</button></div>
+            {error && <p className="login-error" role="alert">{error}</p>}
+            <button className={`primary-button login-submit ${loginSuccess ? "unlocked" : ""}`} disabled={loading || loginSuccess}>
+              <span>{loginSuccess ? "✓" : loading ? "…" : "→"}</span>
+              <span>{loginSuccess ? "Signed in" : loading ? "Signing in..." : "Sign in to dashboard"}</span>
+            </button>
+          </form>
+          <div className="login-security"><span>●</span> Secure admin access</div>
+          <p className="login-footer">© {new Date().getFullYear()} Kumari Bites · Built for smooth operations</p>
+        </section>
+      </div>
     </main>
   );
 }
