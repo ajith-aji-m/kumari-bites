@@ -589,7 +589,7 @@ function MenuManagement() {
         </div>
       </div>
       <div className="modal-actions"><button type="button" className="secondary-button menu-action-secondary" onClick={() => setCategoryModal(null)}><span className="button-icon">×</span><span>Cancel</span></button><button className="primary-button menu-action-primary" disabled={saving}><span className="button-icon">{saving ? "…" : "✓"}</span><span>{saving ? "Saving..." : categoryModal === "new" ? "Save category" : "Update category"}</span></button></div>
-    </form></div>
+    </form></div>}
   </section>;
 }
 
