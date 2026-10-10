@@ -3130,7 +3130,7 @@ button {
 .dashboard-refresh-button { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:38px; padding:0 13px; border:1px solid rgba(255,208,177,.2); border-radius:10px; background:rgba(31,20,15,.68); color:#ffe5d4; font:inherit; font-size:12px; font-weight:700; cursor:pointer; }
 .dashboard-refresh-button:hover { background:rgba(255,107,26,.16); border-color:rgba(255,155,97,.48); }
 .dashboard-refresh-button span { font-size:17px; line-height:1; }
-.dashboard-metrics { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; }
+.dashboard-metrics { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:14px; }
 .dashboard-metric-card { display:grid; align-content:start; gap:10px; min-width:0; padding:19px 18px; border:1px solid rgba(255,208,177,.14); border-radius:15px; background:linear-gradient(145deg,rgba(44,27,20,.86),rgba(26,17,13,.78)); box-shadow:0 12px 32px rgba(0,0,0,.13); }
 .dashboard-metric-label { color:rgba(255,235,220,.68); font-size:11px; font-weight:700; }
 .dashboard-metric-card strong { overflow:hidden; color:#fff4ea; font-size:clamp(22px,2.2vw,29px); line-height:1.15; text-overflow:ellipsis; white-space:nowrap; letter-spacing:-.035em; }
@@ -3200,3 +3200,25 @@ button {
   .dashboard-sales-bar-track { padding:0 2px; }
 }
 
+
+
+/* Completed orders are terminal and visibly locked in the Orders table */
+.order-status-lock {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  min-height:34px;
+  padding:0 10px;
+  border:1px solid rgba(93,207,189,.35);
+  border-radius:9px;
+  background:rgba(39,139,125,.12);
+  color:#91ead9;
+  font-size:11px;
+  font-weight:800;
+  white-space:nowrap;
+}
+.order-status-lock span { font-size:11px; }
+@media(max-width:1200px) {
+  .dashboard-metrics { grid-template-columns:repeat(3,minmax(0,1fr)); }
+}
