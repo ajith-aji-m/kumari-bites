@@ -1271,7 +1271,9 @@ function SettingsPage() {
         body: JSON.stringify(settings)
       });
       setSettings({ ...emptySiteSettings, ...result.settings });
-      setNotice("Your site branding and customer link have been saved.");
+      const savedCustomerUrl = result.settings.customerLandingUrl?.trim() ?? "";
+      setGeneratedUrl(savedCustomerUrl);
+      setNotice("Your settings have been saved." );
       window.dispatchEvent(new CustomEvent("site-settings-updated", { detail: result.settings }));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to save settings");
@@ -1313,8 +1315,7 @@ function SettingsPage() {
 
   return <section className="settings-page">
     <div className="settings-heading">
-      <div><p className="eyebrow">SITE CONFIGURATION</p><h1>Settings</h1><p>Manage your brand identity and the link customers open when they scan your QR code.</p></div>
-      <button type="submit" form="site-settings-form" className="primary-button settings-save-top" disabled={loading || saving}>{saving ? "Saving…" : "Save changes"}</button>
+      <h1>Settings</h1>
     </div>
 
     {error && <div className="inline-error" role="alert">{error}<button type="button" onClick={() => setError("")}>Dismiss</button></div>}
@@ -1362,7 +1363,7 @@ function SettingsPage() {
           <small className="settings-qr-footnote">For a clean print, use a dark QR code on a white background and test-scan it before displaying.</small>
         </section>
       </aside>
-      <div className="settings-form-footer"><span>Changes are stored in your application database.</span><button type="submit" className="primary-button" disabled={saving}>{saving ? "Saving…" : "Save settings"}</button></div>
+      <div className="settings-form-footer"><span aria-live="polite">{saving ? "Saving your settings…" : " "}</span><button type="submit" className="primary-button" disabled={saving}>{saving ? "Saving…" : "Save changes"}</button></div>
     </form>}
   </section>;
 }
@@ -1423,7 +1424,7 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
       <button className="nav-item logout" onClick={async () => { await fetch("/api/v1/auth/logout", { method: "POST", credentials: "include" }); window.history.replaceState({}, "", "/"); onLogout(); }}><span>↪</span> Sign out</button>
     </aside>
     <main className="dashboard">
-      {active !== "Reports" && <header className="topbar"><div>{active === "Menu" || active === "Orders" || active === "Dashboard" ? <h2>{active === "Menu" ? "Menu Management" : active === "Orders" ? "Orders" : "Dashboard"}</h2> : <><p className="eyebrow">KUMARI BITES ADMIN</p><h2>{active}</h2></>}</div></header>}
+      {active !== "Reports" && active !== "Settings" && <header className="topbar"><div>{active === "Menu" || active === "Orders" || active === "Dashboard" ? <h2>{active === "Menu" ? "Menu Management" : active === "Orders" ? "Orders" : "Dashboard"}</h2> : <><p className="eyebrow">KUMARI BITES ADMIN</p><h2>{active}</h2></>}</div></header>}
       {active === "Dashboard" ? <DashboardHome /> : active === "Orders" ? <Orders /> : active === "Menu" ? <MenuManagement /> : active === "Reports" ? <Reports /> : active === "Settings" ? <SettingsPage /> : <section className="panel"><h3>{active}</h3><p className="muted">This module is coming next.</p></section>}
     </main>
   </div>;
