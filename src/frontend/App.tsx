@@ -27,6 +27,9 @@ type MenuItem = {
   sku: string | null;
   isVeg: boolean;
   isAvailable: boolean;
+  stockQuantity: number;
+  lowStockThreshold: number;
+  lowStockAlertEnabled: boolean;
   sortOrder: number;
   price: string | number | null;
 };
