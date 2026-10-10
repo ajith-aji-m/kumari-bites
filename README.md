@@ -248,3 +248,21 @@ The React frontend lives under `src/frontend/` and does not create a separate ba
 - [ ] Invoice generation
 - [ ] WhatsApp integration
 - [ ] Printing integration
+
+
+## Current UI milestone — Menu Management
+
+The React admin now includes a working Menu Management area connected to the existing Fastify APIs:
+
+- Menu Items tab with search, category/status filters, pricing and availability controls.
+- Categories tab with item counts, active/inactive state, create/edit flows.
+- Add/Edit Menu Item modal with category, price, SKU, slug, description, image URL, veg/non-veg and availability.
+- Add/Edit Category modal with slug, description, image URL and sort order.
+- Availability changes use the existing menu APIs and refresh the live data.
+- The UI follows the confirmed **Kumari Bites / Crimson Orange** visual direction.
+- No inventory or staff-management screens have been added.
+- Image upload is intentionally represented as an image URL for this milestone; persistent file storage/upload can be added later without changing the menu data model.
+
+### Development note
+
+The requested workflow is to keep implementation on the main branch. After each meaningful architecture or configuration change, update this README so the repository remains the source of truth for project decisions.
