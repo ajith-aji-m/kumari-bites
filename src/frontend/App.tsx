@@ -414,15 +414,23 @@ function MenuManagement() {
 
   async function saveCategory(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setError("");
+    const form = new FormData(event.currentTarget);
+    const name = String(form.get("name") ?? "").trim();
+    const sortOrderValue = String(form.get("sortOrder") ?? "").trim();
+    const sortOrder = Number(sortOrderValue || 0);
+
+    if (!name) { setError("Please enter the category name."); return; }
+    if (!Number.isInteger(sortOrder) || sortOrder < 0) { setError("Please enter a valid sort order of 0 or greater."); return; }
+
     setSaving(true);
     try {
-      const form = new FormData(event.currentTarget);
       const payload = {
-        name: String(form.get("name") ?? "").trim(),
+        name,
         slug: String(form.get("slug") ?? "").trim() || undefined,
         description: String(form.get("description") ?? "").trim() || undefined,
         imageUrl: categoryImage || undefined,
-        sortOrder: Number(form.get("sortOrder") ?? 0)
+        sortOrder
       };
       if (categoryModal === "new") {
         await api("/api/v1/categories", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
@@ -581,7 +589,7 @@ function MenuManagement() {
         <div className="editor-section">
           <div className="editor-section-head"><span className="editor-step">01</span><div><strong>Basic details</strong><small>Name the category and add a short description for your menu.</small></div></div>
           <div className="form-grid">
-            <label className="field-wide">Category name *<input name="name" defaultValue={categoryDefaults.name} required placeholder="e.g. South Indian" /></label>
+            <label className="field-wide">Category name *<input name="name" defaultValue={categoryDefaults.name} placeholder="e.g. South Indian" /></label>
             <label className="field-wide">Description<textarea name="description" defaultValue={categoryDefaults.description ?? ""} placeholder="Short description customers should see..." /></label>
           </div>
         </div>
@@ -599,7 +607,7 @@ function MenuManagement() {
               }} /></label>
             </div>
             <div className="editor-media-fields category-sort-field">
-              <label>Sort order<input name="sortOrder" type="number" min="0" step="1" defaultValue={categoryDefaults.sortOrder ?? 0} placeholder="Display order, e.g. 1" /></label>
+              <label>Sort order<input name="sortOrder" type="number" defaultValue={categoryDefaults.sortOrder ?? 0} placeholder="Display order, e.g. 1" /></label>
             </div>
           </div>
         </div>
