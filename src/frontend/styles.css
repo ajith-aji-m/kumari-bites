@@ -1893,3 +1893,64 @@ button {
   filter:none !important;
   opacity:1 !important;
 }
+
+
+/* Menu editor checkbox visibility fix: clear labels and reliable contrast on dark glass. */
+.menu-management .editor-advanced .toggle-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.menu-management .editor-advanced .toggle-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-width: 0;
+  padding: 13px 14px;
+  border: 1px solid rgba(255,255,255,.15);
+  border-radius: 12px;
+  background: rgba(255,255,255,.055);
+  color: #fff4eb;
+  cursor: pointer;
+  transition: border-color .18s ease, background .18s ease, box-shadow .18s ease;
+}
+.menu-management .editor-advanced .toggle-check:hover {
+  border-color: rgba(255,194,155,.36);
+  background: rgba(255,255,255,.085);
+}
+.menu-management .editor-advanced .toggle-check:focus-within {
+  outline: 2px solid rgba(255,194,155,.6);
+  outline-offset: 2px;
+}
+.menu-management .editor-advanced .toggle-check input[type="checkbox"] {
+  appearance: auto;
+  -webkit-appearance: checkbox;
+  display: block;
+  flex: 0 0 16px;
+  width: 16px;
+  height: 16px;
+  margin: 2px 0 0;
+  opacity: 1;
+  position: static;
+  pointer-events: auto;
+  accent-color: #f3c4a8;
+}
+.menu-management .editor-advanced .toggle-check span {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+.menu-management .editor-advanced .toggle-check strong {
+  color: #fff4eb;
+  font-size: 12px;
+}
+.menu-management .editor-advanced .toggle-check small {
+  color: rgba(255,239,227,.64);
+  font-size: 10px;
+  line-height: 1.4;
+}
+@media (max-width: 650px) {
+  .menu-management .editor-advanced .toggle-row {
+    grid-template-columns: 1fr;
+  }
+}
