@@ -5812,3 +5812,17 @@ button {
 .customer-story-categories.menu-items-on-plate.story-categories-visible .customer-plate-links{transform:translateY(14px)!important;margin-bottom:8px!important}
 .customer-story-categories.story-categories-visible:not(.menu-items-on-plate) .customer-plate-links{transform:translateY(14px)!important;margin-bottom:8px!important}
 @media(max-width:760px){.customer-story-categories.menu-items-on-plate.story-categories-visible .story-panel-heading{transform:translateY(-20px)!important;margin-bottom:-14px!important}.customer-story-categories.menu-items-on-plate.story-categories-visible .customer-plate-links,.customer-story-categories.story-categories-visible:not(.menu-items-on-plate) .customer-plate-links{transform:translateY(8px)!important}}
+
+/* Header, title, arrows and bottom hint polish based on latest screenshot. */
+.customer-nav{padding-top:clamp(18px,2.4vh,30px)!important;align-items:center!important}
+.customer-brand{margin-top:8px!important;gap:12px!important;letter-spacing:-.02em!important}
+.customer-brand-mark{flex-shrink:0!important}
+.customer-story-categories.menu-items-on-plate.story-categories-visible .story-panel-heading{transform:translateY(-58px)!important;margin-bottom:-42px!important}
+.customer-story-categories.story-categories-visible:not(.menu-items-on-plate) .story-panel-heading{transform:translateY(-20px)!important;margin-bottom:-12px!important}
+.customer-menu-pagination button{font-size:0!important;line-height:0!important;font-weight:900!important}
+.customer-menu-pagination button::after{font-size:26px!important;line-height:1!important;font-weight:900!important;text-shadow:0 0 1px currentColor!important}
+.customer-menu-pagination .menu-page-prev::after{content:"←"!important}
+.customer-menu-pagination .menu-page-next::after{content:"→"!important}
+.customer-menu-pagination button:first-child:not(:disabled)::after,.customer-menu-pagination button:last-child:not(:disabled)::after{font-weight:900!important}
+.customer-story-progress,.customer-story-bottom{display:none!important}
+@media(max-width:760px){.customer-nav{padding-top:14px!important}.customer-brand{margin-top:5px!important}.customer-story-categories.menu-items-on-plate.story-categories-visible .story-panel-heading{transform:translateY(-34px)!important;margin-bottom:-24px!important}.customer-story-categories.story-categories-visible:not(.menu-items-on-plate) .story-panel-heading{transform:translateY(-14px)!important;margin-bottom:-8px!important}.customer-menu-pagination button::after{font-size:23px!important}}
