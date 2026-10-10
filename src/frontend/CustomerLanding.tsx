@@ -50,7 +50,7 @@ export function CustomerLanding() {
     return () => { cancelled = true; };
   }, []);
 
-  const activeCategories = useMemo(() => categories.filter(isMenuEntryActive), [categories]);
+  const activeCategories = useMemo(() => categories.filter(isMenuEntryActive).filter(category => items.some(item => isMenuEntryActive(item) && item.categoryId === category.id)), [categories, items]);
   const activeItems = useMemo(() => items.filter(isMenuEntryActive).filter(i => activeCategories.some(c => c.id === i.categoryId)), [items, activeCategories]);
   const categoryItems = useMemo(() => activeItems.filter(i => selectedCategory === null || i.categoryId === selectedCategory), [activeItems, selectedCategory]);
   const menuPageSize = isWidePlate ? 10 : 4;
