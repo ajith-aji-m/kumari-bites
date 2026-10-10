@@ -174,13 +174,6 @@ function DashboardHome() {
 
   useEffect(() => { load(); }, [load]);
 
-  useEffect(() => {
-    if (!itemModal) {
-      setItemImage("");
-      return;
-    }
-    setItemImage(itemModal === "new" ? "" : itemModal.imageUrl ?? "");
-  }, [itemModal]);
   useRealtimeRefresh(useCallback((event) => {
     if (event.type === "order.created" || event.type === "order.status_changed") load();
   }, [load]));
@@ -285,6 +278,14 @@ function MenuManagement() {
   const [categoryModal, setCategoryModal] = useState<Category | "new" | null>(null);
   const [saving, setSaving] = useState(false);
   const [itemImage, setItemImage] = useState("");
+
+  useEffect(() => {
+    if (!itemModal) {
+      setItemImage("");
+      return;
+    }
+    setItemImage(itemModal === "new" ? "" : itemModal.imageUrl ?? "");
+  }, [itemModal]);
 
   const load = useCallback(async () => {
     setLoading(true);
