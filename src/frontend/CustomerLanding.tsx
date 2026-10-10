@@ -9,6 +9,7 @@ export function CustomerLanding() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [items, setItems] = useState<MenuItem[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
+  const [menuPage, setMenuPage] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [stage, setStage] = useState(0);
@@ -28,6 +29,7 @@ export function CustomerLanding() {
   };
   const openItems = (categoryId?: number) => {
     if (typeof categoryId === "number") setSelectedCategory(categoryId);
+    setMenuPage(0);
     setStage(1);
   };
   const goToStage = (target: number) => setStage(Math.max(0, Math.min(2, target)));
@@ -48,7 +50,10 @@ export function CustomerLanding() {
 
   const activeCategories = useMemo(() => categories.filter(isMenuEntryActive), [categories]);
   const activeItems = useMemo(() => items.filter(isMenuEntryActive).filter(i => activeCategories.some(c => c.id === i.categoryId)), [items, activeCategories]);
-  const visibleItems = useMemo(() => activeItems.filter(i => selectedCategory === null || i.categoryId === selectedCategory), [activeItems, selectedCategory]);
+  const categoryItems = useMemo(() => activeItems.filter(i => selectedCategory === null || i.categoryId === selectedCategory), [activeItems, selectedCategory]);
+  const menuPageSize = 4;
+  const menuPageCount = Math.max(1, Math.ceil(categoryItems.length / menuPageSize));
+  const visibleItems = useMemo(() => categoryItems.slice(menuPage * menuPageSize, (menuPage + 1) * menuPageSize), [categoryItems, menuPage]);
   const cartCount = Object.values(cart).reduce((s, n) => s + n, 0);
   const total = items.reduce((s, i) => s + Number(i.price ?? 0) * (cart[i.id] ?? 0), 0);
   const add = (id: number) => {
@@ -98,11 +103,16 @@ export function CustomerLanding() {
               <span className="customer-menu-bubble-price">{money(item.price)}</span>
               <button type="button" aria-label={`Add ${item.name} to your bites`} className={"customer-menu-bubble-add " + (cart[item.id] ? "is-in-cart" : "")} onClick={() => add(item.id)}>{cart[item.id] ? <><span className="menu-add-check">✓</span><span className="menu-add-count">{cart[item.id]} in your bites</span><span className="menu-add-plus">+</span></> : <><span className="menu-add-plus">+</span><span className="menu-add-count">Add a bite</span></>}</button>
             </article>)}
-            {!visibleItems.length && <div className="customer-story-loading">No items in this category yet.</div>}
+            {!categoryItems.length && <div className="customer-story-loading">No items in this category yet.</div>}
+          </div>}
+          {selectedCategory !== null && categoryItems.length > menuPageSize && <div className="customer-menu-pagination" aria-label="Menu pages">
+            <button type="button" onClick={() => setMenuPage(p => Math.max(0, p - 1))} disabled={menuPage === 0}>← Previous</button>
+            <span>Page {menuPage + 1} of {menuPageCount}</span>
+            <button type="button" onClick={() => setMenuPage(p => Math.min(menuPageCount - 1, p + 1))} disabled={menuPage >= menuPageCount - 1}>{menuPage >= menuPageCount - 1 ? "All bites shown" : "See More →"}</button>
           </div>}
           <div className="customer-plate-links">
-            {selectedCategory !== null && <button type="button" className="customer-story-link" onClick={() => setSelectedCategory(null)}>← All categories</button>}
-            <button type="button" className="story-scroll-hint customer-story-link" onClick={() => { setSelectedCategory(null); goToStage(0); }}>← Welcome</button>
+            {selectedCategory !== null && <button type="button" className="customer-story-link" onClick={() => { setSelectedCategory(null); setMenuPage(0); }}>← All categories</button>}
+            <button type="button" className="story-scroll-hint customer-story-link" onClick={() => { setSelectedCategory(null); setMenuPage(0); goToStage(0); }}>← Welcome</button>
           </div>
         </div>
         <div className={"customer-story-items " + (stage === 2 ? "story-items-visible" : "")}>
