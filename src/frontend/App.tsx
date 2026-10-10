@@ -128,7 +128,6 @@ function Login({ onLogin }: { onLogin: () => void }) {
             </button>
           </form>
 
-          <div className="login-divider"><span>or</span></div>
         </section>
       </div>
     </main>
