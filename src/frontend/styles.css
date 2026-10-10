@@ -3881,7 +3881,7 @@ button {
 .customer-live-tag i{width:7px;height:7px;background:#ff9b58;border-radius:50%;box-shadow:0 0 0 5px #ff9b5825}
 .story-copy{position:absolute;left:clamp(22px,7vw,108px);top:27%;width:min(520px,52%);margin:0;opacity:0;visibility:hidden;transform:translateY(28px);transition:opacity .55s,transform .65s,visibility .55s}
 .story-copy-visible{opacity:1;visibility:visible;transform:translateY(0)}
-.customer-story-stage .customer-hero h1{font-size:clamp(56px,7.8vw,100px);line-height:.94;letter-spacing:-.075em;margin:0 0 20px}
+.customer-story-stage .story-copy h1{font-size:clamp(56px,7.8vw,100px);line-height:.94;letter-spacing:-.075em;margin:0 0 20px}
 .customer-story-stage .customer-hero-subtitle{max-width:340px}
 .customer-story-stage .customer-primary-cta{pointer-events:none}
 .customer-order-taker{position:absolute;z-index:3;left:clamp(16px,8vw,130px);bottom:-5%;width:min(43vw,550px);height:83%;display:flex;align-items:flex-end;justify-content:center;opacity:0;visibility:hidden;transform:translate(-80px,80px) scale(.88);transform-origin:bottom center;transition:opacity .8s cubic-bezier(.2,.8,.2,1),transform .9s cubic-bezier(.2,.8,.2,1),visibility .8s}
@@ -3970,3 +3970,9 @@ button {
  .customer-story-bottom{left:20px;bottom:17px;font-size:7px}
 }
 @media(prefers-reduced-motion:reduce){.customer-story-page *{animation:none!important;transition:none!important}}
+
+/* Opening frame deliberately shows the food background before the order-taker enters. */
+.customer-story-stage .customer-nav{opacity:0;transform:translateY(-10px);transition:opacity .5s,transform .5s}
+.customer-story-stage:has(.order-taker-visible) .customer-nav{opacity:1;transform:translateY(0)}
+.story-copy{display:none!important}
+@media(max-width:760px){.customer-story-stage .story-copy h1{font-size:clamp(53px,14vw,78px)}}
