@@ -452,13 +452,16 @@ function MenuManagement() {
         lowStockAlertEnabled: form.get("lowStockAlertEnabled") === "on",
         price
       };
-      if (itemModal === "new") {
+      const isNewItem = itemModal === "new";
+      if (isNewItem) {
         await api("/api/v1/menu-items", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
       } else if (itemModal) {
         await api(`/api/v1/menu-items/${itemModal.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
       }
       setItemModal(null);
       await load();
+      setCategorySuccess(isNewItem ? "Menu item added successfully." : "Menu item updated successfully.");
+      window.setTimeout(() => setCategorySuccess(""), 3200);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to save menu item");
     } finally {
