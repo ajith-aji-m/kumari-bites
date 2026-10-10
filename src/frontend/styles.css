@@ -4478,3 +4478,22 @@ button {
   .customer-story-bubble-content strong{font-size:17px!important}
   .customer-story-bubble-content p{font-size:11px!important}
 }
+
+
+/* Final sizing/placement adjustment for the existing welcome-cloud PNG. */
+.customer-story-bubble{
+  width:min(760px,55vw)!important;
+  right:clamp(12px,3vw,46px)!important;
+}
+@media(max-width:760px){
+  .customer-story-bubble{
+    width:min(84vw,440px)!important;
+    right:8px!important;
+  }
+}
+@media(max-width:390px){
+  .customer-story-bubble{
+    width:84vw!important;
+    right:6px!important;
+  }
+}
