@@ -2390,3 +2390,60 @@ button {
     min-height: 155px;
   }
 }
+
+
+/* Restore Add Category to the Add Menu Item dark presentation */
+.menu-management .category-modal-card {
+  background: rgba(18, 18, 18, .96);
+  border-color: rgba(255,255,255,.10);
+  box-shadow: 0 25px 70px rgba(0,0,0,.38);
+}
+.menu-management .category-modal-card .modal-subtitle { color: rgba(255,239,227,.58); }
+.menu-management .category-modal-card .editor-section {
+  border-color: rgba(255,255,255,.09);
+  background: rgba(255,255,255,.035);
+}
+.menu-management .category-modal-card .editor-section-head {
+  border-bottom-color: rgba(255,255,255,.08);
+}
+.menu-management .category-modal-card .editor-section-head strong { color:#fff4eb; }
+.menu-management .category-modal-card .editor-section-head small { color:rgba(255,239,227,.55); }
+.menu-management .category-modal-card .editor-section label { color:#f3e7de; }
+.menu-management .category-modal-card .editor-section input:not([type="checkbox"]),
+.menu-management .category-modal-card .editor-section textarea,
+.menu-management .category-modal-card .editor-section .custom-select-trigger {
+  background: rgba(255,255,255,.055);
+  color:#fff4eb;
+  border-color:rgba(255,255,255,.12);
+}
+.menu-management .category-modal-card .editor-section input:not([type="checkbox"]):focus,
+.menu-management .category-modal-card .editor-section textarea:focus,
+.menu-management .category-modal-card .editor-section .custom-select-trigger:focus {
+  border-color:#ff8a4c;
+  box-shadow:0 0 0 3px rgba(255,138,76,.12);
+}
+.menu-management .category-modal-card .category-upload-preview {
+  border-color:rgba(255,255,255,.16);
+  background:rgba(255,255,255,.035);
+}
+.menu-management .category-modal-card .category-sort-field {
+  background:transparent;
+}
+.menu-management .category-modal-card .modal-actions {
+  border-top-color:rgba(255,255,255,.08);
+}
+.menu-management .category-modal-card .menu-action-secondary {
+  background:rgba(255,255,255,.055);
+  border-color:rgba(255,255,255,.12);
+  color:#f8e9df;
+}
+.menu-management .category-modal-card .menu-action-primary {
+  background:#ff6b1a;
+  color:#fff;
+  border-color:#ff6b1a;
+}
+@media (max-width:650px) {
+  .menu-management .category-modal-card {
+    background:rgba(18,18,18,.98);
+  }
+}
