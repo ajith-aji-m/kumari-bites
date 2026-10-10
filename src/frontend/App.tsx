@@ -358,9 +358,9 @@ function escapeReceiptHtml(value: unknown) {
   return String(value ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 }
 
-function printOrderReceipt(order: PrintableOrder) {
+function printOrderReceipt(order: PrintableOrder): boolean {
   const printWindow = window.open("", "_blank", "width=620,height=760");
-  if (!printWindow) { window.alert("Your browser blocked the print window. Allow pop-ups and try again."); return; }
+  if (!printWindow) return false;
   const placedAt = order.placedAt ? new Date(order.placedAt).toLocaleString("en-IN") : "—";
   const source = (order.source || "—").replace(/_/g, " ");
   const itemRows = (order.items ?? []).map(item => '<tr><td>' + escapeReceiptHtml(item.itemName) + '<small>Qty ' + item.quantity + ' × ' + escapeReceiptHtml(money(item.unitPrice)) + '</small></td><td class="amount">' + escapeReceiptHtml(money(item.lineTotal)) + '</td></tr>').join("");
@@ -373,6 +373,7 @@ function printOrderReceipt(order: PrintableOrder) {
   (order.notes ? '<div class="notes"><strong>Order notes</strong><br>' + escapeReceiptHtml(order.notes) + '</div>' : '') +
   '<p class="footer">Thank you for choosing Kumari Bites.</p><script>window.onload=function(){setTimeout(function(){window.print()},250)};<\\/script></body></html>';
   printWindow.document.open(); printWindow.document.write(html); printWindow.document.close();
+  return true;
 }
 
 function downloadOrderPdf(order: PrintableOrder) {
@@ -591,7 +592,7 @@ function Orders() {
             <td><span className={"order-status " + order.status}>{statusLabel(order.status)}</span></td>
             <td><strong>{money(order.totalAmount)}</strong></td>
             <td>{order.status === "completed" || order.status === "cancelled" ? <span className="order-status-lock" title={`${statusLabel(order.status)} orders cannot be changed`}><span aria-hidden="true">🔒</span> Locked</span> : <CustomSelect value={order.status} onChange={value => updateStatus(order.id, value)} portalMenu statusTone options={["new","confirmed","preparing","ready","completed","cancelled"].map(s => ({ value: s, label: statusLabel(s) }))} />}</td>
-            <td><div className="order-document-actions"><button type="button" className="order-document-button order-print-button" onClick={() => printOrderReceipt(order)} title={"Print order " + order.orderNumber}><span aria-hidden="true">⎙</span><span>Print</span></button><button type="button" className="order-document-button order-pdf-button" onClick={() => downloadOrderPdf(order)} title={"Download PDF for order " + order.orderNumber}><span aria-hidden="true">↓</span><span>PDF</span></button></div></td>
+            <td><div className="order-document-actions"><button type="button" className="order-document-button order-print-button" onClick={() => { if (!printOrderReceipt(order)) setError("Your browser blocked the print window. Allow pop-ups and try again."); }} title={"Print order " + order.orderNumber}><span aria-hidden="true">⎙</span><span>Print</span></button><button type="button" className="order-document-button order-pdf-button" onClick={() => downloadOrderPdf(order)} title={"Download PDF for order " + order.orderNumber}><span aria-hidden="true">↓</span><span>PDF</span></button></div></td>
           </tr>)}</tbody>
         </table>
         {!filtered.length && <div className="empty-state orders-empty-state"><span className="orders-empty-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 6h12M8 12h12M8 18h12M3.5 6h.01M3.5 12h.01M3.5 18h.01" /></svg></span><strong>{query || status !== "all" ? "No matching orders" : "No orders yet"}</strong><p className="muted">{query || status !== "all" ? "Try changing your search or status filter." : "Use the + button at the bottom-right to create your first order."}</p></div>}
