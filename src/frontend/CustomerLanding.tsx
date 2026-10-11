@@ -22,6 +22,14 @@ const ORDER_STEPS = [
 ];
 const STORY_CHAPTERS = ["Welcome", "Mood", "Bites", "Pack", "Kitchen"];
 
+// Browser history mirrors the story, so the phone's back gesture steps back through it.
+type StoryStep = "welcome" | "mood" | "dishes";
+type StoryEntry = { kbStory: true; index: number; step: StoryStep; categoryId: number | null; cart: boolean };
+const STEP_DEPTH: Record<StoryStep, number> = { welcome: 0, mood: 1, dishes: 2 };
+const storyDepth = (view: Pick<StoryEntry, "step" | "cart">) => STEP_DEPTH[view.step] + (view.cart ? 0.5 : 0);
+const sameView = (a: Pick<StoryEntry, "step" | "categoryId" | "cart">, b: Pick<StoryEntry, "step" | "categoryId" | "cart">) => a.step === b.step && a.categoryId === b.categoryId && a.cart === b.cart;
+const isStoryEntry = (value: unknown): value is StoryEntry => !!value && typeof value === "object" && (value as StoryEntry).kbStory === true;
+
 function timeGreeting(date = new Date()) {
   const hour = date.getHours();
   if (hour < 12) return "Good morning";
@@ -61,7 +69,13 @@ export function CustomerLanding() {
   const [error, setError] = useState("");
   const [stage, setStage] = useState(0);
   const [categoryIntroPlaying, setCategoryIntroPlaying] = useState(false);
-  const [cart, setCart] = useState<Record<number, number>>({});
+  // The cart survives leaving and coming back (e.g. a back gesture past the welcome screen) for this browser session.
+  const [cart, setCart] = useState<Record<number, number>>(() => {
+    try {
+      const saved = window.sessionStorage.getItem("kb-cart");
+      return saved ? JSON.parse(saved) : {};
+    } catch { return {}; }
+  });
   const [cartOpen, setCartOpen] = useState(false);
   const [customerPhone, setCustomerPhone] = useState("");
   const [placingOrder, setPlacingOrder] = useState(false);
@@ -73,10 +87,14 @@ export function CustomerLanding() {
     } catch { return null; }
   });
   const [trackerMinimized, setTrackerMinimized] = useState(false);
+  useEffect(() => {
+    try { window.sessionStorage.setItem("kb-cart", JSON.stringify(cart)); } catch { /* Private mode: the cart simply isn't kept. */ }
+  }, [cart]);
   const [chefNote, setChefNote] = useState<{ text: string; key: number } | null>(null);
   const [greeting] = useState(() => timeGreeting());
   const sayChef = (text: string) => setChefNote({ text, key: Date.now() });
   const stageRef = useRef<HTMLDivElement>(null);
+  const storyStackRef = useRef<StoryEntry[]>([]);
   // How much room phones leave below the platter: "full" shows the order taker, "compact" swaps him
   // for a small avatar beside his line, "none" lets him speak through the platter's subtitle instead.
   const [chefRoom, setChefRoom] = useState<"full" | "compact" | "none">("full");
@@ -264,6 +282,68 @@ export function CustomerLanding() {
     }
   };
 
+  const storyStep: StoryStep = stage === 0 ? "welcome" : selectedCategory === null ? "mood" : "dishes";
+  // Remember each history entry at its position, dropping anything that was ahead of it.
+  const rememberStoryEntry = (entry: StoryEntry) => {
+    const stack = storyStackRef.current.slice(0, entry.index);
+    stack[entry.index] = entry;
+    storyStackRef.current = stack;
+  };
+  useEffect(() => {
+    const view = { step: storyStep, categoryId: storyStep === "dishes" ? selectedCategory : null, cart: cartOpen };
+    const current = window.history.state;
+    if (!isStoryEntry(current)) {
+      const entry: StoryEntry = { kbStory: true, index: 0, ...view };
+      rememberStoryEntry(entry);
+      window.history.replaceState(entry, "");
+      return;
+    }
+    if (!storyStackRef.current[current.index]) storyStackRef.current[current.index] = current;
+    if (sameView(current, view)) return;
+    if (storyDepth(view) > storyDepth(current)) {
+      const entry: StoryEntry = { kbStory: true, index: current.index + 1, ...view };
+      rememberStoryEntry(entry);
+      window.history.pushState(entry, "");
+      return;
+    }
+    // Moving back (an in-page "back" button, closing the cart, placing an order): rewind history
+    // to the matching earlier step so the back gesture stays in step with the screen.
+    let target = -1;
+    for (let i = current.index - 1; i >= 0; i--) {
+      const entry = storyStackRef.current[i];
+      if (entry && sameView(entry, view)) { target = i; break; }
+    }
+    if (target >= 0) {
+      window.history.go(target - current.index);
+    } else {
+      const entry: StoryEntry = { kbStory: true, index: current.index, ...view };
+      rememberStoryEntry(entry);
+      window.history.replaceState(entry, "");
+    }
+  }, [storyStep, selectedCategory, cartOpen]);
+
+  useEffect(() => {
+    const onPop = (event: PopStateEvent) => {
+      if (!isStoryEntry(event.state)) return;
+      const entry = event.state;
+      rememberStoryEntry(entry);
+      setCategoryIntroPlaying(false);
+      setCartOpen(entry.cart);
+      setMenuPage(0);
+      if (entry.step === "welcome") {
+        setSelectedCategory(null);
+        setChefNote(null);
+        setStage(0);
+      } else {
+        setSelectedCategory(entry.step === "dishes" ? entry.categoryId : null);
+        if (entry.step === "mood") setChefNote(null);
+        setStage(1);
+      }
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
+
   useEffect(() => {
     const root = stageRef.current;
     if (!root) return;
@@ -321,7 +401,7 @@ export function CustomerLanding() {
           <p className="customer-hero-subtitle">A little scroll. A lot of flavour.</p>
           <span className="customer-primary-cta">Let’s find your flavour <span>↓</span></span>
         </div>
-        <div className="customer-order-taker order-taker-visible"><img src="/assets/order-taker.png" alt="Your Kumari Bites order taker" /></div>
+        <div className="customer-order-taker order-taker-visible"><img src="/assets/order-taker.webp" alt="Your Kumari Bites order taker" /></div>
         {placedOrder && !trackerMinimized && <div className="customer-order-confirmation" role="status" aria-live="polite">
           <button type="button" className="customer-order-minimize" aria-label="Minimize order tracker" onClick={() => setTrackerMinimized(true)}>−</button>
           <span className="customer-order-confirmation-spark">✦</span>
@@ -340,7 +420,7 @@ export function CustomerLanding() {
           <span className="customer-tracker-mini-pulse" /><span><small>{placedOrder.orderNumber} · LIVE TRACKING</small><strong>{ORDER_STATUS_LABELS[placedOrder.status] ?? "Order placed"}</strong></span><span className="customer-tracker-mini-open">↗</span>
         </button>}
         {!placedOrder && <div className={"customer-story-bubble " + (stage === 0 && !categoryIntroPlaying ? "story-bubble-visible" : "")}>
-          <img className="customer-story-cloud-image" src="/assets/welcome-cloud.png" alt="" aria-hidden="true" />
+          <img className="customer-story-cloud-image" src="/assets/welcome-cloud.webp" alt="" aria-hidden="true" />
           <div className="customer-story-bubble-content">
             <strong>{stage === 0 ? "Vanakkam, food lover!" : "Choose your favourites!"}</strong>
             <p>{stage === 0 ? `${greeting}! I’ll be taking your order today. Shall we find your next favourite?` : "Tap a category to explore our freshly made favourites."}</p>
@@ -361,7 +441,13 @@ export function CustomerLanding() {
             </button>)}
           </div> : <div className="customer-menu-bubbles">
             {visibleItems.map((item, i) => <article key={item.id} style={{ animationDelay: `${i * 90}ms` }} className="customer-menu-bubble">
-              <div className="customer-menu-bubble-image">{item.imageUrl ? <img src={item.imageUrl} alt={item.name} loading="lazy" /> : <span>{["🥟", "🌯", "🍔", "🍗", "🍜"][i % 5]}</span>}{cart[item.id] ? <span className="customer-menu-image-count">{cart[item.id]}</span> : null}<button type="button" aria-label={`Add ${item.name} to your bites`} className="customer-menu-image-add" onClick={(event) => add(item.id, event)}>+</button></div>
+              <div className="customer-menu-bubble-image">{item.imageUrl ? <img src={item.imageUrl} alt={item.name} loading="lazy" /> : <span>{["🥟", "🌯", "🍔", "🍗", "🍜"][i % 5]}</span>}{cart[item.id]
+                ? <div className="customer-menu-stepper" role="group" aria-label={`${item.name} quantity`}>
+                    <button type="button" aria-label={`Remove one ${item.name}`} onClick={() => change(item.id, -1)}>−</button>
+                    <span aria-live="polite">{cart[item.id]}</span>
+                    <button type="button" aria-label={`Add another ${item.name}`} onClick={(event) => add(item.id, event)}>+</button>
+                  </div>
+                : <button type="button" aria-label={`Add ${item.name} to your bites`} className="customer-menu-image-add" onClick={(event) => add(item.id, event)}>+</button>}</div>
               <strong className="customer-menu-bubble-name"><span className={"customer-diet-mark " + (item.isVeg ? "veg" : "nonveg")} role="img" aria-label={item.isVeg ? "Vegetarian" : "Non-vegetarian"} />{item.name}</strong>
               <span className="customer-menu-bubble-price">{money(item.price)}</span>
             </article>)}

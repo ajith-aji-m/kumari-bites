@@ -75,7 +75,7 @@ function Login({ onLogin }: { onLogin: () => void }) {
     <main className="login-page">
       {loginSuccess && <div className="chef-success-toast login-success-toast-top" role="status" aria-live="polite">
         <div className="chef-success-bubble"><strong>Chef says</strong><span>Welcome back! Login successful. Taking you to the dashboard.</span></div>
-        <div className="chef-success-character" aria-hidden="true"><img src="/assets/kumari-bites-chef.png" alt="" /></div>
+        <div className="chef-success-character" aria-hidden="true"><img src="/assets/kumari-bites-chef.webp" alt="" /></div>
       </div>}
       <div className="login-shell">
         <section className="login-visual" aria-hidden="true">
@@ -136,7 +136,7 @@ function Login({ onLogin }: { onLogin: () => void }) {
             </div>
 
             {error && <div className="chef-guide has-error" role="alert">
-              <div className="chef-character" aria-hidden="true"><img src="/assets/kumari-bites-chef.png" alt="" /></div>
+              <div className="chef-character" aria-hidden="true"><img src="/assets/kumari-bites-chef.webp" alt="" /></div>
               <div className="chef-bubble"><strong>Chef says</strong><span>{error.replace(/^👨‍🍳 Chef says: /, "")}</span></div>
             </div>}
 
@@ -578,7 +578,7 @@ function Orders() {
   }
 
   return <section className="menu-management orders-page">
-    {success && <div className="chef-success-toast category-success-toast" role="status" aria-live="polite"><div className="chef-success-bubble"><strong>Chef says</strong><span>{success}</span></div><div className="chef-success-character" aria-hidden="true"><img src="/assets/kumari-bites-chef.png" alt="" /></div></div>}
+    {success && <div className="chef-success-toast category-success-toast" role="status" aria-live="polite"><div className="chef-success-bubble"><strong>Chef says</strong><span>{success}</span></div><div className="chef-success-character" aria-hidden="true"><img src="/assets/kumari-bites-chef.webp" alt="" /></div></div>}
     <article className="panel menu-panel orders-panel">
       {error && !showCreate && <div className="inline-error" role="alert">{error} <button type="button" onClick={loadOrders}>Retry</button></div>}
       <div className="menu-toolbar menu-index-controls orders-toolbar">
@@ -942,7 +942,7 @@ function MenuManagement() {
     {lowStockAlert && <div className="inline-error low-stock-alert" role="alert"><strong>Low stock:</strong> {lowStockAlert.itemName} has {lowStockAlert.quantity} left (threshold {lowStockAlert.threshold}). It is now unavailable. <button onClick={() => setLowStockAlert(null)}>Dismiss</button></div>}
     {categorySuccess && <div className="chef-success-toast category-success-toast" role="status" aria-live="polite">
       <div className="chef-success-bubble"><strong>Chef says</strong><span>{categorySuccess}</span></div>
-      <div className="chef-success-character" aria-hidden="true"><img src="/assets/kumari-bites-chef.png" alt="" /></div>
+      <div className="chef-success-character" aria-hidden="true"><img src="/assets/kumari-bites-chef.webp" alt="" /></div>
     </div>}
 
     <div className="menu-tabs" role="tablist" aria-label="Menu management sections">
@@ -1005,7 +1005,7 @@ function MenuManagement() {
     {itemDefaults && <div className="modal-backdrop" onMouseDown={e => e.currentTarget === e.target && setItemModal(null)}><form className="modal-card" onSubmit={saveItem}>
       <div className="modal-head"><div><p className="eyebrow">MENU ITEM</p><h2>{itemModal === "new" ? "Add menu item" : "Edit menu item"}</h2></div><button type="button" className="icon-button menu-action-close" onClick={() => setItemModal(null)} aria-label="Close menu item editor">×</button></div>
       <div className="menu-item-editor">
-        {error && <div className="chef-guide menu-item-feedback has-error" role="alert" aria-live="polite"><div className="chef-character" aria-hidden="true"><img src="/assets/kumari-bites-chef.png" alt="" /></div><div className="chef-bubble"><strong>Chef says</strong><span>{error}</span></div></div>}
+        {error && <div className="chef-guide menu-item-feedback has-error" role="alert" aria-live="polite"><div className="chef-character" aria-hidden="true"><img src="/assets/kumari-bites-chef.webp" alt="" /></div><div className="chef-bubble"><strong>Chef says</strong><span>{error}</span></div></div>}
         <div className="editor-section">
           <div className="editor-section-head"><span className="editor-step">01</span><div><strong>Basic details</strong><small>Name the dish and place it in the right menu category.</small></div></div>
           <div className="form-grid">
@@ -1044,7 +1044,7 @@ function MenuManagement() {
     {categoryDefaults && <div className="modal-backdrop" onMouseDown={e => e.currentTarget === e.target && setCategoryModal(null)}><form className="modal-card category-modal-card" onSubmit={saveCategory}>
       <div className="modal-head"><div><p className="eyebrow">CATEGORY</p><h2>{categoryModal === "new" ? "Add category" : "Edit category"}</h2><p className="modal-subtitle">Create a clean category for your menu and keep it easy to recognise.</p></div><button type="button" className="icon-button menu-action-close" onClick={() => setCategoryModal(null)} aria-label="Close category editor">×</button></div>
       <div className="menu-item-editor category-editor">
-        {error && <div className="chef-guide menu-item-feedback has-error" role="alert" aria-live="polite"><div className="chef-character" aria-hidden="true"><img src="/assets/kumari-bites-chef.png" alt="" /></div><div className="chef-bubble"><strong>Chef says</strong><span>{error}</span></div></div>}
+        {error && <div className="chef-guide menu-item-feedback has-error" role="alert" aria-live="polite"><div className="chef-character" aria-hidden="true"><img src="/assets/kumari-bites-chef.webp" alt="" /></div><div className="chef-bubble"><strong>Chef says</strong><span>{error}</span></div></div>}
         <div className="editor-section">
           <div className="editor-section-head"><span className="editor-step">01</span><div><strong>Basic details</strong><small>Name the category and add a short description for your menu.</small></div></div>
           <div className="form-grid">
@@ -1417,7 +1417,7 @@ function SettingsPage() {
     </div>
 
     {error && <div className="inline-error" role="alert">{error}<button type="button" onClick={() => setError("")}>Dismiss</button></div>}
-    {notice && <div className="chef-success-toast category-success-toast settings-success-toast" role="status" aria-live="polite"><div className="chef-success-bubble"><strong>Chef says</strong><span>{notice}</span></div><div className="chef-success-character" aria-hidden="true"><img src="/assets/kumari-bites-chef.png" alt="" /></div></div>}
+    {notice && <div className="chef-success-toast category-success-toast settings-success-toast" role="status" aria-live="polite"><div className="chef-success-bubble"><strong>Chef says</strong><span>{notice}</span></div><div className="chef-success-character" aria-hidden="true"><img src="/assets/kumari-bites-chef.webp" alt="" /></div></div>}
     {loading ? <section className="panel settings-loading"><p className="muted">Loading settings…</p></section> : <form id="site-settings-form" className="settings-layout" onSubmit={saveSettings}>
       <div className="settings-main-column">
         <section className="panel settings-card">

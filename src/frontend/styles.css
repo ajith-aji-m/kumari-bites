@@ -445,7 +445,7 @@ input:not([type="checkbox"]):focus { border-color: #b85c38; box-shadow: 0 0 0 3p
 .login-visual {
   background-image:
     linear-gradient(90deg, rgba(76, 27, 14, .38) 0%, rgba(101, 37, 19, .16) 58%, rgba(42, 16, 10, .42) 100%),
-    url("/assets/kumari-bites-login.png.png");
+    url("/assets/kumari-bites-login.webp");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -481,7 +481,7 @@ input:not([type="checkbox"]):focus { border-color: #b85c38; box-shadow: 0 0 0 3p
   background-image:
     linear-gradient(90deg, rgba(12,7,5,.04) 0%, rgba(20,10,7,.05) 45%, rgba(14,8,6,.72) 100%),
     linear-gradient(0deg, rgba(15,8,5,.28), rgba(15,8,5,.04) 48%, rgba(15,8,5,.22)),
-    url("/assets/kumari-bites-login.png.png");
+    url("/assets/kumari-bites-login.webp");
   background-size: cover;
   background-position: center;
 }
@@ -891,7 +891,7 @@ input:not([type="checkbox"]):focus { border-color: #b85c38; box-shadow: 0 0 0 3p
   pointer-events: none;
   background:
     linear-gradient(135deg, rgba(20, 11, 8, .78), rgba(43, 20, 12, .64) 52%, rgba(20, 11, 8, .82)),
-    url("/assets/dashboard-bites.png") center / cover no-repeat;
+    url("/assets/dashboard-bites.webp") center / cover no-repeat;
 }
 .app-shell.dashboard-background .sidebar {
   background: rgba(24, 14, 10, .84);
@@ -3773,7 +3773,7 @@ button {
 /* Customer-facing animated menu landing page */
 .customer-landing{min-height:100vh;background:#fbf4eb;color:#342017;overflow:hidden;font-family:Inter,ui-sans-serif,system-ui,sans-serif}
 .customer-landing *{box-sizing:border-box}
-.customer-hero{position:relative;isolation:isolate;min-height:760px;height:min(100vh,940px);padding:28px clamp(22px,6vw,96px) 70px;color:#fff8ee;background:#28170f url("/assets/customer-landing-bg.png") center/cover no-repeat;display:flex;flex-direction:column}
+.customer-hero{position:relative;isolation:isolate;min-height:760px;height:min(100vh,940px);padding:28px clamp(22px,6vw,96px) 70px;color:#fff8ee;background:#28170f url("/assets/customer-landing-bg.webp") center/cover no-repeat;display:flex;flex-direction:column}
 .customer-hero-shade{position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,rgba(25,14,9,.83) 0%,rgba(32,17,10,.58) 43%,rgba(28,15,9,.1) 100%),linear-gradient(0deg,rgba(24,13,8,.42),transparent 36%)}
 .customer-nav{display:flex;align-items:center;justify-content:space-between;gap:20px;position:relative;z-index:2}
 .customer-brand{display:inline-flex;align-items:center;gap:11px;color:inherit;text-decoration:none;font-size:19px;font-weight:850;letter-spacing:-.04em}
@@ -3875,7 +3875,7 @@ button {
 
 /* Scroll-driven, single-viewport customer story */
 .customer-story{position:relative;height:400vh;background:#21130d}
-.customer-story-stage{position:sticky;top:0;height:100svh;min-height:580px;overflow:hidden;isolation:isolate;color:#fff8ee;background:#28170f url("/assets/customer-landing-bg.png") center/cover no-repeat}
+.customer-story-stage{position:sticky;top:0;height:100svh;min-height:580px;overflow:hidden;isolation:isolate;color:#fff8ee;background:#28170f url("/assets/customer-landing-bg.webp") center/cover no-repeat}
 .customer-story-stage:before{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,rgba(25,14,9,.83),rgba(32,17,10,.47) 48%,rgba(28,15,9,.08)),linear-gradient(0deg,rgba(24,13,8,.4),transparent 35%)}
 .customer-story-stage .customer-hero-shade{display:none}
 .customer-live-tag{display:flex;align-items:center;gap:9px;color:#ffe4cf;font-size:9px;letter-spacing:.15em;font-weight:850}
@@ -6739,7 +6739,7 @@ button {
 .customer-story-page .customer-story-stage .customer-story-categories.story-categories-visible .customer-category-bubble:active { transform: scale(.97); }
 
 /* Dishes already in the order get a warm orange rim */
-.customer-story-page .customer-story-stage .customer-story-categories.story-categories-visible .customer-menu-bubble:has(.customer-menu-image-count) .customer-menu-bubble-image {
+.customer-story-page .customer-story-stage .customer-story-categories.story-categories-visible .customer-menu-bubble:has(.customer-menu-stepper) .customer-menu-bubble-image {
   border-color: #ffb27a !important;
   box-shadow: 0 0 0 3px rgba(255, 154, 77, .28), 0 12px 20px -8px rgba(70, 34, 15, .5) !important;
 }
@@ -6918,7 +6918,7 @@ button {
     height: 40px;
     border: 2px solid #ffb27a;
     border-radius: 50%;
-    background: #6b3a22 url("/assets/order-taker.png") 58% 4% / 286% auto no-repeat;
+    background: #6b3a22 url("/assets/order-taker.webp") 58% 4% / 286% auto no-repeat;
   }
   /* With the full figure visible, keep his bubble low and clear of the platter */
   .customer-story-stage[data-chef-room="full"] .customer-chef-note { bottom: calc(14px + env(safe-area-inset-bottom)); }
@@ -6953,7 +6953,7 @@ button {
     height: 28px;
     border: 1.5px solid #ffb27a;
     border-radius: 50%;
-    background: #6b3a22 url("/assets/order-taker.png") 58% 4% / 286% auto no-repeat;
+    background: #6b3a22 url("/assets/order-taker.webp") 58% 4% / 286% auto no-repeat;
   }
 }
 @media (max-width: 760px) {
@@ -6989,3 +6989,54 @@ button {
     max-height: calc(100dvh - 14px - 76px - env(safe-area-inset-top) - env(safe-area-inset-bottom)) !important;
   }
 }
+
+/* Quantity stepper: once a dish is in the order, its "+" becomes "− 1 +" on the photo's lower edge */
+.customer-story-page .customer-story-stage .customer-story-categories.story-categories-visible .customer-menu-bubble-name { margin-top: 8px !important; }
+.customer-menu-stepper {
+  position: absolute;
+  left: 50%;
+  bottom: -13px;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  height: 30px;
+  padding: 0 2px;
+  border: 1.5px solid #ffb27a;
+  border-radius: 999px;
+  background: #fffaf2;
+  box-shadow: 0 6px 14px -6px rgba(120, 50, 15, .55);
+  transform: translateX(-50%);
+  animation: kbStepperIn .28s cubic-bezier(.2, 1.3, .4, 1) both;
+}
+.customer-menu-stepper button {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #e2622b;
+  font: inherit;
+  font-size: 19px;
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.customer-menu-stepper button:active { background: rgba(255, 154, 77, .18); }
+.customer-menu-stepper button:focus-visible { outline: 2px solid #e2622b; outline-offset: -2px; }
+.customer-menu-stepper span {
+  min-width: 16px;
+  color: #3b2217;
+  font-size: 13px;
+  font-weight: 850;
+  text-align: center;
+}
+@keyframes kbStepperIn {
+  from { opacity: 0; transform: translateX(-50%) scale(.6); }
+  to { opacity: 1; transform: translateX(-50%) scale(1); }
+}
+@media (prefers-reduced-motion: reduce) { .customer-menu-stepper { animation: none; } }
