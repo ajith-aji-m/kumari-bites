@@ -63,7 +63,7 @@ input:not([type="checkbox"]):focus { border-color: #b85c38; box-shadow: 0 0 0 3p
 .rank { color: #b85c38; font-weight: 900; }
 .popular-row strong { font-size: 12px; }
 @media (max-width: 900px) { .stats { grid-template-columns: repeat(2, 1fr); } .dashboard-grid { grid-template-columns: 1fr; } }
-@media (max-width: 650px) { .sidebar { width: 72px; flex-basis: 72px; padding: 18px 8px; } .sidebar-brand span:last-child, .nav-item:not(.logout) { font-size: 0; } .nav-item { justify-content: center; } .dashboard { padding: 22px 15px 35px; } .stats { grid-template-columns: 1fr; } .welcome { align-items: start; gap: 15px; flex-direction: column; } .login-card { padding: 30px 22px; } }
+@media (max-width: 650px) { .dashboard { padding: 22px 15px 35px; } .stats { grid-template-columns: 1fr; } .welcome { align-items: start; gap: 15px; flex-direction: column; } .login-card { padding: 30px 22px; } }
 
 .login-submit { display: inline-flex; align-items: center; justify-content: center; gap: 9px; transition: transform .2s ease, box-shadow .25s ease, background .25s ease; }
 .login-submit:disabled { opacity: 1; cursor: default; }
@@ -6082,4 +6082,348 @@ button {
 .customer-story.has-active-order .customer-story-bubble,
 .customer-story.has-active-order .customer-story-cloud-image{
   display:none!important;
+}
+
+/* ===== Mobile admin shell: top app bar + bottom tab navigation ===== */
+.mobile-appbar { display: none; }
+.nav-item .nav-icon { display: inline-grid; place-items: center; width: 18px; flex: 0 0 18px; }
+
+@media (max-width: 760px) {
+  .app-shell { flex-direction: column; }
+  .app-shell.dashboard-background .dashboard {
+    flex: 1 1 auto;
+    padding: 16px 14px calc(96px + env(safe-area-inset-bottom));
+    scrollbar-gutter: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .mobile-appbar {
+    position: relative;
+    z-index: 90;
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: calc(10px + env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) 10px max(14px, env(safe-area-inset-left));
+    background: rgba(24, 14, 10, .9);
+    border-bottom: 1px solid rgba(255, 190, 148, .14);
+    backdrop-filter: blur(22px);
+    -webkit-backdrop-filter: blur(22px);
+    color: #fff1e5;
+  }
+  .mobile-appbar-brand { display: flex; align-items: center; gap: 10px; min-width: 0; font-weight: 850; font-size: 16px; }
+  .mobile-appbar-brand > span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .mobile-appbar-brand .brand-mark { flex: 0 0 auto; width: 34px; height: 34px; border-radius: 11px; font-size: 12px; }
+  .mobile-appbar-brand .brand-mark img { width: 100%; height: 100%; padding: 3px; object-fit: contain; border-radius: inherit; }
+  .mobile-appbar-signout {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 38px;
+    padding: 0 12px;
+    border: 1px solid rgba(255, 239, 227, .14);
+    border-radius: 11px;
+    background: rgba(255, 255, 255, .05);
+    color: rgba(255, 239, 227, .85);
+    font: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .mobile-appbar-signout:active { background: rgba(255, 255, 255, .1); }
+
+  /* The sidebar becomes a fixed bottom tab bar */
+  .app-shell .sidebar,
+  .app-shell.dashboard-background .sidebar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 95;
+    width: auto;
+    height: auto;
+    flex: none;
+    padding: 6px max(6px, env(safe-area-inset-right)) calc(6px + env(safe-area-inset-bottom)) max(6px, env(safe-area-inset-left));
+    overflow: visible;
+    border-right: 0;
+    border-top: 1px solid rgba(255, 190, 148, .16);
+    background: rgba(20, 12, 9, .94);
+    box-shadow: 0 -10px 30px rgba(0, 0, 0, .28);
+  }
+  .sidebar-brand,
+  .sidebar-admin,
+  .sidebar .nav-item.logout { display: none; }
+  .sidebar nav { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; }
+  .sidebar .nav-item,
+  .app-shell.dashboard-background .sidebar .nav-item {
+    flex-direction: column;
+    justify-content: center;
+    gap: 3px;
+    min-height: 54px;
+    padding: 6px 2px;
+    border: 1px solid transparent;
+    border-radius: 12px;
+    font-size: 10.5px;
+    font-weight: 700;
+    text-align: center;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .sidebar .nav-item .nav-icon { width: auto; flex: none; font-size: 19px; line-height: 1; }
+  .sidebar .nav-item .nav-label { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sidebar .nav-item:hover:not(.active) { transform: none; box-shadow: none; }
+  .sidebar .nav-item:active { transform: scale(.96); }
+
+  /* Floating add buttons sit above the tab bar */
+  .menu-add-fab { right: 16px; bottom: calc(80px + env(safe-area-inset-bottom)); }
+}
+
+/* ===== Mobile + tablet: admin tables become stacked cards ===== */
+@media (max-width: 760px) {
+  .app-shell.dashboard-background .dashboard { padding-bottom: calc(150px + env(safe-area-inset-bottom)); }
+}
+@media (max-width: 1024px) {
+
+  .app-shell .menu-table-wrap { overflow: visible; }
+  .app-shell .menu-table-wrap table.menu-table { display: block; min-width: 0; width: 100%; }
+  .app-shell .menu-table-wrap table.menu-table thead { display: none; }
+  .app-shell .menu-table-wrap table.menu-table tbody { display: grid; gap: 10px; }
+  .app-shell .menu-table-wrap table.menu-table tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px 12px;
+    align-items: center;
+    padding: 14px;
+    border: 1px solid rgba(255, 208, 177, .14);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, .035);
+  }
+  .app-shell .menu-table-wrap table.menu-table td {
+    display: block;
+    min-width: 0 !important;
+    width: auto !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: none !important;
+  }
+  /* Small caption for cells that need context */
+  .app-shell .menu-table-wrap table.menu-table td[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    margin-bottom: 5px;
+    color: rgba(255, 235, 220, .45);
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+  }
+
+  /* Orders: number + total, customer + status, items, update + actions */
+  .app-shell .orders-table td:nth-child(1) { grid-column: 1; grid-row: 1; }
+  .app-shell .orders-table td:nth-child(5) { grid-column: 2; grid-row: 1; text-align: right; font-size: 16px; }
+  .app-shell .orders-table td:nth-child(2) { grid-column: 1; grid-row: 2; }
+  .app-shell .orders-table td:nth-child(4) { grid-column: 2; grid-row: 2; justify-self: end; }
+  .app-shell .orders-table td:nth-child(3) { grid-column: 1 / -1; grid-row: 3; padding-top: 10px !important; border-top: 1px dashed rgba(255, 208, 177, .14) !important; }
+  .app-shell .orders-table td:nth-child(6) { grid-column: 1; grid-row: 4; }
+  .app-shell .orders-table td:nth-child(7) { grid-column: 2; grid-row: 4; align-self: end; }
+  .app-shell .orders-table td:nth-child(6) .custom-select,
+  .app-shell .orders-table td:nth-child(6) .order-status-select { width: 100% !important; min-width: 0 !important; max-width: 190px; }
+  .app-shell .orders-table td:nth-child(6) .custom-select-trigger { min-height: 42px; }
+  .app-shell .orders-table .order-main-cell strong { overflow-wrap: anywhere; }
+  .app-shell .orders-table .order-items-cell { display: flex; flex-wrap: wrap; gap: 6px; }
+  .app-shell .orders-table .order-items-cell span { padding: 5px 9px; border: 1px solid rgba(255, 208, 177, .14); border-radius: 999px; background: rgba(255, 255, 255, .04); }
+  .app-shell .orders-table .order-items-cell small { display: inline; margin: 0; }
+  .app-shell .orders-table .order-document-actions { display: flex; gap: 6px; }
+  .app-shell .orders-table .order-document-button { min-height: 42px; min-width: 42px; }
+
+  /* Menu items: image/name + price, category + type, availability + edit */
+  .app-shell .menu-table:not(.orders-table):not(.category-table) tr { grid-template-columns: minmax(0, 1fr) auto auto; }
+  .app-shell .menu-table:not(.orders-table):not(.category-table) td:nth-child(1) { grid-column: 1 / 3; grid-row: 1; }
+  .app-shell .menu-table:not(.orders-table):not(.category-table) td:nth-child(3) { grid-column: 3; grid-row: 1; text-align: right; font-size: 15px; }
+  .app-shell .menu-table:not(.orders-table):not(.category-table) td:nth-child(2) { grid-column: 1; grid-row: 2; color: rgba(255, 235, 220, .7); }
+  .app-shell .menu-table:not(.orders-table):not(.category-table) td:nth-child(4) { grid-column: 2 / 4; grid-row: 2; justify-self: end; }
+  .app-shell .menu-table:not(.orders-table):not(.category-table) td:nth-child(5) { grid-column: 1; grid-row: 3; display: flex; align-items: center; gap: 10px; }
+  .app-shell .menu-table:not(.orders-table):not(.category-table) td:nth-child(5)::before { margin: 0; }
+  .app-shell .menu-table:not(.orders-table):not(.category-table) td:nth-child(6) { grid-column: 2 / 4; grid-row: 3; justify-self: end; }
+  .app-shell .menu-table .item-cell strong { white-space: normal; overflow-wrap: anywhere; }
+  .app-shell .menu-table .table-action { min-height: 40px; }
+
+  /* Categories: name + count, description, status + actions */
+  .app-shell .category-table td:nth-child(1) { grid-column: 1; grid-row: 1; }
+  .app-shell .category-table td:nth-child(3) { grid-column: 2; grid-row: 1; }
+  .app-shell .category-table td:nth-child(2) { grid-column: 1 / -1; grid-row: 2; color: rgba(255, 235, 220, .62); font-size: 12px; line-height: 1.45; }
+  .app-shell .category-table td:nth-child(4) { grid-column: 1; grid-row: 3; }
+  .app-shell .category-table td:nth-child(5) { grid-column: 2; grid-row: 3; }
+  .app-shell .category-table tbody tr { cursor: default; }
+  .app-shell .menu-management .category-table .action-group { flex-wrap: nowrap; gap: 6px; }
+
+  /* Pagination wraps cleanly under the cards */
+  .app-shell .menu-table-wrap > .pagination,
+  .app-shell .menu-table-wrap .pagination { flex-wrap: wrap; gap: 10px; }
+}
+
+/* ===== Mobile: tighter panels, side-by-side filters, no iOS focus zoom ===== */
+@media (max-width: 760px) {
+  .app-shell.dashboard-background .dashboard .panel { padding: 14px; border-radius: 18px; }
+  .app-shell .menu-toolbar,
+  .app-shell .menu-toolbar.menu-index-controls { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .app-shell .menu-toolbar .search-input { grid-column: 1 / -1; }
+  .app-shell .topbar h2 { font-size: 24px; }
+
+  /* 16px text fields stop iOS Safari from zooming in on focus */
+  .app-shell input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  .app-shell select,
+  .app-shell textarea,
+  .modal-card input:not([type="checkbox"]):not([type="radio"]),
+  .modal-card textarea,
+  .login-page input:not([type="checkbox"]) { font-size: 16px; }
+}
+@media (max-width: 380px) {
+  .app-shell .menu-toolbar,
+  .app-shell .menu-toolbar.menu-index-controls { grid-template-columns: 1fr; }
+}
+@media (max-width: 760px) { .app-shell .menu-toolbar.orders-toolbar { grid-template-columns: 1fr; } }
+
+/* ===== Mobile: modals open as bottom sheets; category tab compaction ===== */
+@keyframes kbSheetUp { from { transform: translateY(40px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+@media (max-width: 760px) {
+  .modal-backdrop,
+  .menu-management .modal-backdrop,
+  .order-modal-backdrop,
+  .menu-management .order-modal-backdrop {
+    place-items: end center !important;
+    align-items: end !important;
+    padding: env(safe-area-inset-top) 0 0 !important;
+    overflow: hidden !important;
+  }
+  .modal-card,
+  .menu-management .modal-card,
+  .order-modal,
+  .menu-management .order-modal {
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: calc(100dvh - 24px - env(safe-area-inset-top)) !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain;
+    border-bottom-left-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+    padding-bottom: calc(19px + env(safe-area-inset-bottom)) !important;
+    animation: kbSheetUp .24s cubic-bezier(.2, .8, .2, 1) both;
+  }
+
+  .menu-management .category-overview { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding: 0 0 4px; }
+  .menu-management .category-stat { min-height: 0; padding: 10px; }
+  .menu-management .category-stat strong { font-size: 20px; }
+  .menu-management .category-stat small { display: none; }
+  .menu-management .category-toolbar { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 130px); gap: 8px; padding-left: 0; padding-right: 0; }
+  /* HTML5 drag-and-drop doesn't work with touch, so hide the handle */
+  .app-shell .category-table .category-drag-handle { display: none; }
+}
+@media (max-width: 380px) { .menu-management .category-toolbar { grid-template-columns: 1fr; } }
+@media (prefers-reduced-motion: reduce) {
+  .modal-card, .order-modal { animation: none !important; }
+}
+@media (max-width: 760px) {
+  .modal-backdrop,
+  .menu-management .modal-backdrop,
+  .order-modal-backdrop,
+  .menu-management .order-modal-backdrop,
+  .order-confirm-backdrop { z-index: 1000 !important; }
+}
+
+/* ===== Mobile: dashboard + reports polish ===== */
+@media (max-width: 760px) {
+  /* An odd last metric card fills the row instead of leaving a gap */
+  .dashboard-metrics > .dashboard-metric-card:last-child:nth-child(odd) { grid-column: 1 / -1; }
+  /* Report tables: let the long item name wrap so numbers stay visible */
+  .reports-table th, .reports-table td { padding-left: 6px; padding-right: 6px; }
+  .reports-table td:first-child { white-space: normal; }
+  .reports-table th:not(:first-child), .reports-table td:not(:first-child) { text-align: right; width: 1%; }
+  .reports-table th:last-child, .reports-table td:last-child { padding-right: 0; }
+  .reports-sales-chart { scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch; }
+}
+@media (max-width: 760px) {
+  .reports-table .reports-item-rank { float: left; margin-top: -4px; }
+  .reports-table .reports-item-rank + strong { display: block; overflow: hidden; }
+}
+@media (max-width: 680px) {
+  /* A blurred (backdrop-filter) ancestor turns position:fixed into panel-relative,
+     so anchor the picker under its trigger at full width instead of centring it. */
+  .reports-date-popover {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    width: 100%;
+    max-height: none;
+    transform: none;
+  }
+  .reports-date-actions { position: sticky; bottom: 0; }
+  .reports-date-actions button { flex: 1 1 0; min-height: 44px; }
+}
+
+/* ===== Tablet: compact icon rail + two-column cards ===== */
+@media (min-width: 761px) and (max-width: 1024px) {
+  .app-shell .sidebar { width: 84px; flex-basis: 84px; padding: 20px 10px; }
+  .sidebar-brand { justify-content: center; padding: 0 0 24px; }
+  .sidebar-brand > span:last-child,
+  .sidebar-admin div { display: none; }
+  .sidebar-admin { justify-content: center; padding: 8px; }
+  .sidebar .nav-item { flex-direction: column; justify-content: center; gap: 4px; padding: 10px 4px; font-size: 10px; text-align: center; }
+  .sidebar .nav-item .nav-icon { width: auto; flex: none; font-size: 18px; }
+  .app-shell.dashboard-background .dashboard { padding: 26px 24px 110px; }
+  .app-shell .menu-table-wrap table.menu-table tbody { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+}
+@media (max-width: 360px) {
+  .sidebar .nav-item,
+  .app-shell.dashboard-background .sidebar .nav-item { padding: 6px 0; font-size: 9.5px; letter-spacing: -.01em; }
+}
+@media (max-width: 760px) {
+  .menu-tabs button { white-space: nowrap; }
+}
+@media (max-width: 360px) {
+  .menu-tabs button { padding-left: 12px; padding-right: 12px; font-size: 14px; }
+}
+
+/* ===== Mobile: customer landing polish ===== */
+@media (max-width: 760px) {
+  /* Keep the brand off the screen edge (and clear of notches) */
+  .customer-story-stage .customer-nav {
+    padding-left: max(16px, env(safe-area-inset-left)) !important;
+    padding-right: max(16px, env(safe-area-inset-right)) !important;
+  }
+  /* Let long category names wrap onto two lines instead of truncating */
+  .customer-category-bubble strong {
+    display: -webkit-box !important;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    white-space: normal !important;
+    overflow: hidden;
+    text-overflow: clip !important;
+    max-width: 100%;
+    line-height: 1.1 !important;
+    text-align: center;
+  }
+  .customer-category-bubble,
+  .customer-menu-image-add,
+  .customer-story-link { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+  .customer-landing input,
+  .customer-story-page input { font-size: 16px !important; }
+}
+@media (max-width: 760px) {
+  /* Sit the order box below the brand bar so it never covers the logo */
+  .customer-packing-box { top: calc(66px + env(safe-area-inset-top)) !important; right: max(12px, env(safe-area-inset-right)) !important; }
+}
+@media (max-width: 760px) {
+  /* Comfortable touch targets in the cart */
+  .customer-cart-panel .customer-quantity-controls button { width: 34px !important; height: 34px !important; min-width: 34px !important; }
+  .customer-cart-panel .customer-cart-remove { padding: 8px 4px !important; }
+  .customer-cart-title > button { width: 38px !important; height: 38px !important; }
+  .customer-plate-links .customer-story-link { min-height: 36px; }
+}
+@media (max-width: 760px) {
+  /* Invisible hit-area extension around the small "+" add button */
+  .customer-menu-image-add::after { content: ""; position: absolute; inset: -9px; border-radius: 50%; }
 }

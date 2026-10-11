@@ -591,10 +591,10 @@ function Orders() {
           <tbody>{pagedOrders.map(order => <tr key={order.id}>
             <td><div className="order-main-cell"><strong>{order.orderNumber}</strong><small>{order.placedAt ? new Date(order.placedAt).toLocaleString("en-IN") : "—"}</small></div></td>
             <td><div className="order-main-cell"><strong>{order.customerName || "Walk-in customer"}</strong><small>{order.customerPhone || "No phone provided"}</small></div></td>
-            <td><div className="order-items-cell">{order.items?.length ? order.items.map(item => <span key={item.id}>{item.itemName} <small>× {item.quantity}</small></span>) : <span className="muted">Items unavailable</span>}</div></td>
+            <td data-label="Items"><div className="order-items-cell">{order.items?.length ? order.items.map(item => <span key={item.id}>{item.itemName} <small>× {item.quantity}</small></span>) : <span className="muted">Items unavailable</span>}</div></td>
             <td><span className={"order-status " + order.status}>{statusLabel(order.status)}</span></td>
             <td><strong>{money(order.totalAmount)}</strong></td>
-            <td>{order.status === "completed" || order.status === "cancelled" ? <span className="order-status-lock" title={`${statusLabel(order.status)} orders cannot be changed`}><span aria-hidden="true">🔒</span> Locked</span> : <CustomSelect value={order.status} onChange={value => updateStatus(order.id, value)} portalMenu statusTone options={["placed","preparing","ready","completed","cancelled"].map(s => ({ value: s, label: statusLabel(s) }))} />}</td>
+            <td data-label="Update status">{order.status === "completed" || order.status === "cancelled" ? <span className="order-status-lock" title={`${statusLabel(order.status)} orders cannot be changed`}><span aria-hidden="true">🔒</span> Locked</span> : <CustomSelect value={order.status} onChange={value => updateStatus(order.id, value)} portalMenu statusTone options={["placed","preparing","ready","completed","cancelled"].map(s => ({ value: s, label: statusLabel(s) }))} />}</td>
             <td><div className="order-document-actions"><button type="button" className="order-document-button order-print-button" onClick={() => { if (!printOrderReceipt(order)) setError("Your browser blocked the print window. Allow pop-ups and try again."); }} title={"Print order " + order.orderNumber}><span aria-hidden="true">⎙</span><span>Print</span></button><button type="button" className="order-document-button order-pdf-button" onClick={() => downloadOrderPdf(order)} title={"Download PDF for order " + order.orderNumber}><span aria-hidden="true">↓</span><span>PDF</span></button></div></td>
           </tr>)}</tbody>
         </table>
@@ -967,7 +967,7 @@ function MenuManagement() {
           <td><div className="item-cell">{item.imageUrl ? <button type="button" className="table-image-button" onClick={() => setPreviewImage({ url: item.imageUrl!, type: "item", name: item.name, category: categoryName(item.categoryId), price: item.price, description: item.description, isVeg: item.isVeg, isAvailable: item.isAvailable, stockQuantity: item.stockQuantity })} aria-label={`Preview ${item.name} image`}><img src={item.imageUrl} alt="" /></button> : <div className="image-placeholder">🍽️</div>}<div><strong>{item.name}</strong><small>{item.stockQuantity} in stock</small></div></div></td>
           <td>{categoryName(item.categoryId)}</td><td className="price-cell">{money(item.price)}</td>
           <td><span className={item.isVeg ? "veg-badge" : "nonveg-badge"}>{item.isVeg ? "VEG" : "NON-VEG"}</span></td>
-          <td><button className={`switch ${item.isAvailable ? "on" : ""}`} onClick={() => toggleItem(item)} aria-label={item.isAvailable ? "Disable item" : "Enable item"}><span /></button></td>
+          <td data-label="Available"><button className={`switch ${item.isAvailable ? "on" : ""}`} onClick={() => toggleItem(item)} aria-label={item.isAvailable ? "Disable item" : "Enable item"}><span /></button></td>
           <td><button className="table-action menu-action-edit" onClick={() => setItemModal(item)}><span className="button-icon">✎</span><span>Edit</span></button></td>
         </tr>)}
       </tbody></table><Pagination currentPage={itemsPage} totalPages={itemsTotalPages} totalItems={visibleItems.length} pageSize={pageSize} onPageChange={setItemsPage} />{!visibleItems.length && <div className="empty-state"><span>🍛</span><strong>No menu items found</strong><p className="muted">Add your first menu item to get started.</p></div>}</div>}
@@ -1508,19 +1508,30 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
     return () => window.removeEventListener("popstate", syncRoute);
   }, []);
 
+  const signOut = async () => {
+    await fetch("/api/v1/auth/logout", { method: "POST", credentials: "include" });
+    window.history.replaceState({}, "", "/");
+    onLogout();
+  };
+
   const navigate = (page: string) => {
     const path = dashboardRoutes[page] ?? "/dashboard";
     window.history.pushState({}, "", path);
     setActive(page);
+    document.querySelector(".dashboard")?.scrollTo({ top: 0 });
   };
 
   return <div className="app-shell dashboard-background">
     <aside className="sidebar">
       <div className="sidebar-brand"><span className="brand-mark small">{branding.siteLogo ? <img src={branding.siteLogo} alt="" /> : "KB"}</span><span>{branding.siteName || "Kumari Bites"}</span></div>
-      <nav>{menuItems.map(item => <button key={item.label} className={active === item.label ? "nav-item active" : "nav-item"} onClick={() => navigate(item.label)}><span>{item.icon}</span>{item.label}</button>)}</nav>
+      <nav aria-label="Admin sections">{menuItems.map(item => <button key={item.label} type="button" className={active === item.label ? "nav-item active" : "nav-item"} aria-current={active === item.label ? "page" : undefined} onClick={() => navigate(item.label)}><span className="nav-icon" aria-hidden="true">{item.icon}</span><span className="nav-label">{item.label}</span></button>)}</nav>
       <div className="sidebar-admin"><span className="avatar">A</span><div><strong>Admin</strong><small>Kumari Bites</small></div></div>
-      <button className="nav-item logout" onClick={async () => { await fetch("/api/v1/auth/logout", { method: "POST", credentials: "include" }); window.history.replaceState({}, "", "/"); onLogout(); }}><span>↪</span> Sign out</button>
+      <button type="button" className="nav-item logout" onClick={signOut}><span className="nav-icon" aria-hidden="true">↪</span><span className="nav-label">Sign out</span></button>
     </aside>
+    <header className="mobile-appbar">
+      <div className="mobile-appbar-brand"><span className="brand-mark small">{branding.siteLogo ? <img src={branding.siteLogo} alt="" /> : "KB"}</span><span>{branding.siteName || "Kumari Bites"}</span></div>
+      <button type="button" className="mobile-appbar-signout" onClick={signOut} aria-label="Sign out"><span aria-hidden="true">↪</span> Sign out</button>
+    </header>
     <main className="dashboard">
       {active !== "Reports" && active !== "Settings" && <header className="topbar"><div>{active === "Menu" || active === "Orders" || active === "Dashboard" ? <h2>{active === "Menu" ? "Menu Management" : active === "Orders" ? "Orders" : "Dashboard"}</h2> : <><p className="eyebrow">KUMARI BITES ADMIN</p><h2>{active}</h2></>}</div></header>}
       {active === "Dashboard" ? <DashboardHome /> : active === "Orders" ? <Orders /> : active === "Menu" ? <MenuManagement /> : active === "Reports" ? <Reports /> : active === "Settings" ? <SettingsPage /> : <section className="panel"><h3>{active}</h3><p className="muted">This module is coming next.</p></section>}
