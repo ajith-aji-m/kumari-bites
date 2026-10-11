@@ -11,6 +11,8 @@ import { registerOfferRoutes } from "../offers/routes.js";
 import { registerDashboardRoutes } from "../dashboard/routes.js";
 import { registerReportRoutes } from "../reports/routes.js";
 import { registerSettingsRoutes } from "../settings/routes.js";
+import { registerAssistantRoutes } from "../assistant/routes.js";
+import { registerWhatsAppRoutes } from "../whatsapp/routes.js";
 
 export function buildApp() {
   const app = Fastify({ logger: true, bodyLimit: 6 * 1024 * 1024 });
@@ -38,6 +40,8 @@ export function buildApp() {
   app.register(registerDashboardRoutes);
   app.register(registerReportRoutes);
   app.register(registerSettingsRoutes);
+  app.register(registerAssistantRoutes, {});
+  app.register(registerWhatsAppRoutes, {});
 
   return app;
 }

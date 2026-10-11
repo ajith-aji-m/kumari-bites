@@ -149,7 +149,7 @@ export const orders = mysqlTable("orders", {
   orderNumber: varchar("order_number", { length: 40 }).notNull(),
   customerName: varchar("customer_name", { length: 120 }),
   customerPhone: varchar("customer_phone", { length: 30 }),
-  source: mysqlEnum("source", ["qr", "admin", "walk_in"]).default("qr").notNull(),
+  source: mysqlEnum("source", ["qr", "admin", "walk_in", "whatsapp"]).default("qr").notNull(),
   status: mysqlEnum("status", ["placed", "preparing", "ready", "completed", "cancelled"]).default("placed").notNull(),
   paymentStatus: mysqlEnum("payment_status", ["pending", "paid", "failed", "refunded", "partially_refunded"]).default("pending").notNull(),
   subtotal: decimal("subtotal", { precision: 10, scale: 2 }).notNull(),
@@ -229,10 +229,63 @@ export const whatsappIntegrations = mysqlTable("whatsapp_integrations", {
   provider: varchar("provider", { length: 80 }).notNull(),
   phoneNumber: varchar("phone_number", { length: 30 }),
   connectionStatus: mysqlEnum("connection_status", ["disconnected", "pending", "connected", "error"]).default("disconnected").notNull(),
+  displayName: varchar("display_name", { length: 120 }),
   credentialsEncrypted: text("credentials_encrypted"),
+  lastError: varchar("last_error", { length: 500 }),
   connectedAt: timestamp("connected_at"),
   ...timestamps
 });
+
+// Baileys multi-device auth state (creds + signal keys), AES-GCM encrypted per row.
+export const whatsappAuthState = mysqlTable("whatsapp_auth_state", {
+  id: int("id").autoincrement().primaryKey(),
+  keyName: varchar("key_name", { length: 190 }).notNull(),
+  valueEncrypted: mediumtext("value_encrypted").notNull(),
+  ...timestamps
+}, (table) => [uniqueIndex("whatsapp_auth_state_key_uq").on(table.keyName)]);
+
+export const whatsappConversations = mysqlTable("whatsapp_conversations", {
+  id: int("id").autoincrement().primaryKey(),
+  chatJid: varchar("chat_jid", { length: 120 }).notNull(),
+  customerName: varchar("customer_name", { length: 120 }),
+  customerPhone: varchar("customer_phone", { length: 30 }),
+  status: mysqlEnum("status", ["active", "handoff"]).default("active").notNull(),
+  // Cart, pending order confirmation and recently shown items — see src/assistant/types.ts.
+  state: json("state"),
+  greetedAt: timestamp("greeted_at"),
+  lastMessageAt: timestamp("last_message_at"),
+  ...timestamps
+}, (table) => [
+  uniqueIndex("whatsapp_conversations_chat_uq").on(table.chatJid),
+  index("whatsapp_conversations_status_idx").on(table.status)
+]);
+
+export const whatsappMessages = mysqlTable("whatsapp_messages", {
+  id: int("id").autoincrement().primaryKey(),
+  conversationId: int("conversation_id").notNull(),
+  waMessageId: varchar("wa_message_id", { length: 128 }),
+  direction: mysqlEnum("direction", ["inbound", "outbound"]).notNull(),
+  messageType: varchar("message_type", { length: 20 }).default("text").notNull(),
+  content: text("content").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull()
+}, (table) => [
+  // Persistent dedup: the same WhatsApp message id can only be stored once per chat.
+  uniqueIndex("whatsapp_messages_wa_id_uq").on(table.conversationId, table.waMessageId),
+  index("whatsapp_messages_conversation_idx").on(table.conversationId, table.createdAt)
+]);
+
+export const whatsappOrderRequests = mysqlTable("whatsapp_order_requests", {
+  id: int("id").autoincrement().primaryKey(),
+  idempotencyKey: varchar("idempotency_key", { length: 190 }).notNull(),
+  conversationId: int("conversation_id").notNull(),
+  orderId: int("order_id"),
+  waMessageId: varchar("wa_message_id", { length: 128 }),
+  status: mysqlEnum("status", ["created", "handoff"]).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull()
+}, (table) => [
+  uniqueIndex("whatsapp_order_requests_key_uq").on(table.idempotencyKey),
+  index("whatsapp_order_requests_order_idx").on(table.orderId)
+]);
 
 export const aiIntegrations = mysqlTable("ai_integrations", {
   id: int("id").autoincrement().primaryKey(),

@@ -2,6 +2,7 @@ import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "re
 import { createPortal } from "react-dom";
 import { ImageUpload } from "./components/ImageUpload";
 import { CustomerLanding } from "./CustomerLanding";
+import { AssistantSettings } from "./assistant/AssistantSettings";
 
 type DashboardData = {
   today: { orders: number; sales: number; averageOrder: number; activeOrders: number; completedOrders: number; cancelledOrders: number };
@@ -1349,6 +1350,12 @@ function SettingsPage() {
 
   useEffect(() => { loadSettings(); }, [loadSettings]);
 
+  const showNotice = useCallback((message: string) => {
+    setError("");
+    setNotice(message);
+    window.setTimeout(() => setNotice(current => current === message ? "" : current), 3200);
+  }, []);
+
   const update = (field: keyof SiteSettings, value: string) => {
     setSettings(current => ({ ...current, [field]: value }));
     setNotice("");
@@ -1463,6 +1470,8 @@ function SettingsPage() {
       </aside>
       <div className="settings-form-footer"><span aria-live="polite">{saving ? "Saving your settings…" : " "}</span><button type="submit" className="primary-button" disabled={saving}>{saving ? "Saving…" : "Save changes"}</button></div>
     </form>}
+
+    {!loading && <AssistantSettings onNotice={showNotice} onError={setError} />}
   </section>;
 }
 

@@ -304,3 +304,61 @@ The order/customer information remains order-centric; no separate customer CRM m
 - The Settings page generates a QR image from the exact customer URL entered and provides a print flow. The QR image preview uses the QR Server image endpoint, so generating/printing the QR requires an internet connection.
 - The QR destination is configurable now; the customer-facing ordering/landing page remains a separate implementation phase.
 
+
+## WhatsApp AI Assistant
+
+Customers message the business WhatsApp number; an AI assistant answers from the live menu, sends real menu photos, keeps a draft cart and places orders through the same order service as the QR checkout. Everything is configured in **Settings → WhatsApp AI Assistant**.
+
+### How it works
+
+```
+WhatsApp (linked device) ──► src/whatsapp/baileysTransport.ts   connection, QR, reconnects, message parsing
+                         ──► src/whatsapp/service.ts            per-chat queue, paced delivery + retry, status persistence
+                         ──► src/assistant/engine.ts            dedup, conversation state, AI tool loop, YES confirmation
+                         ──► src/assistant/tools.ts             validated tools over the real menu/order tables
+                         ──► src/orders/service.ts              existing createOrder (stock lock, active price, cash payment)
+```
+
+- **Transport.** WhatsApp Web multi-device via [Baileys](https://github.com/WhiskeySockets/Baileys), the same library the reference `whatsapp-ai-assistant` project uses. It sits behind the `WhatsAppTransport` interface (`src/whatsapp/transport.ts`) so an official WhatsApp Business Platform transport can replace it without touching the assistant.
+- **Session.** The linked-device session is stored AES-256-GCM-encrypted in `whatsapp_auth_state` (MySQL), not on disk, so it survives restarts and redeploys. On boot the server reconnects automatically when a session exists (`WHATSAPP_AUTO_RESTORE`).
+- **AI.** OpenAI and Groq through their OpenAI-compatible Chat Completions API with tool calling (`src/ai/`). Every request reads the saved configuration from `ai_integrations`. Keys are encrypted at rest and only returned masked. The model list is loaded live from the provider, and saving verifies the key and model.
+- **Facts come from the database.** Menu, prices, availability, photos and order status come only from tools. Totals use the same rule as `createOrder` (Σ price × qty, no tax, no discount). A reply that quotes a ₹ amount no tool returned is sent back to the model once for correction.
+- **Orders.** The model can only build a cart and request a summary. The server places the order only when the customer's whole reply is an explicit confirmation (`YES`, `confirm`, `ஆம்` …). Before placing it, the server re-checks prices and stock against the summary. An idempotency key in `whatsapp_order_requests` is inserted in the same transaction as the order, so retries never duplicate it. Orders appear in Orders with source `whatsapp`, payment pending (cash at pickup).
+- **Safety switches** (Order Automation) are enforced on the server. Auto-replies cannot be turned on until AI and a valid prompt are saved. With automatic order creation off, a YES hands the order to staff instead.
+- **Human handoff.** The assistant pauses in a chat when it escalates, when the AI provider fails, or when someone replies by hand from the phone. Resume it from Integration Status.
+- **Privacy.** The QR code is served only from admin-authenticated routes and is never broadcast. The public WebSocket carries only ids (`whatsapp.attention`). Prompt generation sends menu structure only, never customer data. Baileys logging is off.
+
+### Environment
+
+| Variable | Required | Purpose |
+|---|---|---|
+| `APP_ENCRYPTION_KEY` | Yes | 32 random bytes (`openssl rand -base64 32`). Encrypts API keys and the WhatsApp session. Keep it stable: changing it means re-entering the API key and re-scanning the QR code. |
+| `WHATSAPP_AUTO_RESTORE` | No (default `true`) | Reconnect the linked session on server start. |
+| `PUBLIC_ASSETS_DIR` | No | Folder containing `assets/menu/...` if menu images are not in `./public` or `./dist/client`. |
+
+AI provider keys are entered in Settings, not in `.env`.
+
+### Setup
+
+1. `npm install`, `npm run migrate` (migration `0004_whatsapp_ai_assistant`), set `APP_ENCRYPTION_KEY`, restart the server.
+2. **AI Configuration**: choose OpenAI or Groq, paste the API key, click **Load models**, pick a model, then **Save configuration** (it verifies the key) and **Test connection**.
+3. **Assistant Personality**: fill in name, tone, languages and behaviour, then **Save personality**.
+4. **Prompt Generator**: click **Generate AI prompt**, edit it, try it in **Preview assistant behaviour** (real menu, no messages sent, no orders created), then **Save prompt**.
+5. **WhatsApp Connection**: click **Connect WhatsApp** and scan the QR code from the phone (WhatsApp → Settings → Linked devices → Link a device).
+6. **Order Automation**: turn on auto-replies, and order collection and automatic order creation if wanted.
+
+### Deployment notes
+
+- The server must be a **single long-running Node process**: the WhatsApp socket lives in memory. Do not run several replicas or serverless functions against the same session, because WhatsApp drops one of them (`connection replaced`).
+- No persistent disk is needed; session and conversations are in MySQL.
+- `sharp` (native) converts menu photos (webp) to JPEG for WhatsApp; it installs prebuilt binaries for Linux/macOS.
+
+### Limitations
+
+- Baileys is an **unofficial** WhatsApp Web client. Automated messaging this way is not endorsed by WhatsApp, and the number can be restricted or banned, especially for unsolicited or bulk messages. Use a dedicated business number and reply only to customers who message first. For higher volume, move to the WhatsApp Business Platform (Cloud API): add a transport implementing `WhatsAppTransport` with a signature-validated webhook.
+- WhatsApp may hide a customer's phone number (`@lid` chats). Orders from those chats have no phone, and order-status lookup is limited to orders placed in that chat.
+- Voice notes are transcribed with the provider's speech model (`whisper-1` / `whisper-large-v3-turbo`) when available. Otherwise the customer is asked to type.
+
+### Tests
+
+`npm test` runs the `node:test` suite in `test/` (through tsx). AI, WhatsApp and the database are faked; `test/setup.ts` points `DATABASE_URL` at an unreachable address so tests cannot touch real data.
