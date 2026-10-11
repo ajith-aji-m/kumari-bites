@@ -6903,7 +6903,7 @@ button {
     transition: top .45s cubic-bezier(.2, .8, .2, 1), left .45s cubic-bezier(.2, .8, .2, 1), height .45s cubic-bezier(.2, .8, .2, 1) !important;
   }
   .customer-story:not(.category-intro-playing) .customer-story-stage[data-chef-layout] .customer-order-taker img {
-    width: auto !important;
+    width: var(--chef-w, auto) !important;
     height: 100% !important;
     max-width: none !important;
     max-height: none !important;

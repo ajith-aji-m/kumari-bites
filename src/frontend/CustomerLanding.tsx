@@ -416,11 +416,11 @@ export function CustomerLanding() {
     // gap is too small the platter shrinks a little to make room.
     const clearLayout = () => {
       delete root.dataset.chefLayout;
-      ["--chef-top", "--chef-left", "--chef-h", "--plate-scale", "--note-top", "--note-left", "--welcome-top"].forEach(name => root.style.removeProperty(name));
+      ["--chef-top", "--chef-left", "--chef-h", "--chef-w", "--plate-scale", "--note-top", "--note-left", "--welcome-top"].forEach(name => root.style.removeProperty(name));
     };
     const layoutChef = () => {
       const img = root.querySelector<HTMLImageElement>(".customer-order-taker img");
-      if (isWidePlate || !img || !img.naturalWidth) { clearLayout(); return; }
+      if (isWidePlate || !img) { clearLayout(); return; }
       const stageRect = root.getBoundingClientRect();
       const vh = stageRect.height;
       const local = (y: number) => y - stageRect.top;
@@ -457,7 +457,8 @@ export function CustomerLanding() {
 
       const room = Math.max(0, floor - above - 4);
       const height = Math.round(Math.min(MAX_H, Math.max(MIN_H, room / FACE)));
-      const width = height * img.naturalWidth / img.naturalHeight;
+      // The artwork is 1374×1145; use that until the image has loaded so he is placed right away.
+      const width = height * (img.naturalWidth && img.naturalHeight ? img.naturalWidth / img.naturalHeight : 1374 / 1145);
       // Stand on the bottom of the screen when there is plenty of room, otherwise tuck right under what's above.
       const top = Math.round(Math.max(above + 4 - height * 0.02, Math.min(vh - height, floor - height * FACE)));
       // On phones he stands at the left edge (his face starts just inside the screen), which leaves
@@ -466,16 +467,28 @@ export function CustomerLanding() {
       root.style.setProperty("--chef-top", `${top}px`);
       root.style.setProperty("--chef-left", `${left}px`);
       root.style.setProperty("--chef-h", `${height}px`);
+      root.style.setProperty("--chef-w", `${Math.round(width)}px`);
       // His speech bubble sits beside his face, never on it, and never runs past the floor.
       const note = root.querySelector<HTMLElement>(".customer-chef-note");
       const noteHeight = note?.offsetHeight || 96;
       root.style.setProperty("--note-top", `${Math.round(Math.max(above + 6, Math.min(top + height * 0.06, floor - noteHeight - 6)))}px`);
       root.style.setProperty("--note-left", `${Math.round(left + width * 0.75)}px`);
     };
-    // The platter animates in, so measure once it has settled and again on resize.
+    // Lay out now, again once the platter's entrance has settled, whenever an image finishes
+    // loading (slow mobile data), and whenever the stage changes size (browser toolbars).
+    layoutChef();
     const timers = [window.setTimeout(layoutChef, 80), window.setTimeout(layoutChef, 900)];
+    const images = Array.from(root.querySelectorAll<HTMLImageElement>(".customer-order-taker img, .customer-story-cloud-image"));
+    images.forEach(image => image.addEventListener("load", layoutChef));
+    const resizeObserver = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(() => layoutChef());
+    resizeObserver?.observe(root);
     window.addEventListener("resize", layoutChef);
-    return () => { timers.forEach(window.clearTimeout); window.removeEventListener("resize", layoutChef); };
+    return () => {
+      timers.forEach(window.clearTimeout);
+      images.forEach(image => image.removeEventListener("load", layoutChef));
+      resizeObserver?.disconnect();
+      window.removeEventListener("resize", layoutChef);
+    };
   }, [stage, selectedCategory, menuPage, cartCount > 0, categoryIntroPlaying, isWidePlate, loading, categoryItems.length, placedOrder?.orderId, trackerMinimized, chefNote?.key]);
 
   const selectedCategoryEntry = selectedCategory === null ? undefined : activeCategories.find(c => c.id === selectedCategory);
