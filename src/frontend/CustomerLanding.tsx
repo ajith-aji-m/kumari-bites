@@ -5,6 +5,52 @@ type MenuItem = { id: number; categoryId: number; name: string; description: str
 const money = (v: string | number | null) => "₹" + Number(v ?? 0).toLocaleString("en-IN", { maximumFractionDigits: 2 });
 const isMenuEntryActive = (entry: { isActive?: boolean | number | string; is_active?: boolean | number | string; active?: boolean | number | string; status?: string }) => { const flags = [entry.isActive, entry.is_active, entry.active].filter(v => v !== undefined && v !== null); const explicitlyOff = flags.some(v => v === false || v === 0 || ["false", "0", "inactive", "disabled", "draft", "archived"].includes(String(v).toLowerCase())); return !explicitlyOff && !["inactive", "disabled", "draft", "archived"].includes(String(entry.status ?? "").toLowerCase()); };
 
+const ORDER_STATUS_LABELS: Record<string, string> = { placed: "Order placed", preparing: "Preparing your order", ready: "Your order is ready", completed: "Order completed", cancelled: "Order cancelled" };
+// What the order taker says while the kitchen works through each status.
+const ORDER_STATUS_STORIES: Record<string, string> = {
+  placed: "Your ticket just landed in our kitchen. Sit tight, we’re on it!",
+  preparing: "Sizzle time! Your bites are on the tawa right now.",
+  ready: "Hot, fresh and ready. Your order is good to go!",
+  completed: "Enjoy every bite, and thank you for eating with us!",
+  cancelled: "This order was cancelled. Please talk to our team if that’s unexpected."
+};
+const ORDER_STEPS = [
+  { status: "placed", label: "Placed", icon: "🧾" },
+  { status: "preparing", label: "Cooking", icon: "🔥" },
+  { status: "ready", label: "Ready", icon: "🛍️" },
+  { status: "completed", label: "Enjoy", icon: "😋" }
+];
+const STORY_CHAPTERS = ["Welcome", "Mood", "Bites", "Pack", "Kitchen"];
+
+function timeGreeting(date = new Date()) {
+  const hour = date.getHours();
+  if (hour < 12) return "Good morning";
+  if (hour < 17) return "Good afternoon";
+  return "Good evening";
+}
+
+// A line from the order taker for each category, matched loosely on its name.
+function categoryLine(name: string) {
+  const n = name.toLowerCase();
+  if (n.includes("roll")) return "Katti rolls, rolled hot off the tawa. Pick one and I’ll wrap it up!";
+  if (n.includes("momo")) return "Momos! Six little parcels of happiness per plate.";
+  if (n.includes("loaded")) return "Loaded fries, because plain fries deserved a party.";
+  if (n.includes("fries")) return "Golden, crispy and salted just right. Fries never fail!";
+  if (n.includes("chip")) return "Crunchy chips, seasoned with a twist. Snack attack incoming!";
+  if (n.includes("mojito") || n.includes("drink")) return "Something cool to sip? Mint, fizz and lots of ice.";
+  if (n.includes("combo")) return "Combos are my favourite: more bites, more smiles.";
+  if (n.includes("snack")) return "Quick bites for that in-between hunger.";
+  return `${name} it is! Take your pick, and I’ll note it down.`;
+}
+
+function addedLine(itemName: string, bites: number) {
+  if (bites === 1) return `${itemName}? Excellent taste! It’s in your packing box.`;
+  if (bites === 3) return "Three bites in. This is turning into a feast!";
+  if (bites === 5) return "Five bites! Shall I call your friends over too?";
+  const lines = [`One ${itemName}, noted!`, "Great pick. Into the box it goes!", `Ooh, ${itemName}. You know what’s good.`];
+  return lines[bites % lines.length];
+}
+
 export function CustomerLanding() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [items, setItems] = useState<MenuItem[]>([]);
@@ -27,6 +73,9 @@ export function CustomerLanding() {
     } catch { return null; }
   });
   const [trackerMinimized, setTrackerMinimized] = useState(false);
+  const [chefNote, setChefNote] = useState<{ text: string; key: number } | null>(null);
+  const [greeting] = useState(() => timeGreeting());
+  const sayChef = (text: string) => setChefNote({ text, key: Date.now() });
   const [addingItemId, setAddingItemId] = useState<number | null>(null);
   const [flyingBite, setFlyingBite] = useState<{ id: number; imageUrl: string | null; x: number; y: number; dx: number; dy: number } | null>(null);
 
@@ -92,7 +141,11 @@ export function CustomerLanding() {
     }, 650);
   };
   const openItems = (categoryId?: number) => {
-    if (typeof categoryId === "number") setSelectedCategory(categoryId);
+    if (typeof categoryId === "number") {
+      setSelectedCategory(categoryId);
+      const picked = categories.find(c => c.id === categoryId);
+      if (picked) sayChef(categoryLine(picked.name));
+    }
     setMenuPage(0);
     setStage(1);
   };
@@ -122,6 +175,7 @@ export function CustomerLanding() {
     }
     setSelectedCategory(null);
     setMenuPage(0);
+    setChefNote(null);
     setStage(0);
   };
 
@@ -157,6 +211,7 @@ export function CustomerLanding() {
   const add = (id: number, event?: React.MouseEvent<HTMLButtonElement>) => {
     setCart(c => ({ ...c, [id]: (c[id] ?? 0) + 1 }));
     const item = items.find(entry => entry.id === id);
+    if (item) sayChef(addedLine(item.name, cartCount + 1));
     const imageBox = event?.currentTarget.closest(".customer-menu-bubble-image") as HTMLElement | null;
     if (item && imageBox) {
       const rect = imageBox.getBoundingClientRect();
@@ -205,13 +260,26 @@ export function CustomerLanding() {
     }
   };
 
+  const selectedCategoryEntry = selectedCategory === null ? undefined : activeCategories.find(c => c.id === selectedCategory);
+  const chapter = placedOrder && !trackerMinimized ? 4 : cartOpen ? 3 : selectedCategory !== null ? 2 : stage >= 1 ? 1 : 0;
+  // On narrow screens the open cart covers the order taker, so he pauses while it is open.
+  const chefLine = stage === 1 && !categoryIntroPlaying && !(cartOpen && !isWidePlate)
+    ? chefNote?.text ?? (selectedCategoryEntry ? categoryLine(selectedCategoryEntry.name) : "So, what’s the mood today? Spicy, cheesy or something chilled?")
+    : null;
+
   return <main className="customer-landing customer-story-page">
     <section className={"customer-story " + (categoryIntroPlaying ? "category-intro-playing " : "") + (placedOrder ? "has-active-order" : "")} aria-label="Kumari Bites interactive menu story">
       <div className="customer-story-stage">
         <div className="customer-hero-shade" />
         <header className="customer-nav">
           <a className="customer-brand" href="#customer-order"><span className="customer-brand-mark">KB</span><span>Kumari <em>Bites</em></span></a>
+          <ol className="customer-chapters" aria-label="Your ordering journey">
+            {STORY_CHAPTERS.map((label, index) => <li key={label} className={(index < chapter ? "done " : "") + (index === chapter ? "current" : "")} aria-current={index === chapter ? "step" : undefined}>
+              <span className="customer-chapter-dot" aria-hidden="true">{index < chapter ? "✓" : index + 1}</span><span className="customer-chapter-label">{label}</span>
+            </li>)}
+          </ol>
         </header>
+        {chefLine && <p className="customer-chef-note" key={chefNote?.key ?? (selectedCategory ?? "mood")} role="status" aria-live="polite">{chefLine}</p>}
         <div className={"customer-hero-copy story-copy " + (stage === 0 ? "story-copy-visible" : "")}>
           <p className="customer-kicker"><span /> YOUR NEXT FAVOURITE BITE</p>
           <h1>Good food.<br /><em>Good mood.</em></h1>
@@ -225,18 +293,22 @@ export function CustomerLanding() {
           <small>ORDER RECEIVED · {placedOrder.orderNumber}</small>
           <h2>Thank you for your order!</h2>
           <p>Your order status will be tracked here. Updates appear automatically.</p>
-          <div className={"customer-live-order-status status-" + placedOrder.status}><span className="customer-live-status-icon">{placedOrder.status === "completed" ? "✓" : placedOrder.status === "cancelled" ? "!" : "•"}</span><span><small>LIVE ORDER STATUS</small><strong>{({placed:"Order placed",preparing:"Preparing your order",ready:"Your order is ready",completed:"Order completed",cancelled:"Order cancelled"} as Record<string,string>)[placedOrder.status] ?? "Order placed"}</strong></span><span className="customer-live-status-pulse" /></div>
-          <div className="customer-order-progress" aria-label="Order progress">{["placed","preparing","ready","completed"].map((status, index) => <span key={status} className={( ["placed","preparing","ready","completed"].indexOf(placedOrder.status) >= index ? "reached " : "") + (placedOrder.status === status ? "current" : "")} />)}</div>
+          <div className={"customer-live-order-status status-" + placedOrder.status}><span className="customer-live-status-icon">{placedOrder.status === "completed" ? "✓" : placedOrder.status === "cancelled" ? "!" : "•"}</span><span><small>LIVE ORDER STATUS</small><strong>{ORDER_STATUS_LABELS[placedOrder.status] ?? "Order placed"}</strong></span><span className="customer-live-status-pulse" /></div>
+          <p className="customer-order-story">{ORDER_STATUS_STORIES[placedOrder.status] ?? ORDER_STATUS_STORIES.placed}</p>
+          {placedOrder.status !== "cancelled" && <ol className="customer-order-steps" aria-label="Order progress">{ORDER_STEPS.map((step, index) => {
+            const currentIndex = ORDER_STEPS.findIndex(entry => entry.status === placedOrder.status);
+            return <li key={step.status} className={(currentIndex >= index ? "reached " : "") + (currentIndex === index ? "current" : "")} aria-current={currentIndex === index ? "step" : undefined}><span aria-hidden="true">{step.icon}</span>{step.label}</li>;
+          })}</ol>}
           <button type="button" className="customer-order-again" onClick={() => { if (!hasPendingOrder) { startFreshOrder(); } else { setTrackerMinimized(true); setCart({}); setCartOpen(false); setCustomerPhone(""); setSelectedCategory(null); setMenuPage(0); setStage(1); } }}>{hasPendingOrder ? "Explore more" : "Start a fresh order"} <span aria-hidden="true">↗</span></button>
         </div>}
         {placedOrder && trackerMinimized && <button type="button" className="customer-order-tracker-mini" onClick={() => setTrackerMinimized(false)} aria-label={"Open tracking for " + placedOrder.orderNumber}>
-          <span className="customer-tracker-mini-pulse" /><span><small>{placedOrder.orderNumber} · LIVE TRACKING</small><strong>{({placed:"Order placed",preparing:"Preparing your order",ready:"Your order is ready",completed:"Order completed",cancelled:"Order cancelled"} as Record<string,string>)[placedOrder.status] ?? "Order placed"}</strong></span><span className="customer-tracker-mini-open">↗</span>
+          <span className="customer-tracker-mini-pulse" /><span><small>{placedOrder.orderNumber} · LIVE TRACKING</small><strong>{ORDER_STATUS_LABELS[placedOrder.status] ?? "Order placed"}</strong></span><span className="customer-tracker-mini-open">↗</span>
         </button>}
         {!placedOrder && <div className={"customer-story-bubble " + (stage === 0 && !categoryIntroPlaying ? "story-bubble-visible" : "")}>
           <img className="customer-story-cloud-image" src="/assets/welcome-cloud.png" alt="" aria-hidden="true" />
           <div className="customer-story-bubble-content">
             <strong>{stage === 0 ? "Vanakkam, food lover!" : "Choose your favourites!"}</strong>
-            <p>{stage === 0 ? "Welcome to Kumari Bites! 🍽️ Ready to discover your next favourite?" : "Tap a category to explore our freshly made favourites."}</p>
+            <p>{stage === 0 ? `${greeting}! I’ll be taking your order today. Shall we find your next favourite?` : "Tap a category to explore our freshly made favourites."}</p>
             {stage === 0 && <button type="button" className="customer-story-link" onClick={openCategories}>Explore the menu <span aria-hidden="true">↗</span></button>}
           </div>
         </div>}
@@ -244,16 +316,16 @@ export function CustomerLanding() {
           <div className="story-panel-heading">
             <small>{selectedCategory === null ? "STEP 01 · PICK YOUR MOOD" : "FRESH FROM OUR KITCHEN"}</small>
             <h2>{selectedCategory === null ? <>What are you <em>craving?</em></> : <>{activeCategories.find(c => c.id === selectedCategory)?.name ?? "Your favourites"} <em>menu</em></>}</h2>
-            <p>{selectedCategory === null ? "Choose a category to see what’s cooking." : "Pick your bites and watch them join your order."}</p>
+            <p>{selectedCategory === null ? "Choose a category to see what’s cooking." : selectedCategoryEntry?.description || "Pick your bites and watch them join your order."}</p>
           </div>
-          {loading ? <div className="customer-story-loading">Getting the menu ready…</div> : error ? <div className="customer-story-loading">{error}</div> : selectedCategory === null ? <div className="customer-category-bubbles">
+          {loading ? <div className="customer-story-loading">Our chef is laying out the menu…</div> : error ? <div className="customer-story-loading">{error}</div> : selectedCategory === null ? <div className="customer-category-bubbles">
             {activeCategories.map((c, i) => <button key={c.id} style={{ animationDelay: `${i * 90}ms` }} className={"customer-category-bubble category-tone-" + (i % 5)} onClick={() => openItems(c.id)}>
               {c.imageUrl ? <img src={c.imageUrl} alt="" /> : <span className="category-bubble-art">{["🥟", "🌯", "🍔", "🍟", "🍗"][i % 5]}</span>}<strong>{c.name}</strong>
             </button>)}
           </div> : <div className="customer-menu-bubbles">
             {visibleItems.map((item, i) => <article key={item.id} style={{ animationDelay: `${i * 90}ms` }} className="customer-menu-bubble">
               <div className="customer-menu-bubble-image">{item.imageUrl ? <img src={item.imageUrl} alt={item.name} loading="lazy" /> : <span>{["🥟", "🌯", "🍔", "🍗", "🍜"][i % 5]}</span>}{cart[item.id] ? <span className="customer-menu-image-count">{cart[item.id]}</span> : null}<button type="button" aria-label={`Add ${item.name} to your bites`} className="customer-menu-image-add" onClick={(event) => add(item.id, event)}>+</button></div>
-              <strong className="customer-menu-bubble-name">{item.name}</strong>
+              <strong className="customer-menu-bubble-name"><span className={"customer-diet-mark " + (item.isVeg ? "veg" : "nonveg")} role="img" aria-label={item.isVeg ? "Vegetarian" : "Non-vegetarian"} />{item.name}</strong>
               <span className="customer-menu-bubble-price">{money(item.price)}</span>
             </article>)}
             {!categoryItems.length && <div className="customer-story-loading">No items in this category yet.</div>}
@@ -263,7 +335,7 @@ export function CustomerLanding() {
             {menuPage < menuPageCount - 1 && <button type="button" className="menu-page-next" aria-label="More menu items" onClick={() => setMenuPage(p => Math.min(menuPageCount - 1, p + 1))}></button>}
           </div>}
           <div className="customer-plate-links">
-            {selectedCategory !== null && <button type="button" className="customer-story-link" onClick={() => { setSelectedCategory(null); setMenuPage(0); }}>← All categories</button>}
+            {selectedCategory !== null && <button type="button" className="customer-story-link" onClick={() => { setSelectedCategory(null); setMenuPage(0); setChefNote(null); }}>← All categories</button>}
             <button type="button" className="story-scroll-hint customer-story-link" onClick={handleWelcome}>← Welcome</button>
           </div>
         </div>

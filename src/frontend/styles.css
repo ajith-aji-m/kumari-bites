@@ -6427,3 +6427,257 @@ button {
   /* Invisible hit-area extension around the small "+" add button */
   .customer-menu-image-add::after { content: ""; position: absolute; inset: -9px; border-radius: 50%; }
 }
+
+/* ===================== Customer story: narration & journey ===================== */
+
+/* Chapter rail — where the guest is in the ordering story */
+.customer-chapters {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  border: 1px solid rgba(255, 236, 214, .16);
+  border-radius: 999px;
+  background: rgba(30, 17, 11, .52);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+.customer-chapters li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px 4px 4px;
+  border-radius: 999px;
+  color: rgba(255, 239, 222, .5);
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: .02em;
+  white-space: nowrap;
+  transition: background .35s ease, color .35s ease;
+}
+.customer-chapters li + li::before {
+  content: "";
+  width: 14px;
+  height: 1px;
+  margin: 0 4px 0 -6px;
+  background: rgba(255, 220, 190, .22);
+}
+.customer-chapter-dot {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border: 1px solid rgba(255, 226, 200, .25);
+  border-radius: 50%;
+  font-size: 10px;
+  transition: background .35s ease, border-color .35s ease, color .35s ease;
+}
+.customer-chapters li.done { color: rgba(255, 232, 210, .78); }
+.customer-chapters li.done .customer-chapter-dot { border-color: transparent; background: rgba(255, 176, 109, .22); color: #ffc48f; }
+.customer-chapters li.current { background: #fff3e4; color: #4a2716; }
+.customer-chapters li.current .customer-chapter-dot { border-color: transparent; background: linear-gradient(135deg, #ff9a4d, #e2622b); color: #fff; box-shadow: 0 4px 12px rgba(226, 98, 43, .45); }
+
+/* The order taker keeps talking after the welcome */
+.customer-chef-note {
+  position: absolute;
+  z-index: 6;
+  left: clamp(150px, 19vw, 320px);
+  top: clamp(92px, 14vh, 150px);
+  width: max-content;
+  max-width: min(300px, 26vw);
+  margin: 0;
+  padding: 13px 17px;
+  border: 1px solid #fff4e2;
+  border-radius: 20px 20px 6px 20px;
+  background: #fff8ed;
+  color: #3b2217;
+  font-size: 13.5px;
+  font-weight: 650;
+  line-height: 1.4;
+  box-shadow: 0 16px 40px rgba(20, 9, 4, .35);
+  transform-origin: 85% 100%;
+  animation: kbChefNoteIn .42s cubic-bezier(.2, 1.4, .4, 1) both;
+}
+.customer-chef-note::after {
+  content: "";
+  position: absolute;
+  right: 26px;
+  bottom: -9px;
+  width: 18px;
+  height: 18px;
+  border-right: 1px solid #fff4e2;
+  border-bottom: 1px solid #fff4e2;
+  background: #fff8ed;
+  transform: rotate(45deg) skew(8deg, 8deg);
+  border-radius: 0 0 5px 0;
+}
+@keyframes kbChefNoteIn {
+  from { opacity: 0; transform: translateY(8px) scale(.9); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Veg / non-veg symbol, the way Indian menus print it */
+.customer-diet-mark {
+  position: relative;
+  display: inline-block;
+  flex: 0 0 auto;
+  width: 10px;
+  height: 10px;
+  margin-right: 4px;
+  vertical-align: -1px;
+  border: 1.5px solid #2f8a4a;
+  border-radius: 2px;
+}
+.customer-diet-mark::after {
+  content: "";
+  position: absolute;
+  inset: 1.5px;
+  border-radius: 50%;
+  background: #2f8a4a;
+}
+.customer-diet-mark.nonveg { border-color: #a1401f; }
+.customer-diet-mark.nonveg::after { inset: 1px; border-radius: 0; background: #a1401f; clip-path: polygon(50% 8%, 96% 92%, 4% 92%); }
+
+/* Bigger, more appetising dishes on the plate (desktop) */
+@media (min-width: 761px) {
+  .customer-story-categories.menu-items-on-plate.story-categories-visible .customer-menu-bubble { width: clamp(106px, 8.8vw, 124px) !important; height: clamp(106px, 8.8vw, 124px) !important; }
+  .customer-story-categories.menu-items-on-plate.story-categories-visible .customer-menu-bubble-image { width: clamp(42px, 3.8vw, 54px) !important; height: clamp(42px, 3.8vw, 54px) !important; }
+  .customer-story-categories.menu-items-on-plate.story-categories-visible .customer-menu-bubble-name { font-size: clamp(10px, .82vw, 12px) !important; }
+  .customer-story-categories.menu-items-on-plate.story-categories-visible .customer-menu-bubble-price { font-size: clamp(10px, .82vw, 12px) !important; font-weight: 800; }
+}
+
+/* Live kitchen timeline in the order tracker */
+.customer-order-story {
+  position: relative;
+  margin: 12px 0 0;
+  padding: 10px 12px 10px 34px;
+  border-radius: 12px;
+  background: rgba(255, 154, 77, .1);
+  color: #5b3524;
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+.customer-order-story::before {
+  content: "👨‍🍳";
+  position: absolute;
+  left: 10px;
+  top: 9px;
+  font-size: 15px;
+}
+.customer-order-steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 14px 0 4px;
+  padding: 0;
+  list-style: none;
+}
+.customer-order-steps li {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 5px;
+  color: #a68b7c;
+  font-size: 10.5px;
+  font-weight: 750;
+  text-align: center;
+}
+.customer-order-steps li > span {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 1.5px solid #ead8c8;
+  border-radius: 50%;
+  background: #fffaf3;
+  font-size: 15px;
+  filter: grayscale(1);
+  opacity: .55;
+  transition: all .4s ease;
+}
+.customer-order-steps li + li::before {
+  content: "";
+  position: absolute;
+  top: 16px;
+  right: 50%;
+  width: 100%;
+  height: 2px;
+  background: #ecdccd;
+}
+.customer-order-steps li.reached { color: #6d3a22; }
+.customer-order-steps li.reached > span { border-color: #ffb37a; background: #fff1e2; filter: none; opacity: 1; }
+.customer-order-steps li.reached + li.reached::before { background: linear-gradient(90deg, #ff9a4d, #e2622b); }
+.customer-order-steps li.current > span { border-color: #e2622b; box-shadow: 0 0 0 4px rgba(255, 154, 77, .22); animation: kbStepPulse 1.8s ease-in-out infinite; }
+@keyframes kbStepPulse { 50% { box-shadow: 0 0 0 8px rgba(255, 154, 77, 0); } }
+
+@media (max-width: 760px) {
+  /* Compact rail: dots for every chapter, a label only for the current one */
+  .customer-brand { white-space: nowrap; }
+  .customer-chapters { position: static; transform: none; gap: 2px; padding: 3px; margin-left: auto; }
+  .customer-chapters li { gap: 0; padding: 0; }
+  .customer-chapters li + li::before { width: 4px; margin: 0 2px 0 0; }
+  .customer-chapter-dot { width: 18px; height: 18px; font-size: 8.5px; }
+  .customer-chapters li .customer-chapter-label { display: none; }
+  .customer-chapters li.current { gap: 5px; padding-right: 9px; }
+  .customer-chapters li.current .customer-chapter-label { display: inline; font-size: 10.5px; }
+
+  .customer-chef-note {
+    left: auto;
+    right: max(12px, env(safe-area-inset-right));
+    top: auto;
+    bottom: calc(8% + env(safe-area-inset-bottom));
+    max-width: min(190px, 50vw);
+    padding: 10px 13px;
+    font-size: 12px;
+    border-radius: 18px;
+    transform-origin: 0 20%;
+  }
+  /* Tail points left, back toward the order taker's face */
+  .customer-chef-note::after { right: auto; left: -7px; top: 16px; bottom: auto; width: 13px; height: 13px; border: 0; border-left: 1px solid #fff4e2; border-bottom: 1px solid #fff4e2; transform: rotate(45deg); border-radius: 0 0 0 4px; }
+}
+@media (max-width: 360px) {
+  .customer-chapters li.current .customer-chapter-label { display: none; }
+  .customer-chapters li.current { padding-right: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .customer-chef-note, .customer-order-steps li.current > span { animation: none !important; }
+}
+@media (max-width: 760px) {
+  /* Keep the welcome headline inside the cloud, clear of its decorative burst */
+  .customer-story-bubble-content { position: relative; z-index: 1; }
+  .customer-story-bubble-content strong { font-size: 15px !important; letter-spacing: -.02em !important; }
+}
+@media (max-width: 400px) {
+  .customer-nav .customer-brand > span:last-child { font-size: 15px; }
+}
+@media (max-width: 760px) {
+  /* Long dish names wrap inside their bubble instead of running past the plate edge */
+  .customer-story-categories.menu-items-on-plate.story-categories-visible .customer-menu-bubble-name { max-width: 96px !important; white-space: normal !important; }
+}
+@media (max-width: 360px) {
+  .customer-story-bubble-content strong { font-size: 13.5px !important; }
+}
+@media (max-width: 760px) {
+  /* A soft cream backing keeps dish names legible even where they cross the plate's edge */
+  .customer-story-categories.menu-items-on-plate.story-categories-visible .customer-menu-bubble-name { padding: 1px 5px !important; border-radius: 7px; background: rgba(255, 248, 237, .94); }
+}
+@media (max-width: 360px) {
+  .customer-story-bubble-content { box-sizing: border-box; padding-left: 16px !important; }
+}
+@media (min-width: 761px) and (max-width: 1100px) {
+  /* Tablet: compact rail beside the brand so it never meets the order box */
+  .customer-chapters { position: static; transform: none; margin-left: 18px; margin-right: auto; }
+  .customer-chapters li .customer-chapter-label { display: none; }
+  .customer-chapters li { padding: 0; }
+  .customer-chapters li.current { gap: 6px; padding-right: 10px; }
+  .customer-chapters li.current .customer-chapter-label { display: inline; }
+}
