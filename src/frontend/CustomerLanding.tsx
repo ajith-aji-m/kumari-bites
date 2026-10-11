@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type Category = { id: number; name: string; slug: string; description: string | null; imageUrl: string | null; isActive?: boolean; is_active?: boolean; active?: boolean; status?: string };
 type MenuItem = { id: number; categoryId: number; name: string; description: string | null; imageUrl: string | null; isVeg: boolean; price: string | number | null; isActive?: boolean; is_active?: boolean; active?: boolean; status?: string };
@@ -76,6 +76,10 @@ export function CustomerLanding() {
   const [chefNote, setChefNote] = useState<{ text: string; key: number } | null>(null);
   const [greeting] = useState(() => timeGreeting());
   const sayChef = (text: string) => setChefNote({ text, key: Date.now() });
+  const stageRef = useRef<HTMLDivElement>(null);
+  // How much room phones leave below the platter: "full" shows the order taker, "compact" swaps him
+  // for a small avatar beside his line, "none" lets him speak through the platter's subtitle instead.
+  const [chefRoom, setChefRoom] = useState<"full" | "compact" | "none">("full");
   const [addingItemId, setAddingItemId] = useState<number | null>(null);
   const [flyingBite, setFlyingBite] = useState<{ id: number; imageUrl: string | null; x: number; y: number; dx: number; dy: number } | null>(null);
 
@@ -260,16 +264,47 @@ export function CustomerLanding() {
     }
   };
 
+  useEffect(() => {
+    const root = stageRef.current;
+    if (!root) return;
+    const layoutChef = () => {
+      const taker = root.querySelector<HTMLElement>(".customer-order-taker");
+      const img = taker?.querySelector<HTMLImageElement>("img");
+      const plate = root.querySelector<HTMLElement>(".customer-story-categories.story-categories-visible");
+      if (isWidePlate || stage !== 1 || !taker || !img || !plate || !img.offsetHeight) {
+        root.style.removeProperty("--chef-drop");
+        setChefRoom("full");
+        return;
+      }
+      // Measure without our own translate: the platter's drawn bottom and the image's resting top.
+      const plateRect = plate.getBoundingClientRect();
+      const plateShape = getComputedStyle(plate, "::before");
+      const shapeBottom = plateRect.top + (parseFloat(plateShape.top) || 0) + (parseFloat(plateShape.height) || 0);
+      const plateBottom = Math.max(plateRect.bottom, shapeBottom);
+      const restingTop = taker.getBoundingClientRect().top + img.offsetTop;
+      const height = img.offsetHeight;
+      // In the artwork the hair starts ~1% and the chin ends ~43% down the image.
+      const drop = Math.max(0, plateBottom + 6 - (restingTop + height * 0.01));
+      const chinVisible = restingTop + drop + height * 0.43 <= window.innerHeight;
+      root.style.setProperty("--chef-drop", `${Math.round(drop)}px`);
+      setChefRoom(chinVisible ? "full" : window.innerHeight - plateBottom >= 76 ? "compact" : "none");
+    };
+    // The platter animates in, so measure once it has settled and again on resize.
+    const timers = [window.setTimeout(layoutChef, 80), window.setTimeout(layoutChef, 900)];
+    window.addEventListener("resize", layoutChef);
+    return () => { timers.forEach(window.clearTimeout); window.removeEventListener("resize", layoutChef); };
+  }, [stage, selectedCategory, menuPage, cartCount > 0, categoryIntroPlaying, isWidePlate, loading, categoryItems.length]);
+
   const selectedCategoryEntry = selectedCategory === null ? undefined : activeCategories.find(c => c.id === selectedCategory);
   const chapter = placedOrder && !trackerMinimized ? 4 : cartOpen ? 3 : selectedCategory !== null ? 2 : stage >= 1 ? 1 : 0;
   // On narrow screens the open cart covers the order taker, so he pauses while it is open.
-  const chefLine = stage === 1 && !categoryIntroPlaying && !(cartOpen && !isWidePlate)
-    ? chefNote?.text ?? (selectedCategoryEntry ? categoryLine(selectedCategoryEntry.name) : "So, what’s the mood today? Spicy, cheesy or something chilled?")
-    : null;
+  const chefText = chefNote?.text ?? (selectedCategoryEntry ? categoryLine(selectedCategoryEntry.name) : "So, what’s the mood today? Spicy, cheesy or something chilled?");
+  const chefInSubtitle = !isWidePlate && chefRoom === "none";
+  const chefLine = stage === 1 && !categoryIntroPlaying && !(cartOpen && !isWidePlate) && !chefInSubtitle ? chefText : null;
 
   return <main className="customer-landing customer-story-page">
     <section className={"customer-story " + (categoryIntroPlaying ? "category-intro-playing " : "") + (placedOrder ? "has-active-order" : "")} aria-label="Kumari Bites interactive menu story">
-      <div className="customer-story-stage">
+      <div className="customer-story-stage" ref={stageRef} data-chef-room={isWidePlate ? undefined : chefRoom}>
         <div className="customer-hero-shade" />
         <header className="customer-nav">
           <a className="customer-brand" href="#customer-order"><span className="customer-brand-mark">KB</span><span>Kumari <em>Bites</em></span></a>
@@ -279,7 +314,7 @@ export function CustomerLanding() {
             </li>)}
           </ol>
         </header>
-        {chefLine && <p className="customer-chef-note" key={chefNote?.key ?? (selectedCategory ?? "mood")} role="status" aria-live="polite">{chefLine}</p>}
+        {chefLine && <p className="customer-chef-note" key={chefNote?.key ?? (selectedCategory ?? "mood")} role="status" aria-live="polite"><span className="customer-chef-note-avatar" aria-hidden="true" />{chefLine}</p>}
         <div className={"customer-hero-copy story-copy " + (stage === 0 ? "story-copy-visible" : "")}>
           <p className="customer-kicker"><span /> YOUR NEXT FAVOURITE BITE</p>
           <h1>Good food.<br /><em>Good mood.</em></h1>
@@ -316,7 +351,9 @@ export function CustomerLanding() {
           <div className="story-panel-heading">
             <small>{selectedCategory === null ? "STEP 01 · PICK YOUR MOOD" : "FRESH FROM OUR KITCHEN"}</small>
             <h2>{selectedCategory === null ? <>What are you <em>craving?</em></> : <>{activeCategories.find(c => c.id === selectedCategory)?.name ?? "Your favourites"} <em>menu</em></>}</h2>
-            <p>{selectedCategory === null ? "Choose a category to see what’s cooking." : selectedCategoryEntry?.description || "Pick your bites and watch them join your order."}</p>
+            {chefInSubtitle
+              ? <p className="customer-chef-subtitle" key={chefNote?.key ?? (selectedCategory ?? "mood")} role="status" aria-live="polite"><span className="customer-chef-note-avatar" aria-hidden="true" />{chefText}</p>
+              : <p>{selectedCategory === null ? "Choose a category to see what’s cooking." : selectedCategoryEntry?.description || "Pick your bites and watch them join your order."}</p>}
           </div>
           {loading ? <div className="customer-story-loading">Our chef is laying out the menu…</div> : error ? <div className="customer-story-loading">{error}</div> : selectedCategory === null ? <div className="customer-category-bubbles">
             {activeCategories.map((c, i) => <button key={c.id} style={{ animationDelay: `${i * 90}ms` }} className={"customer-category-bubble category-tone-" + (i % 5)} onClick={() => openItems(c.id)}>
