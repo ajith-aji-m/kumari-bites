@@ -31,6 +31,35 @@ const storyDepth = (view: StoryView) => STEP_DEPTH[view.step] + (view.cart ? 0.5
 const sameView = (a: StoryView, b: StoryView) => a.step === b.step && a.categoryId === b.categoryId && a.cart === b.cart && (a.detail ?? null) === (b.detail ?? null);
 const isStoryEntry = (value: unknown): value is StoryEntry => !!value && typeof value === "object" && (value as StoryEntry).kbStory === true;
 
+// Indian mobile numbers: 10 digits starting 6-9. Accepts pasted "+91 98765 43210" or "098765...".
+function normaliseIndianMobile(raw: string) {
+  let digits = raw.replace(/\D/g, "");
+  if (digits.length > 10 && digits.startsWith("91")) digits = digits.slice(2);
+  if (digits.length > 10 && digits.startsWith("0")) digits = digits.slice(1);
+  return digits.slice(0, 10);
+}
+const isIndianMobile = (digits: string) => /^[6-9]\d{9}$/.test(digits);
+
+// A short two-note chime, made with Web Audio so no sound file is needed.
+function playReadyChime(context: AudioContext | null) {
+  if (!context) return;
+  try {
+    const start = context.currentTime + 0.02;
+    [[880, 0], [1318.5, 0.18]].forEach(([frequency, offset]) => {
+      const osc = context.createOscillator();
+      const gain = context.createGain();
+      osc.type = "sine";
+      osc.frequency.value = frequency;
+      gain.gain.setValueAtTime(0.0001, start + offset);
+      gain.gain.exponentialRampToValueAtTime(0.35, start + offset + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, start + offset + 0.6);
+      osc.connect(gain).connect(context.destination);
+      osc.start(start + offset);
+      osc.stop(start + offset + 0.65);
+    });
+  } catch { /* Sound is a bonus; the on-screen status still updates. */ }
+}
+
 function timeGreeting(date = new Date()) {
   const hour = date.getHours();
   if (hour < 12) return "Good morning";
@@ -79,6 +108,11 @@ export function CustomerLanding() {
   });
   const [cartOpen, setCartOpen] = useState(false);
   const [customerPhone, setCustomerPhone] = useState("");
+  const [phoneTouched, setPhoneTouched] = useState(false);
+  const phoneInvalid = customerPhone.length > 0 && !isIndianMobile(customerPhone);
+  // Browsers only allow sound after a tap, so the audio is unlocked when the guest places the order.
+  const audioRef = useRef<AudioContext | null>(null);
+  const lastStatusRef = useRef<string | null>(null);
   const [placingOrder, setPlacingOrder] = useState(false);
   const [checkoutError, setCheckoutError] = useState("");
   const [placedOrder, setPlacedOrder] = useState<{ orderId: number; orderNumber: string; totalAmount?: string; trackingToken: string; status: string } | null>(() => {
@@ -257,6 +291,16 @@ export function CustomerLanding() {
   const placeOrder = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (placingOrder || !cartCount) return;
+    if (phoneInvalid) {
+      setPhoneTouched(true);
+      document.getElementById("customer-whatsapp")?.focus();
+      return;
+    }
+    try {
+      const AudioCtor = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+      if (AudioCtor && !audioRef.current) audioRef.current = new AudioCtor();
+      void audioRef.current?.resume();
+    } catch { /* No Web Audio: the alert falls back to vibration and the title. */ }
     setPlacingOrder(true);
     setCheckoutError("");
     try {
@@ -265,7 +309,7 @@ export function CustomerLanding() {
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
-          customerPhone: customerPhone.trim() || undefined,
+          customerPhone: customerPhone ? "+91" + customerPhone : undefined,
           source: "qr",
           paymentMethod: "cash",
           items: Object.entries(cart).filter(([, quantity]) => quantity > 0).map(([menuItemId, quantity]) => ({ menuItemId: Number(menuItemId), quantity }))
@@ -349,6 +393,23 @@ export function CustomerLanding() {
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
   }, []);
+
+  // Alert the guest when the kitchen marks the order ready: vibration, a chime, and the tab title.
+  useEffect(() => {
+    const status = placedOrder?.status ?? null;
+    const previous = lastStatusRef.current;
+    lastStatusRef.current = status;
+    if (status !== "ready" || previous === null || previous === "ready") return;
+    try { navigator.vibrate?.([220, 120, 220, 120, 420]); } catch { /* Not supported (e.g. iPhone). */ }
+    playReadyChime(audioRef.current);
+    setTrackerMinimized(false);
+    const originalTitle = document.title;
+    document.title = "🔔 Your order is ready!";
+    const restore = () => { if (!document.hidden) { document.title = originalTitle; document.removeEventListener("visibilitychange", restore); } };
+    const timer = window.setTimeout(restore, 8000);
+    document.addEventListener("visibilitychange", restore);
+    return () => { window.clearTimeout(timer); document.removeEventListener("visibilitychange", restore); document.title = originalTitle; };
+  }, [placedOrder?.status]);
 
   useEffect(() => {
     const root = stageRef.current;
@@ -560,7 +621,12 @@ export function CustomerLanding() {
         <div className="customer-cart-total"><span>Subtotal</span><strong>{money(total)}</strong></div>
         <form className="customer-checkout-form" onSubmit={placeOrder}>
           <h4>Contact details</h4>
-          <label>Phone number (optional)<input type="tel" value={customerPhone} onChange={e => setCustomerPhone(e.target.value)} autoComplete="tel" minLength={7} maxLength={30} placeholder="For WhatsApp order PDF" /></label>
+          <label htmlFor="customer-whatsapp">WhatsApp number <span className="customer-optional">(optional)</span></label>
+          <div className={"customer-phone-field" + (phoneTouched && phoneInvalid ? " has-error" : "")}>
+            <span className="customer-phone-prefix" aria-hidden="true">🇮🇳 +91</span>
+            <input id="customer-whatsapp" type="tel" inputMode="numeric" autoComplete="tel-national" value={customerPhone.replace(/^(\d{5})(\d+)/, "$1 $2")} onChange={e => setCustomerPhone(normaliseIndianMobile(e.target.value))} onBlur={() => setPhoneTouched(true)} placeholder="98765 43210" aria-invalid={phoneTouched && phoneInvalid} aria-describedby="customer-whatsapp-help" />
+          </div>
+          <p id="customer-whatsapp-help" className={"customer-phone-help" + (phoneTouched && phoneInvalid ? " is-error" : "")}>{phoneTouched && phoneInvalid ? "Enter a 10-digit mobile number starting with 6, 7, 8 or 9." : "We’ll send your order PDF here on WhatsApp."}</p>
           <div className="customer-cod-option"><span className="customer-cod-radio">✓</span><span><strong>Cash on Delivery</strong><small>Pay when your order arrives</small></span><span className="customer-cod-tag">COD</span></div>
           {checkoutError && <p className="customer-checkout-error" role="alert">{checkoutError}</p>}
           <button className="customer-place-order" type="submit" disabled={placingOrder || cartCount === 0}>{placingOrder ? "Placing order…" : "Place Order · " + money(total)}</button>

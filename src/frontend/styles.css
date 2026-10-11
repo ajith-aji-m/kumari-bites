@@ -7218,3 +7218,42 @@ button {
   .customer-story-page .customer-story-stage .customer-story-categories.story-categories-visible .customer-category-bubble > img,
   .customer-story-page .customer-story-stage .customer-story-categories.story-categories-visible .customer-category-bubble > .category-bubble-art { width: 50px !important; height: 50px !important; }
 }
+
+/* ============ WhatsApp number field with +91 prefix ============ */
+.customer-checkout-form > label[for="customer-whatsapp"] { display: block; margin-bottom: 6px; }
+.customer-optional { color: #9b7d6b; font-weight: 500; }
+.customer-phone-field {
+  display: flex;
+  align-items: stretch;
+  border: 1px solid #e5d2c3;
+  border-radius: 10px;
+  background: #fffdf9;
+  overflow: hidden;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.customer-phone-field:focus-within { border-color: #b86d3c; box-shadow: 0 0 0 3px rgba(184, 109, 60, .12); }
+.customer-phone-field.has-error { border-color: #c2412b; box-shadow: 0 0 0 3px rgba(194, 65, 43, .12); }
+.customer-phone-prefix {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 10px 0 12px;
+  border-right: 1px solid #efe0d3;
+  background: #fbf2e9;
+  color: #5b3524;
+  font-size: 14px;
+  font-weight: 750;
+  white-space: nowrap;
+}
+.customer-checkout-form .customer-phone-field input {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  letter-spacing: .03em;
+  font-variant-numeric: tabular-nums;
+}
+.customer-phone-help { margin: 6px 0 12px; color: #8a6a58; font-size: 12px; line-height: 1.4; }
+.customer-phone-help.is-error { color: #b2391f; font-weight: 650; }

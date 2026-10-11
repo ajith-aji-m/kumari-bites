@@ -29,3 +29,5 @@ Photos from [Unsplash](https://unsplash.com), used under the [Unsplash License](
 - `roll-combo.webp` — CALEBE SOUSA ([photo](https://unsplash.com/photos/VmTsKvTc6Yk))
 - `momos-combo.webp` — Abhishek Sanwa Limbu ([photo](https://unsplash.com/photos/LR559Dcst70))
 - `loaded-fries-combo.webp` — Jay Gajjar ([photo](https://unsplash.com/photos/UA6Z7ewijG0))
+
+Edits: `double-egg-double-chicken-katti-roll.webp` has its black studio backdrop replaced with a warm cream one; `egg-chicken-katti-roll.webp`, `regular-french-fries.webp`, `blue-curacao-mojito.webp` and `categories/french-fries.webp` are cropped in on the food so round thumbnails show the dish rather than a dark background.
