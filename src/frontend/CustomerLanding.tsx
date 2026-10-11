@@ -24,10 +24,11 @@ const STORY_CHAPTERS = ["Welcome", "Mood", "Bites", "Pack", "Kitchen"];
 
 // Browser history mirrors the story, so the phone's back gesture steps back through it.
 type StoryStep = "welcome" | "mood" | "dishes";
-type StoryEntry = { kbStory: true; index: number; step: StoryStep; categoryId: number | null; cart: boolean };
+type StoryEntry = { kbStory: true; index: number; step: StoryStep; categoryId: number | null; cart: boolean; detail: number | null };
 const STEP_DEPTH: Record<StoryStep, number> = { welcome: 0, mood: 1, dishes: 2 };
-const storyDepth = (view: Pick<StoryEntry, "step" | "cart">) => STEP_DEPTH[view.step] + (view.cart ? 0.5 : 0);
-const sameView = (a: Pick<StoryEntry, "step" | "categoryId" | "cart">, b: Pick<StoryEntry, "step" | "categoryId" | "cart">) => a.step === b.step && a.categoryId === b.categoryId && a.cart === b.cart;
+type StoryView = Pick<StoryEntry, "step" | "categoryId" | "cart" | "detail">;
+const storyDepth = (view: StoryView) => STEP_DEPTH[view.step] + (view.cart ? 0.5 : 0) + (view.detail !== null ? 0.25 : 0);
+const sameView = (a: StoryView, b: StoryView) => a.step === b.step && a.categoryId === b.categoryId && a.cart === b.cart && (a.detail ?? null) === (b.detail ?? null);
 const isStoryEntry = (value: unknown): value is StoryEntry => !!value && typeof value === "object" && (value as StoryEntry).kbStory === true;
 
 function timeGreeting(date = new Date()) {
@@ -94,6 +95,10 @@ export function CustomerLanding() {
   const [greeting] = useState(() => timeGreeting());
   const sayChef = (text: string) => setChefNote({ text, key: Date.now() });
   const stageRef = useRef<HTMLDivElement>(null);
+  // Dish details sheet, and swipe paging on the platter
+  const [detailId, setDetailId] = useState<number | null>(null);
+  const [pageDirection, setPageDirection] = useState<"next" | "prev">("next");
+  const swipeStartRef = useRef<{ x: number; y: number } | null>(null);
   const storyStackRef = useRef<StoryEntry[]>([]);
   // How much room phones leave below the platter: "full" shows the order taker, "compact" swaps him
   // for a small avatar beside his line, "none" lets him speak through the platter's subtitle instead.
@@ -290,7 +295,7 @@ export function CustomerLanding() {
     storyStackRef.current = stack;
   };
   useEffect(() => {
-    const view = { step: storyStep, categoryId: storyStep === "dishes" ? selectedCategory : null, cart: cartOpen };
+    const view: StoryView = { step: storyStep, categoryId: storyStep === "dishes" ? selectedCategory : null, cart: cartOpen, detail: storyStep === "dishes" ? detailId : null };
     const current = window.history.state;
     if (!isStoryEntry(current)) {
       const entry: StoryEntry = { kbStory: true, index: 0, ...view };
@@ -320,7 +325,7 @@ export function CustomerLanding() {
       rememberStoryEntry(entry);
       window.history.replaceState(entry, "");
     }
-  }, [storyStep, selectedCategory, cartOpen]);
+  }, [storyStep, selectedCategory, cartOpen, detailId]);
 
   useEffect(() => {
     const onPop = (event: PopStateEvent) => {
@@ -329,6 +334,7 @@ export function CustomerLanding() {
       rememberStoryEntry(entry);
       setCategoryIntroPlaying(false);
       setCartOpen(entry.cart);
+      setDetailId(entry.detail ?? null);
       setMenuPage(0);
       if (entry.step === "welcome") {
         setSelectedCategory(null);
@@ -365,9 +371,12 @@ export function CustomerLanding() {
       const height = img.offsetHeight;
       // In the artwork the hair starts ~1% and the chin ends ~43% down the image.
       const drop = Math.max(0, plateBottom + 6 - (restingTop + height * 0.01));
-      const chinVisible = restingTop + drop + height * 0.43 <= window.innerHeight;
+      // On phones the order bar is docked at the bottom, so it is the floor for the order taker.
+      const orderBar = document.querySelector<HTMLElement>(".customer-packing-box");
+      const floor = orderBar ? orderBar.getBoundingClientRect().top - 8 : window.innerHeight;
+      const chinVisible = restingTop + drop + height * 0.43 <= floor;
       root.style.setProperty("--chef-drop", `${Math.round(drop)}px`);
-      setChefRoom(chinVisible ? "full" : window.innerHeight - plateBottom >= 76 ? "compact" : "none");
+      setChefRoom(chinVisible ? "full" : floor - plateBottom >= 76 ? "compact" : "none");
     };
     // The platter animates in, so measure once it has settled and again on resize.
     const timers = [window.setTimeout(layoutChef, 80), window.setTimeout(layoutChef, 900)];
@@ -376,6 +385,35 @@ export function CustomerLanding() {
   }, [stage, selectedCategory, menuPage, cartCount > 0, categoryIntroPlaying, isWidePlate, loading, categoryItems.length]);
 
   const selectedCategoryEntry = selectedCategory === null ? undefined : activeCategories.find(c => c.id === selectedCategory);
+  const detailItem = detailId === null ? undefined : items.find(item => item.id === detailId);
+  useEffect(() => { if (selectedCategory === null || stage !== 1) setDetailId(null); }, [selectedCategory, stage]);
+  useEffect(() => {
+    if (detailId === null) return;
+    const onKey = (event: KeyboardEvent) => { if (event.key === "Escape") setDetailId(null); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [detailId]);
+  const goToMenuPage = (target: number) => {
+    const next = Math.max(0, Math.min(menuPageCount - 1, target));
+    if (next === menuPage) return;
+    setPageDirection(next > menuPage ? "next" : "prev");
+    setMenuPage(next);
+  };
+  const onPlateTouchStart = (event: React.TouchEvent) => {
+    const touch = event.touches[0];
+    swipeStartRef.current = touch ? { x: touch.clientX, y: touch.clientY } : null;
+  };
+  const onPlateTouchEnd = (event: React.TouchEvent) => {
+    const start = swipeStartRef.current;
+    const touch = event.changedTouches[0];
+    swipeStartRef.current = null;
+    if (!start || !touch) return;
+    const dx = touch.clientX - start.x;
+    const dy = touch.clientY - start.y;
+    // A deliberate horizontal swipe, not a tap or a vertical scroll
+    if (Math.abs(dx) < 45 || Math.abs(dx) < Math.abs(dy) * 1.4) return;
+    goToMenuPage(menuPage + (dx < 0 ? 1 : -1));
+  };
   const chapter = placedOrder && !trackerMinimized ? 4 : cartOpen ? 3 : selectedCategory !== null ? 2 : stage >= 1 ? 1 : 0;
   // On narrow screens the open cart covers the order taker, so he pauses while it is open.
   const chefText = chefNote?.text ?? (selectedCategoryEntry ? categoryLine(selectedCategoryEntry.name) : "So, what’s the mood today? Spicy, cheesy or something chilled?");
@@ -439,8 +477,9 @@ export function CustomerLanding() {
             {activeCategories.map((c, i) => <button key={c.id} style={{ animationDelay: `${i * 90}ms` }} className={"customer-category-bubble category-tone-" + (i % 5)} onClick={() => openItems(c.id)}>
               {c.imageUrl ? <img src={c.imageUrl} alt="" /> : <span className="category-bubble-art">{["🥟", "🌯", "🍔", "🍟", "🍗"][i % 5]}</span>}<strong>{c.name}</strong>
             </button>)}
-          </div> : <div className="customer-menu-bubbles">
+          </div> : <div className={"customer-menu-bubbles slide-" + pageDirection} key={"page-" + menuPage} onTouchStart={onPlateTouchStart} onTouchEnd={onPlateTouchEnd}>
             {visibleItems.map((item, i) => <article key={item.id} style={{ animationDelay: `${i * 90}ms` }} className="customer-menu-bubble">
+              <button type="button" className="customer-menu-bubble-open" aria-label={`See details for ${item.name}`} onClick={() => setDetailId(item.id)} />
               <div className="customer-menu-bubble-image">{item.imageUrl ? <img src={item.imageUrl} alt={item.name} loading="lazy" /> : <span>{["🥟", "🌯", "🍔", "🍗", "🍜"][i % 5]}</span>}{cart[item.id]
                 ? <div className="customer-menu-stepper" role="group" aria-label={`${item.name} quantity`}>
                     <button type="button" aria-label={`Remove one ${item.name}`} onClick={() => change(item.id, -1)}>−</button>
@@ -454,8 +493,12 @@ export function CustomerLanding() {
             {!categoryItems.length && <div className="customer-story-loading">No items in this category yet.</div>}
           </div>}
           {selectedCategory !== null && categoryItems.length > menuPageSize && <div className="customer-menu-pagination" aria-label="Menu navigation">
-            {menuPage > 0 && <button type="button" className="menu-page-prev" aria-label="Previous menu items" onClick={() => setMenuPage(p => Math.max(0, p - 1))}></button>}
-            {menuPage < menuPageCount - 1 && <button type="button" className="menu-page-next" aria-label="More menu items" onClick={() => setMenuPage(p => Math.min(menuPageCount - 1, p + 1))}></button>}
+            {menuPage > 0 && <button type="button" className="menu-page-prev" aria-label="Previous menu items" onClick={() => goToMenuPage(menuPage - 1)}></button>}
+            {menuPage < menuPageCount - 1 && <button type="button" className="menu-page-next" aria-label="More menu items" onClick={() => goToMenuPage(menuPage + 1)}></button>}
+          </div>}
+          {selectedCategory !== null && menuPageCount > 1 && <div className="customer-menu-dots" aria-label={`Page ${menuPage + 1} of ${menuPageCount}`}>
+            {Array.from({ length: menuPageCount }, (_, page) => <button key={page} type="button" className={page === menuPage ? "active" : ""} aria-label={`Show page ${page + 1} of ${menuPageCount}`} aria-current={page === menuPage ? "page" : undefined} onClick={() => goToMenuPage(page)} />)}
+            <span>{menuPage < menuPageCount - 1 ? `${categoryItems.length - (menuPage + 1) * menuPageSize} more ${isWidePlate ? "→" : "· swipe"}` : isWidePlate ? "← Back to the start" : "Swipe back for more"}</span>
           </div>}
           <div className="customer-plate-links">
             {selectedCategory !== null && <button type="button" className="customer-story-link" onClick={() => { setSelectedCategory(null); setMenuPage(0); setChefNote(null); }}>← All categories</button>}
@@ -476,12 +519,34 @@ export function CustomerLanding() {
       </div>
     </section>
     {flyingBite && <div key={flyingBite.id + "-" + flyingBite.x} className="customer-flying-bite" style={{ left: flyingBite.x, top: flyingBite.y, ["--fly-dx" as string]: String(flyingBite.dx) + "px", ["--fly-dy" as string]: String(flyingBite.dy) + "px" } as React.CSSProperties} aria-hidden="true">{flyingBite.imageUrl ? <img src={flyingBite.imageUrl} alt="" /> : <span>🍽️</span>}</div>}
-    {cartCount > 0 && <button type="button" className={"customer-packing-box has-bites" + (flyingBite ? " receiving-bite" : "")} onClick={() => setCartOpen(v => !v)} aria-label="Open your order packing area">
+    {cartCount > 0 && <button type="button" className={"customer-packing-box has-bites" + (flyingBite ? " receiving-bite" : "")} onClick={() => setCartOpen(v => !v)} aria-label={`${cartOpen ? "Hide" : "View"} your order: ${cartCount} ${cartCount === 1 ? "bite" : "bites"}, ${money(total)}`} aria-expanded={cartOpen}>
       <span className="packing-box-label"><span className="packing-box-icon">▱</span><span><small>YOUR ORDER</small><strong>Packing area</strong></span></span>
       <span className="packing-box-status">{cartCount ? String(cartCount) + (cartCount === 1 ? " bite" : " bites") : "Ready for your bites"}</span>
       <strong className="packing-box-total">{money(total)}</strong>
       <span className="packing-box-open">{cartOpen ? "−" : "+"}</span>
+      <span className="packing-box-cta" aria-hidden="true">{cartOpen ? "Hide order" : "View order"} <span>{cartOpen ? "⌄" : "›"}</span></span>
     </button>}
+    {detailItem && <div className="customer-dish-sheet-backdrop" role="presentation" onClick={() => setDetailId(null)}>
+      <section className="customer-dish-sheet" role="dialog" aria-modal="true" aria-labelledby="customer-dish-sheet-title" onClick={event => event.stopPropagation()}>
+        <button type="button" className="customer-dish-sheet-close" aria-label="Close dish details" autoFocus onClick={() => setDetailId(null)}>×</button>
+        <div className="customer-dish-sheet-photo">{detailItem.imageUrl ? <img src={detailItem.imageUrl} alt={detailItem.name} /> : <span aria-hidden="true">🍽️</span>}</div>
+        <div className="customer-dish-sheet-body">
+          <p className="customer-dish-sheet-meta"><span className={"customer-diet-mark " + (detailItem.isVeg ? "veg" : "nonveg")} aria-hidden="true" />{detailItem.isVeg ? "Vegetarian" : "Non-vegetarian"}{selectedCategoryEntry ? " · " + selectedCategoryEntry.name : ""}</p>
+          <h3 id="customer-dish-sheet-title">{detailItem.name}</h3>
+          {detailItem.description && <p className="customer-dish-sheet-description">{detailItem.description}</p>}
+          <div className="customer-dish-sheet-footer">
+            <strong>{money(detailItem.price)}</strong>
+            {cart[detailItem.id]
+              ? <div className="customer-menu-stepper customer-dish-sheet-stepper" role="group" aria-label={`${detailItem.name} quantity`}>
+                  <button type="button" aria-label={`Remove one ${detailItem.name}`} onClick={() => change(detailItem.id, -1)}>−</button>
+                  <span aria-live="polite">{cart[detailItem.id]}</span>
+                  <button type="button" aria-label={`Add another ${detailItem.name}`} onClick={() => add(detailItem.id)}>+</button>
+                </div>
+              : <button type="button" className="customer-dish-sheet-add" onClick={() => add(detailItem.id)}>Add to order</button>}
+          </div>
+        </div>
+      </section>
+    </div>}
     {cartOpen && <aside className="customer-cart-panel" aria-label="Your cart"><div className="customer-cart-title"><div><small>YOUR ORDER</small><h3>Your bites</h3></div><button onClick={() => setCartOpen(false)} aria-label="Close cart">×</button></div>
       {items.filter(i => cart[i.id]).map(i => <div className="customer-cart-line" key={i.id}><div><strong>{i.name}</strong><small>{money(i.price)} each</small></div><div className="customer-quantity-controls"><button onClick={() => change(i.id, -1)}>−</button><span>{cart[i.id]}</span><button onClick={() => add(i.id)}>+</button></div><button className="customer-cart-remove" onClick={() => setCart(c => { const n = { ...c }; delete n[i.id]; return n; })}>Remove</button><strong>{money(Number(i.price ?? 0) * cart[i.id])}</strong></div>)}
       {placedOrder ? <div className="customer-order-success" role="status">
