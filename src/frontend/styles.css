@@ -6545,14 +6545,6 @@ button {
 .customer-diet-mark.nonveg { border-color: #a1401f; }
 .customer-diet-mark.nonveg::after { inset: 1px; border-radius: 0; background: #a1401f; clip-path: polygon(50% 8%, 96% 92%, 4% 92%); }
 
-/* Bigger, more appetising dishes on the plate (desktop) */
-@media (min-width: 761px) {
-  .customer-story-categories.menu-items-on-plate.story-categories-visible .customer-menu-bubble { width: clamp(106px, 8.8vw, 124px) !important; height: clamp(106px, 8.8vw, 124px) !important; }
-  .customer-story-categories.menu-items-on-plate.story-categories-visible .customer-menu-bubble-image { width: clamp(42px, 3.8vw, 54px) !important; height: clamp(42px, 3.8vw, 54px) !important; }
-  .customer-story-categories.menu-items-on-plate.story-categories-visible .customer-menu-bubble-name { font-size: clamp(10px, .82vw, 12px) !important; }
-  .customer-story-categories.menu-items-on-plate.story-categories-visible .customer-menu-bubble-price { font-size: clamp(10px, .82vw, 12px) !important; font-weight: 800; }
-}
-
 /* Live kitchen timeline in the order tracker */
 .customer-order-story {
   position: relative;
@@ -6659,16 +6651,8 @@ button {
 @media (max-width: 400px) {
   .customer-nav .customer-brand > span:last-child { font-size: 15px; }
 }
-@media (max-width: 760px) {
-  /* Long dish names wrap inside their bubble instead of running past the plate edge */
-  .customer-story-categories.menu-items-on-plate.story-categories-visible .customer-menu-bubble-name { max-width: 96px !important; white-space: normal !important; }
-}
 @media (max-width: 360px) {
   .customer-story-bubble-content strong { font-size: 13.5px !important; }
-}
-@media (max-width: 760px) {
-  /* A soft cream backing keeps dish names legible even where they cross the plate's edge */
-  .customer-story-categories.menu-items-on-plate.story-categories-visible .customer-menu-bubble-name { padding: 1px 5px !important; border-radius: 7px; background: rgba(255, 248, 237, .94); }
 }
 @media (max-width: 360px) {
   .customer-story-bubble-content { box-sizing: border-box; padding-left: 16px !important; }
@@ -6680,4 +6664,204 @@ button {
   .customer-chapters li { padding: 0; }
   .customer-chapters li.current { gap: 6px; padding-right: 10px; }
   .customer-chapters li.current .customer-chapter-label { display: inline; }
+}
+
+/* ============ Plated portions: categories and dishes on the platter ============
+   The food photo is the hero: a round portion with a white rim, like a small bowl set
+   on the plate. Name and price sit underneath instead of being squeezed into a circle,
+   and items follow a gentle alternating rhythm instead of random offsets. */
+.customer-story-page .customer-story-stage .customer-story-categories.story-categories-visible .customer-category-bubbles,
+.customer-story-page .customer-story-stage .customer-story-categories.story-categories-visible .customer-menu-bubbles {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  justify-content: center !important;
+  align-items: flex-start !important;
+  align-content: center !important;
+  gap: 18px clamp(12px, 1.6vw, 22px) !important;
+}
+.customer-story-page .customer-story-stage .customer-story-categories.story-categories-visible .customer-category-bubble,
+.customer-story-page .customer-story-stage .customer-story-categories.story-categories-visible .customer-menu-bubble {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 8px !important;
+  width: clamp(100px, 9vw, 122px) !important;
+  height: auto !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: none !important;
+  box-shadow: none !important;
+  translate: none !important;
+  transform: none;
+  cursor: pointer;
+  transition: transform .25s cubic-bezier(.2, .8, .2, 1) !important;
+}
+/* A calm wave: every other portion sits a little lower */
+.customer-story-page .customer-story-stage .customer-story-categories.story-categories-visible .customer-category-bubble:nth-child(even),
+.customer-story-page .customer-story-stage .customer-story-categories.story-categories-visible .customer-menu-bubble:nth-child(even) {
+  translate: 0 14px !important;
+}
+
+/* The portion itself */
+.customer-story-page .customer-story-stage .customer-story-categories.story-categories-visible .customer-category-bubble > img,
+.customer-story-page .customer-story-stage .customer-story-categories.story-categories-visible .customer-category-bubble > .category-bubble-art,
+.customer-story-page .customer-story-stage .customer-story-categories.story-categories-visible .customer-menu-bubble-image {
+  position: relative !important;
+  flex: 0 0 auto !important;
+  display: grid !important;
+  place-items: center;
+  width: clamp(72px, 6.6vw, 92px) !important;
+  height: clamp(72px, 6.6vw, 92px) !important;
+  margin: 0 !important;
+  border: 4px solid #fffaf2 !important;
+  border-radius: 50% !important;
+  background: #f3ddc6 !important;
+  object-fit: cover;
+  font-size: 34px;
+  box-shadow: 0 0 0 1px rgba(150, 95, 55, .14), 0 12px 20px -8px rgba(70, 34, 15, .5) !important;
+  transition: box-shadow .25s ease, border-color .25s ease !important;
+}
+.customer-story-page .customer-story-stage .customer-story-categories.story-categories-visible .customer-menu-bubble-image > img { border-radius: 50%; }
+
+/* Hover / press: the portion lifts off the plate */
+@media (hover: hover) {
+  .customer-story-page .customer-story-stage .customer-story-categories.story-categories-visible .customer-category-bubble:hover,
+  .customer-story-page .customer-story-stage .customer-story-categories.story-categories-visible .customer-menu-bubble:hover { transform: translateY(-5px); }
+  .customer-story-page .customer-story-stage .customer-story-categories.story-categories-visible .customer-category-bubble:hover > img,
+  .customer-story-page .customer-story-stage .customer-story-categories.story-categories-visible .customer-menu-bubble:hover .customer-menu-bubble-image {
+    box-shadow: 0 0 0 1px rgba(150, 95, 55, .14), 0 20px 26px -10px rgba(70, 34, 15, .55) !important;
+  }
+}
+.customer-story-page .customer-story-stage .customer-story-categories.story-categories-visible .customer-category-bubble:active { transform: scale(.97); }
+
+/* Dishes already in the order get a warm orange rim */
+.customer-story-page .customer-story-stage .customer-story-categories.story-categories-visible .customer-menu-bubble:has(.customer-menu-image-count) .customer-menu-bubble-image {
+  border-color: #ffb27a !important;
+  box-shadow: 0 0 0 3px rgba(255, 154, 77, .28), 0 12px 20px -8px rgba(70, 34, 15, .5) !important;
+}
+
+/* Add button and quantity badge, sized for fingers */
+.customer-story-page .customer-story-stage .customer-story-categories.story-categories-visible .customer-menu-image-add {
+  right: -4px !important;
+  bottom: -2px !important;
+  width: 30px !important;
+  height: 30px !important;
+  border: 2px solid #fffaf2 !important;
+  background: linear-gradient(135deg, #ff9a4d, #e2622b) !important;
+  color: #fff !important;
+  font-size: 19px !important;
+  box-shadow: 0 6px 12px -4px rgba(150, 60, 20, .55) !important;
+}
+.customer-story-page .customer-story-stage .customer-story-categories.story-categories-visible .customer-menu-image-count {
+  top: -4px !important;
+  right: -4px !important;
+  min-width: 24px !important;
+  height: 24px !important;
+  background: #3b2217 !important;
+  font-size: 11px !important;
+}
+
+/* Labels under the portion */
+.customer-story-page .customer-story-stage .customer-story-categories.story-categories-visible .customer-category-bubble strong,
+.customer-story-page .customer-story-stage .customer-story-categories.story-categories-visible .customer-menu-bubble-name {
+  display: -webkit-box !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  background: none !important;
+  color: #3b2217 !important;
+  font-size: clamp(11.5px, .9vw, 13px) !important;
+  font-weight: 750 !important;
+  line-height: 1.22 !important;
+  letter-spacing: -.005em !important;
+  text-align: center !important;
+  white-space: normal !important;
+  -webkit-line-clamp: 2 !important;
+  -webkit-box-orient: vertical !important;
+}
+.customer-story-page .customer-story-stage .customer-story-categories.story-categories-visible .customer-menu-bubble-price {
+  margin-top: -4px !important;
+  color: #b4532a !important;
+  font-size: clamp(11.5px, .9vw, 13px) !important;
+  font-weight: 850 !important;
+  line-height: 1 !important;
+}
+.customer-story-page .customer-story-stage .customer-story-categories.story-categories-visible .customer-menu-bubble-name .customer-diet-mark { vertical-align: 0; }
+
+/* Phones: a centred, contained platter that stops above the order taker */
+@media (max-width: 760px) {
+  .customer-story-page .customer-story-stage .customer-story-categories.story-categories-visible {
+    left: 14px !important;
+    right: 14px !important;
+    width: auto !important;
+  }
+  .customer-story-page .customer-story-stage .customer-story-categories.story-categories-visible::before { width: 100% !important; }
+  .customer-story-page .customer-story-stage .customer-story-categories.story-categories-visible:not(.menu-items-on-plate)::before { height: calc(100% - 20px) !important; }
+  .customer-story-page .customer-story-stage .customer-story-categories.story-categories-visible.menu-items-on-plate::before { height: calc(100% - 44px) !important; }
+  /* Let the order taker step down a little so the platter never covers his face */
+  .customer-story-stage:has(.story-categories-visible) .customer-order-taker img { translate: 0 40px; transition: translate .5s ease; }
+
+  .customer-story-page .customer-story-stage .customer-story-categories.story-categories-visible .customer-category-bubbles,
+  .customer-story-page .customer-story-stage .customer-story-categories.story-categories-visible .customer-menu-bubbles {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    justify-items: center !important;
+    gap: 14px 8px !important;
+    max-width: 330px;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+  .customer-story-page .customer-story-stage .customer-story-categories.story-categories-visible .customer-menu-bubbles { grid-template-columns: repeat(2, minmax(0, 132px)) !important; justify-content: center !important; gap: 16px 22px !important; }
+  .customer-story-page .customer-story-stage .customer-story-categories.story-categories-visible .customer-category-bubble,
+  .customer-story-page .customer-story-stage .customer-story-categories.story-categories-visible .customer-menu-bubble { width: 100% !important; max-width: 132px; gap: 6px !important; }
+  /* On a narrow grid the wave reads as misalignment, so keep rows level */
+  .customer-story-page .customer-story-stage .customer-story-categories.story-categories-visible .customer-category-bubble:nth-child(even),
+  .customer-story-page .customer-story-stage .customer-story-categories.story-categories-visible .customer-menu-bubble:nth-child(even) { translate: none !important; }
+  .customer-story-page .customer-story-stage .customer-story-categories.story-categories-visible .customer-category-bubble > img,
+  .customer-story-page .customer-story-stage .customer-story-categories.story-categories-visible .customer-category-bubble > .category-bubble-art { width: 60px !important; height: 60px !important; border-width: 3px !important; font-size: 26px; }
+  .customer-story-page .customer-story-stage .customer-story-categories.story-categories-visible .customer-menu-bubble-image { width: 70px !important; height: 70px !important; border-width: 3px !important; }
+  .customer-story-page .customer-story-stage .customer-story-categories.story-categories-visible .customer-category-bubble strong,
+  .customer-story-page .customer-story-stage .customer-story-categories.story-categories-visible .customer-menu-bubble-name { font-size: 11px !important; }
+  .customer-story-page .customer-story-stage .customer-story-categories.story-categories-visible .customer-menu-bubble-price { font-size: 11.5px !important; margin-top: -2px !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .customer-story-page .customer-story-stage .customer-story-categories.story-categories-visible .customer-category-bubble,
+  .customer-story-page .customer-story-stage .customer-story-categories.story-categories-visible .customer-menu-bubble { transition: none !important; }
+}
+@media (max-width: 760px) {
+  /* Categories: centred rows of four (a short last row stays centred), no legacy offsets or height cap */
+  .customer-story-page .customer-story-stage .customer-story-categories.story-categories-visible:not(.menu-items-on-plate) .customer-category-bubbles {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    gap: 14px 4px !important;
+    max-height: none !important;
+    height: auto !important;
+    margin: 4px auto 0 !important;
+    padding: 6px 0 4px !important;
+    transform: none !important;
+  }
+  .customer-story-page .customer-story-stage .customer-story-categories.story-categories-visible:not(.menu-items-on-plate) .customer-category-bubble { width: calc(25% - 4px) !important; max-width: 92px; }
+  .customer-story-page .customer-story-stage .customer-story-categories.story-categories-visible .customer-category-bubble > img,
+  .customer-story-page .customer-story-stage .customer-story-categories.story-categories-visible .customer-category-bubble > .category-bubble-art { width: 58px !important; height: 58px !important; }
+  .customer-story-page .customer-story-stage .customer-story-categories.story-categories-visible .customer-category-bubble strong { font-size: 10.5px !important; }
+}
+.customer-story-page .customer-story-stage .customer-story-categories.story-categories-visible .customer-category-bubble,
+.customer-story-page .customer-story-stage .customer-story-categories.story-categories-visible .customer-menu-bubble {
+  /* No glass blur behind transparent portions, and let the pop-in release its transform so hover can lift */
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  animation-fill-mode: backwards !important;
+}
+@media (max-width: 760px) {
+  /* Keep the first row of dishes inside the platter's top curve */
+  .customer-story-page .customer-story-stage .customer-story-categories.story-categories-visible .customer-menu-bubbles { margin-top: 22px !important; }
+}
+@media (max-width: 760px) {
+  .customer-story-page .customer-story-stage .customer-story-categories.story-categories-visible:not(.menu-items-on-plate) .customer-category-bubbles { padding-left: 12px !important; padding-right: 12px !important; }
 }
