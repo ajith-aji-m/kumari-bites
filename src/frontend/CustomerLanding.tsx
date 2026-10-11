@@ -134,9 +134,6 @@ export function CustomerLanding() {
   const [pageDirection, setPageDirection] = useState<"next" | "prev">("next");
   const swipeStartRef = useRef<{ x: number; y: number } | null>(null);
   const storyStackRef = useRef<StoryEntry[]>([]);
-  // How much room phones leave below the platter: "full" shows the order taker, "compact" swaps him
-  // for a small avatar beside his line, "none" lets him speak through the platter's subtitle instead.
-  const [chefRoom, setChefRoom] = useState<"full" | "compact" | "none">("full");
   const [addingItemId, setAddingItemId] = useState<number | null>(null);
   const [flyingBite, setFlyingBite] = useState<{ id: number; imageUrl: string | null; x: number; y: number; dx: number; dy: number } | null>(null);
 
@@ -414,36 +411,72 @@ export function CustomerLanding() {
   useEffect(() => {
     const root = stageRef.current;
     if (!root) return;
+    // Phones: the order taker always stands in the gap between what is above him (header, welcome
+    // cloud or platter) and what is below (order bar, tracker). His face is never covered; when the
+    // gap is too small the platter shrinks a little to make room.
+    const clearLayout = () => {
+      delete root.dataset.chefLayout;
+      ["--chef-top", "--chef-left", "--chef-h", "--plate-scale", "--note-top", "--note-left", "--welcome-top"].forEach(name => root.style.removeProperty(name));
+    };
     const layoutChef = () => {
-      const taker = root.querySelector<HTMLElement>(".customer-order-taker");
-      const img = taker?.querySelector<HTMLImageElement>("img");
-      const plate = root.querySelector<HTMLElement>(".customer-story-categories.story-categories-visible");
-      if (isWidePlate || stage !== 1 || !taker || !img || !plate || !img.offsetHeight) {
-        root.style.removeProperty("--chef-drop");
-        setChefRoom("full");
-        return;
+      const img = root.querySelector<HTMLImageElement>(".customer-order-taker img");
+      if (isWidePlate || !img || !img.naturalWidth) { clearLayout(); return; }
+      const stageRect = root.getBoundingClientRect();
+      const vh = stageRect.height;
+      const local = (y: number) => y - stageRect.top;
+      const headerBottom = local(root.querySelector(".customer-nav")?.getBoundingClientRect().bottom ?? 60) + 6;
+      root.dataset.chefLayout = "placed";
+      root.style.setProperty("--welcome-top", `${Math.round(headerBottom + 4)}px`);
+
+      // What sits below him: the order bar, or the order tracker (full or minimised).
+      let floor = vh;
+      document.querySelectorAll<HTMLElement>(".customer-packing-box, .customer-order-confirmation, .customer-order-tracker-mini").forEach(el => {
+        const r = el.getBoundingClientRect();
+        if (r.height) floor = Math.min(floor, local(r.top) - 6);
+      });
+
+      // What sits above him.
+      let above = headerBottom;
+      const plate = stage === 1 ? root.querySelector<HTMLElement>(".customer-story-categories.story-categories-visible") : null;
+      const cloud = stage === 0 ? root.querySelector<HTMLElement>(".customer-story-bubble.story-bubble-visible") : null;
+      // In the artwork the hair starts ~2% and the chin ends ~45% down; the face spans ~41-73% across.
+      const FACE = 0.45, MIN_H = 160, MAX_H = 360, PREFERRED_FACE = 125;
+      let scale = 1;
+      if (plate) {
+        const current = parseFloat(root.style.getPropertyValue("--plate-scale")) || 1;
+        const rect = plate.getBoundingClientRect();
+        const shape = getComputedStyle(plate, "::before");
+        const natural = Math.max(rect.height / current, (parseFloat(shape.top) || 0) + (parseFloat(shape.height) || 0));
+        const plateTop = local(rect.top);
+        scale = Math.min(1, Math.max(0.74, (floor - plateTop - PREFERRED_FACE) / natural));
+        above = plateTop + natural * scale;
+      } else if (cloud) {
+        above = local(cloud.getBoundingClientRect().bottom) - 18;
       }
-      // Measure without our own translate: the platter's drawn bottom and the image's resting top.
-      const plateRect = plate.getBoundingClientRect();
-      const plateShape = getComputedStyle(plate, "::before");
-      const shapeBottom = plateRect.top + (parseFloat(plateShape.top) || 0) + (parseFloat(plateShape.height) || 0);
-      const plateBottom = Math.max(plateRect.bottom, shapeBottom);
-      const restingTop = taker.getBoundingClientRect().top + img.offsetTop;
-      const height = img.offsetHeight;
-      // In the artwork the hair starts ~1% and the chin ends ~43% down the image.
-      const drop = Math.max(0, plateBottom + 6 - (restingTop + height * 0.01));
-      // On phones the order bar is docked at the bottom, so it is the floor for the order taker.
-      const orderBar = document.querySelector<HTMLElement>(".customer-packing-box");
-      const floor = orderBar ? orderBar.getBoundingClientRect().top - 8 : window.innerHeight;
-      const chinVisible = restingTop + drop + height * 0.43 <= floor;
-      root.style.setProperty("--chef-drop", `${Math.round(drop)}px`);
-      setChefRoom(chinVisible ? "full" : floor - plateBottom >= 76 ? "compact" : "none");
+      root.style.setProperty("--plate-scale", scale.toFixed(3));
+
+      const room = Math.max(0, floor - above - 4);
+      const height = Math.round(Math.min(MAX_H, Math.max(MIN_H, room / FACE)));
+      const width = height * img.naturalWidth / img.naturalHeight;
+      // Stand on the bottom of the screen when there is plenty of room, otherwise tuck right under what's above.
+      const top = Math.round(Math.max(above + 4 - height * 0.02, Math.min(vh - height, floor - height * FACE)));
+      // On phones he stands at the left edge (his face starts just inside the screen), which leaves
+      // a comfortable column to the right of his face for his speech bubble.
+      const left = Math.round(-width * 0.37);
+      root.style.setProperty("--chef-top", `${top}px`);
+      root.style.setProperty("--chef-left", `${left}px`);
+      root.style.setProperty("--chef-h", `${height}px`);
+      // His speech bubble sits beside his face, never on it, and never runs past the floor.
+      const note = root.querySelector<HTMLElement>(".customer-chef-note");
+      const noteHeight = note?.offsetHeight || 96;
+      root.style.setProperty("--note-top", `${Math.round(Math.max(above + 6, Math.min(top + height * 0.06, floor - noteHeight - 6)))}px`);
+      root.style.setProperty("--note-left", `${Math.round(left + width * 0.75)}px`);
     };
     // The platter animates in, so measure once it has settled and again on resize.
     const timers = [window.setTimeout(layoutChef, 80), window.setTimeout(layoutChef, 900)];
     window.addEventListener("resize", layoutChef);
     return () => { timers.forEach(window.clearTimeout); window.removeEventListener("resize", layoutChef); };
-  }, [stage, selectedCategory, menuPage, cartCount > 0, categoryIntroPlaying, isWidePlate, loading, categoryItems.length]);
+  }, [stage, selectedCategory, menuPage, cartCount > 0, categoryIntroPlaying, isWidePlate, loading, categoryItems.length, placedOrder?.orderId, trackerMinimized, chefNote?.key]);
 
   const selectedCategoryEntry = selectedCategory === null ? undefined : activeCategories.find(c => c.id === selectedCategory);
   const detailItem = detailId === null ? undefined : items.find(item => item.id === detailId);
@@ -478,12 +511,11 @@ export function CustomerLanding() {
   const chapter = placedOrder && !trackerMinimized ? 4 : cartOpen ? 3 : selectedCategory !== null ? 2 : stage >= 1 ? 1 : 0;
   // On narrow screens the open cart covers the order taker, so he pauses while it is open.
   const chefText = chefNote?.text ?? (selectedCategoryEntry ? categoryLine(selectedCategoryEntry.name) : "So, what’s the mood today? Spicy, cheesy or something chilled?");
-  const chefInSubtitle = !isWidePlate && chefRoom === "none";
-  const chefLine = stage === 1 && !categoryIntroPlaying && !(cartOpen && !isWidePlate) && !chefInSubtitle ? chefText : null;
+  const chefLine = stage === 1 && !categoryIntroPlaying && !(cartOpen && !isWidePlate) ? chefText : null;
 
   return <main className="customer-landing customer-story-page">
     <section className={"customer-story " + (categoryIntroPlaying ? "category-intro-playing " : "") + (placedOrder ? "has-active-order" : "")} aria-label="Kumari Bites interactive menu story">
-      <div className="customer-story-stage" ref={stageRef} data-chef-room={isWidePlate ? undefined : chefRoom}>
+      <div className="customer-story-stage" ref={stageRef}>
         <div className="customer-hero-shade" />
         <header className="customer-nav">
           <a className="customer-brand" href="#customer-order"><span className="customer-brand-mark">KB</span><span>Kumari <em>Bites</em></span></a>
@@ -493,7 +525,7 @@ export function CustomerLanding() {
             </li>)}
           </ol>
         </header>
-        {chefLine && <p className="customer-chef-note" key={chefNote?.key ?? (selectedCategory ?? "mood")} role="status" aria-live="polite"><span className="customer-chef-note-avatar" aria-hidden="true" />{chefLine}</p>}
+        {chefLine && <p className="customer-chef-note" key={chefNote?.key ?? (selectedCategory ?? "mood")} role="status" aria-live="polite">{chefLine}</p>}
         <div className={"customer-hero-copy story-copy " + (stage === 0 ? "story-copy-visible" : "")}>
           <p className="customer-kicker"><span /> YOUR NEXT FAVOURITE BITE</p>
           <h1>Good food.<br /><em>Good mood.</em></h1>
@@ -530,9 +562,7 @@ export function CustomerLanding() {
           <div className="story-panel-heading">
             <small>{selectedCategory === null ? "STEP 01 · PICK YOUR MOOD" : "FRESH FROM OUR KITCHEN"}</small>
             <h2>{selectedCategory === null ? <>What are you <em>craving?</em></> : <>{activeCategories.find(c => c.id === selectedCategory)?.name ?? "Your favourites"} <em>menu</em></>}</h2>
-            {chefInSubtitle
-              ? <p className="customer-chef-subtitle" key={chefNote?.key ?? (selectedCategory ?? "mood")} role="status" aria-live="polite"><span className="customer-chef-note-avatar" aria-hidden="true" />{chefText}</p>
-              : <p>{selectedCategory === null ? "Choose a category to see what’s cooking." : selectedCategoryEntry?.description || "Pick your bites and watch them join your order."}</p>}
+            <p>{selectedCategory === null ? "Choose a category to see what’s cooking." : selectedCategoryEntry?.description || "Pick your bites and watch them join your order."}</p>
           </div>
           {loading ? <div className="customer-story-loading">Our chef is laying out the menu…</div> : error ? <div className="customer-story-loading">{error}</div> : selectedCategory === null ? <div className="customer-category-bubbles">
             {activeCategories.map((c, i) => <button key={c.id} style={{ animationDelay: `${i * 90}ms` }} className={"customer-category-bubble category-tone-" + (i % 5)} onClick={() => openItems(c.id)}>
