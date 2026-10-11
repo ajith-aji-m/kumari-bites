@@ -14,6 +14,8 @@ export type AiProviderDefinition = {
   suggestedModels: string[];
   transcriptionModel: string | null;
   isChatModel: (modelId: string) => boolean;
+  /** reasoning_effort to send for models that accept it; undefined for models that would reject it. */
+  reasoningEffort?: (modelId: string) => string | undefined;
 };
 
 export const aiProviders: Record<AiProviderId, AiProviderDefinition> = {
@@ -25,7 +27,8 @@ export const aiProviders: Record<AiProviderId, AiProviderDefinition> = {
     suggestedModels: ["gpt-4.1-mini", "gpt-4.1", "gpt-4o-mini"],
     transcriptionModel: "whisper-1",
     isChatModel: (id) => /^(gpt-|o\d|chatgpt-)/i.test(id)
-      && !/(audio|realtime|transcribe|tts|image|search|embedding|instruct|moderation)/i.test(id)
+      && !/(audio|realtime|transcribe|tts|image|search|embedding|instruct|moderation)/i.test(id),
+    reasoningEffort: (id) => /^(o\d|gpt-5)/i.test(id) ? "low" : undefined
   },
   groq: {
     id: "groq",
@@ -34,7 +37,8 @@ export const aiProviders: Record<AiProviderId, AiProviderDefinition> = {
     keyHint: "Starts with gsk_",
     suggestedModels: ["llama-3.3-70b-versatile", "openai/gpt-oss-120b", "openai/gpt-oss-20b", "llama-3.1-8b-instant"],
     transcriptionModel: "whisper-large-v3-turbo",
-    isChatModel: (id) => !/(whisper|guard|tts|playai|orpheus|distil)/i.test(id)
+    isChatModel: (id) => !/(whisper|guard|tts|playai|orpheus|distil)/i.test(id),
+    reasoningEffort: (id) => /gpt-oss/i.test(id) ? "low" : undefined
   }
 };
 

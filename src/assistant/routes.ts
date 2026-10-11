@@ -13,8 +13,9 @@ import { getWhatsAppService, type WhatsAppService } from "../whatsapp/service.js
 import { dbCatalog } from "./catalog.js";
 import { createAssistantEngine } from "./engine.js";
 import { createMemoryConversationStore, createMemoryOrderGateway } from "./memoryStore.js";
-import { buildBusinessContext, buildGeneratorMessages } from "./prompts.js";
+import { buildBusinessContext, buildGeneratorMessages, buildPersonalityMessages, parseGeneratedPersonality, personalitySeedSchema } from "./prompts.js";
 import { effectiveAutomation, loadAssistantSettings, saveAutomation, savePrompt, saveProfile, validatePrompt } from "./settings.js";
+import { toWhatsAppFormat } from "./whatsappFormat.js";
 import { assistantProfileSchema, automationSchema, type AssistantRuntimeSettings, type Catalog } from "./types.js";
 
 type AuthorizedUser = { id: number };
@@ -199,17 +200,37 @@ export async function registerAssistantRoutes(app: FastifyInstance, options: { d
     return { message: "Assistant personality saved.", profile };
   });
 
+  // Fills the personality form fields. Nothing is saved: the admin reviews, edits and saves via PUT /profile.
+  app.post("/api/v1/assistant/profile/generate", async (request, reply) => {
+    if (!(await guard(request, reply))) return;
+    const seed = personalitySeedSchema.parse(request.body);
+    const config = await deps.ai.active().catch(() => null);
+    if (!config) return reply.code(409).send({ message: "Complete the AI Configuration (provider, model and API key) before generating a personality.", kind: "not_configured" });
+    const [items, categories] = await Promise.all([deps.catalog.loadItems(), deps.catalog.loadCategories()]);
+    let raw: string;
+    try {
+      raw = (await deps.ai.createClient(config).chat({ messages: buildPersonalityMessages(seed, buildBusinessContext(items, categories)), temperature: 0.6, maxTokens: 2500, jsonMode: true })).content;
+    } catch (error) { return aiErrorReply(reply, error); }
+    try {
+      return { profile: parseGeneratedPersonality(raw, seed), provider: config.provider, model: config.model };
+    } catch (error) {
+      app.log.warn({ err: (error as Error).message }, "Generated personality was unusable");
+      return reply.code(502).send({ message: `${(error as Error).message} Try generating again, or choose a different model in AI Configuration.` });
+    }
+  });
+
   app.post("/api/v1/assistant/prompt/generate", async (request, reply) => {
     if (!(await guard(request, reply))) return;
     const input = generateSchema.parse(request.body ?? {});
     const config = await deps.ai.active().catch(() => null);
-    if (!config) return reply.code(409).send({ message: "Complete the AI Configuration (provider, model and API key) before generating a prompt." });
+    if (!config) return reply.code(409).send({ message: "Complete the AI Configuration (provider, model and API key) before generating a prompt.", kind: "not_configured" });
     const settings = await deps.assistant.load();
     const profile = input.profile ?? settings.profile;
     const [items, categories] = await Promise.all([deps.catalog.loadItems(), deps.catalog.loadCategories()]);
     try {
       const result = await deps.ai.createClient(config).chat({ messages: buildGeneratorMessages(profile, buildBusinessContext(items, categories)), temperature: 0.5, maxTokens: 1500 });
-      const prompt = result.content.trim();
+      // Same conventions the assistant must use in chat, so the prompt never models **Markdown** for it.
+      const prompt = toWhatsAppFormat(result.content);
       if (!prompt) return reply.code(502).send({ message: "The AI provider returned an empty prompt. Try again." });
       return { prompt, problems: validatePrompt(prompt), provider: config.provider, model: config.model };
     } catch (error) { return aiErrorReply(reply, error); }
@@ -272,6 +293,7 @@ export async function registerAssistantRoutes(app: FastifyInstance, options: { d
       sessionId,
       status: result.status,
       reason: result.reason ?? null,
+      usage: result.usage ?? null,
       replies: result.actions.map((action) => action.type === "text" ? { type: "text", text: action.text } : { type: "image", caption: action.caption, imageUrl: action.imageUrl })
     };
   });

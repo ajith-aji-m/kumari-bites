@@ -19,6 +19,8 @@ export type MenuSearch = {
   query?: string | undefined;
   category?: string | undefined;
   maxPrice?: number | undefined;
+  /** Strict upper bound: price < priceBelow ("under ₹100"). */
+  priceBelow?: number | undefined;
   minPrice?: number | undefined;
   vegOnly?: boolean | undefined;
   includeUnavailable?: boolean | undefined;
@@ -34,6 +36,7 @@ export function searchItems(items: CatalogItem[], search: MenuSearch) {
     .filter((item) => search.includeUnavailable || isOrderable(item))
     .filter((item) => !category || stem(normalize(item.categoryName)).includes(category))
     .filter((item) => search.maxPrice === undefined || (item.price !== null && item.price <= search.maxPrice))
+    .filter((item) => search.priceBelow === undefined || (item.price !== null && item.price < search.priceBelow))
     .filter((item) => search.minPrice === undefined || (item.price !== null && item.price >= search.minPrice))
     .filter((item) => !search.vegOnly || item.isVeg)
     .map((item) => {
@@ -53,18 +56,18 @@ export function searchItems(items: CatalogItem[], search: MenuSearch) {
   return scored.slice(0, search.limit ?? 10).map((entry) => entry.item);
 }
 
-/** The view of an item the AI is allowed to see — no stock counts, no internal flags. */
+/** The compact view of an item the AI is allowed to see: no stock counts or internal flags, short description. */
 export function describeItem(item: CatalogItem) {
+  const description = item.description?.trim();
   return {
     id: item.id,
     name: item.name,
     category: item.categoryName,
     price: item.price,
-    priceText: item.price === null ? null : formatRupees(item.price),
-    description: item.description,
     veg: item.isVeg,
-    availability: availabilityLabel(item),
-    hasPhoto: Boolean(item.imageUrl)
+    available: availabilityLabel(item) === "available",
+    photo: Boolean(item.imageUrl),
+    ...(description ? { desc: description.length > 100 ? `${description.slice(0, 97)}…` : description } : {})
   };
 }
 

@@ -1,4 +1,5 @@
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { CustomSelect } from "../components/CustomSelect";
 
 // WhatsApp AI assistant settings. Talks only to admin-protected /api/v1/assistant, /api/v1/ai and
 // /api/v1/whatsapp routes; API keys are sent once on save and only ever come back masked.
@@ -50,22 +51,26 @@ async function api<T>(url: string, options?: RequestInit & { json?: unknown }): 
     ...(json !== undefined ? { body: JSON.stringify(json), headers: { "Content-Type": "application/json" } } : {})
   });
   const data = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(data.message ?? "Something went wrong");
+  if (!response.ok) throw Object.assign(new Error(data.message ?? "Something went wrong"), { kind: data.kind as string | undefined });
   return data as T;
 }
+
+/** AI errors the admin fixes in AI Configuration (missing, rejected or unusable key/model). */
+const needsAiConfiguration = (error: unknown) => ["not_configured", "auth", "model"].includes((error as { kind?: string }).kind ?? "");
 
 const errorText = (error: unknown, fallback: string) => error instanceof Error ? error.message : fallback;
 const formatTime = (iso: string | null | undefined) => iso ? new Date(iso).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" }) : "—";
 
-const tabs = [
-  { id: "connection", label: "WhatsApp Connection", icon: "◎" },
-  { id: "ai", label: "AI Configuration", icon: "✦" },
-  { id: "personality", label: "Assistant Personality", icon: "☺" },
-  { id: "prompt", label: "Prompt Generator", icon: "✎" },
-  { id: "automation", label: "Order Automation", icon: "⚑" },
-  { id: "status", label: "Integration Status", icon: "◈" }
+// Settings → tabs owned by this module (the Settings page adds "General" in front of them).
+export const assistantTabs = [
+  { id: "connection", label: "WhatsApp" },
+  { id: "ai", label: "AI Configuration" },
+  { id: "personality", label: "Assistant Personality" },
+  { id: "prompt", label: "Prompt Generator" },
+  { id: "automation", label: "Order Automation" },
+  { id: "status", label: "Integration Status" }
 ] as const;
-type TabId = typeof tabs[number]["id"];
+export type AssistantTabId = typeof assistantTabs[number]["id"];
 
 function Section({ icon, title, description, children }: { icon: string; title: string; description: string; children: ReactNode }) {
   return <section className="panel settings-card assistant-card">
@@ -74,9 +79,17 @@ function Section({ icon, title, description, children }: { icon: string; title: 
   </section>;
 }
 
-function Switch({ checked, onChange, label, description, disabled }: { checked: boolean; onChange: (value: boolean) => void; label: string; description: string; disabled?: boolean }) {
+function Switch({ checked, onChange, label, description, whenOn, whenOff, disabled, disabledReason }: { checked: boolean; onChange: (value: boolean) => void; label: string; description: string; whenOn?: string; whenOff?: string; disabled?: boolean; disabledReason?: string }) {
   return <div className={disabled ? "assistant-switch-row is-disabled" : "assistant-switch-row"}>
-    <div><strong>{label}</strong><small>{description}</small></div>
+    <div>
+      <strong>{label}</strong>
+      <small>{description}</small>
+      {(whenOn || whenOff) && <ul className="assistant-switch-effects">
+        {whenOn && <li className={checked ? "is-current" : ""}><b>On:</b> {whenOn}</li>}
+        {whenOff && <li className={checked ? "" : "is-current"}><b>Off:</b> {whenOff}</li>}
+      </ul>}
+      {disabled && disabledReason && <small className="assistant-switch-note">{disabledReason}</small>}
+    </div>
     <button type="button" role="switch" aria-checked={checked} aria-label={label} disabled={disabled} className={checked ? "switch on" : "switch"} onClick={() => onChange(!checked)}><span /></button>
   </div>;
 }
@@ -231,11 +244,18 @@ function AiTab({ overview, onSaved, notify, fail }: { overview: Overview; onSave
     <Section icon="✦" title="AI provider and model" description="The assistant and the prompt generator use this saved configuration for every request.">
       {!overview.encryptionConfigured && <p className="assistant-error-text">APP_ENCRYPTION_KEY is not set on the server, so API keys cannot be saved yet.</p>}
       <div className="settings-fields">
-        <label className="settings-field"><span>AI provider <i>Required</i></span>
-          <select value={provider} onChange={(event) => { setProvider(event.target.value as ProviderId); setModels([]); setModel(""); setResult(null); }}>
-            {overview.providers.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}
-          </select>
-        </label>
+        <div className="settings-field"><span>AI provider <i>Required</i></span>
+          <div className="custom-form-select">
+            <CustomSelect value={provider} portalMenu onChange={(value) => {
+              const next = value as ProviderId;
+              setProvider(next);
+              setModels([]);
+              // Switching back to the saved provider restores its saved model.
+              setModel(next === overview.ai.provider ? overview.ai.model ?? "" : "");
+              setResult(null);
+            }} options={overview.providers.map((item) => ({ value: item.id, label: item.label }))} />
+          </div>
+        </div>
         <label className="settings-field"><span>API key {storedKey ? <i>Saved: {storedKey}</i> : <i>Required</i>}</span>
           <div className="assistant-key-input">
             <input type={showKey ? "text" : "password"} autoComplete="off" spellCheck={false} value={apiKey} onChange={(event) => setApiKey(event.target.value.trim())} placeholder={storedKey ? "Leave blank to keep the saved key" : definition?.keyHint ?? "Paste your API key"} />
@@ -243,16 +263,13 @@ function AiTab({ overview, onSaved, notify, fail }: { overview: Overview; onSave
           </div>
           <small>Stored encrypted on the server. After saving, only a masked version is shown.</small>
         </label>
-        <label className="settings-field"><span>Model <i>Required</i></span>
+        <div className="settings-field"><span>Model <i>Required</i></span>
           <div className="assistant-inline-field">
-            <select value={model} onChange={(event) => setModel(event.target.value)}>
-              <option value="" disabled>Select a model</option>
-              {options.map((item) => <option key={item} value={item}>{item}</option>)}
-            </select>
+            <div className="custom-form-select"><CustomSelect value={model} portalMenu placeholder="Select a model" onChange={setModel} options={options.map((item) => ({ value: item, label: item === overview.ai.model && provider === overview.ai.provider ? `${item} (saved)` : item }))} /></div>
             <button type="button" className="secondary-button" disabled={Boolean(busy) || (!apiKey && !storedKey)} onClick={loadModels}>{busy === "models" ? "Loading…" : "Load models"}</button>
           </div>
           <small>{models.length ? `${models.length} models available for this key.` : "Suggested models are shown until you load the live list for your key. Saving checks that the model is available."}</small>
-        </label>
+        </div>
       </div>
       {result && <p className={result.ok ? "assistant-ok-text" : "assistant-error-text"} role="status">{result.message}</p>}
       <div className="assistant-actions">
@@ -276,67 +293,156 @@ function AiTab({ overview, onSaved, notify, fail }: { overview: Overview; onSave
 
 // ---------------- Personality ----------------
 
-const profileFields: Array<{ key: keyof Profile; label: string; placeholder: string; long?: boolean; required?: boolean; max: number }> = [
-  { key: "assistantName", label: "Assistant name", placeholder: "e.g. Kumari", required: true, max: 80 },
-  { key: "businessName", label: "Business name", placeholder: "e.g. Kumari Bites", required: true, max: 120 },
-  { key: "languages", label: "Language preferences", placeholder: "e.g. Reply in Tamil, English or Tanglish, matching the customer", max: 200 },
-  { key: "greetingMessage", label: "Greeting message", placeholder: "Hi! Welcome to Kumari Bites. What would you like to order today?", long: true, max: 500 },
-  { key: "tone", label: "Tone and personality", placeholder: "Warm, cheerful and quick, like a friendly food-truck host", long: true, max: 300 },
-  { key: "businessDescription", label: "Business description", placeholder: "Food truck serving katti rolls, momos, loaded fries and mojitos…", long: true, max: 1500 },
-  { key: "customerServiceInstructions", label: "Customer service instructions", placeholder: "Be patient, answer one question at a time…", long: true, max: 1500 },
-  { key: "menuRecommendationBehavior", label: "Menu recommendation behaviour", placeholder: "Suggest 2–3 items that match the budget or taste; mention veg options…", long: true, max: 1000 },
-  { key: "pricingBehavior", label: "Pricing response behaviour", placeholder: "Always state the exact current price in ₹…", long: true, max: 1000 },
-  { key: "imageBehavior", label: "Image recommendation behaviour", placeholder: "Offer a photo when a customer is deciding between items…", long: true, max: 1000 },
-  { key: "orderCollectionInstructions", label: "Order collection instructions", placeholder: "Confirm item, quantity and any preparation notes; ask for the name for the order…", long: true, max: 1500 },
-  { key: "orderConfirmationRules", label: "Order confirmation rules", placeholder: "Always show the full summary and wait for the customer to reply YES…", long: true, max: 1000 },
-  { key: "unavailableItemHandling", label: "Unavailable-item handling", placeholder: "Apologise briefly and suggest 1–2 similar available items…", long: true, max: 1000 },
-  { key: "escalationInstructions", label: "Escalation to a human", placeholder: "Hand over for complaints, refunds, allergies or bulk/event orders…", long: true, max: 1000 },
-  { key: "additionalInstructions", label: "Additional business-specific instructions", placeholder: "Anything else the assistant should know", long: true, max: 2000 }
+export const languageOptions = [
+  "Match the customer's language (Tamil, English or Tanglish)",
+  "English",
+  "Tamil",
+  "Tamil and English",
+  "Tanglish (Tamil written in English letters)",
+  "Tamil, English and Hindi"
 ];
 
-function PersonalityTab({ profile, setProfile, onSaved, notify, fail }: { profile: Profile; setProfile: (profile: Profile) => void; onSaved: () => void; notify: (message: string) => void; fail: (message: string) => void }) {
-  const [saving, setSaving] = useState(false);
+type ProfileField = { key: keyof Profile; label: string; placeholder: string; max: number };
+
+// Grouped so the long form reads as a few short sections. Name, business and languages live in the generator card.
+const profileGroups: Array<{ title: string; fields: ProfileField[] }> = [
+  { title: "Voice", fields: [
+    { key: "greetingMessage", label: "Greeting message", placeholder: "Hi! Welcome to Kumari Bites. What would you like to order today?", max: 500 },
+    { key: "tone", label: "Tone and personality", placeholder: "Warm, cheerful and quick, like a friendly food-truck host", max: 300 },
+    { key: "businessDescription", label: "Business description", placeholder: "Food truck serving katti rolls, momos, loaded fries and mojitos…", max: 1500 },
+    { key: "customerServiceInstructions", label: "Customer service instructions", placeholder: "Be patient, answer one question at a time…", max: 1500 }
+  ] },
+  { title: "Menu and prices", fields: [
+    { key: "menuRecommendationBehavior", label: "Menu recommendations", placeholder: "Suggest 2–3 items that match the budget or taste; mention veg options…", max: 1000 },
+    { key: "pricingBehavior", label: "Price questions", placeholder: "Always state the exact current price in ₹…", max: 1000 },
+    { key: "imageBehavior", label: "Menu photos", placeholder: "Offer a photo when a customer is deciding between items…", max: 1000 },
+    { key: "unavailableItemHandling", label: "Unavailable items", placeholder: "Apologise briefly and suggest 1–2 similar available items…", max: 1000 }
+  ] },
+  { title: "Ordering", fields: [
+    { key: "orderCollectionInstructions", label: "Order collection", placeholder: "Confirm item, quantity and any preparation notes; ask for the name for the order…", max: 1500 },
+    { key: "orderConfirmationRules", label: "Order confirmation", placeholder: "Always show the full summary and wait for the customer to reply YES…", max: 1000 }
+  ] },
+  { title: "Escalation and extras", fields: [
+    { key: "escalationInstructions", label: "Escalation to a human", placeholder: "Hand over for complaints, refunds, allergies or bulk/event orders…", max: 1000 },
+    { key: "additionalInstructions", label: "Additional instructions", placeholder: "Anything else the assistant should know", max: 2000 }
+  ] }
+];
+
+const sameProfile = (a: Profile, b: Profile) => (Object.keys(a) as Array<keyof Profile>).every((key) => a[key].trim() === b[key].trim());
+
+function PersonalityTab({ overview, profile, setProfile, onSaved, onNavigate, notify, fail }: { overview: Overview; profile: Profile; setProfile: (profile: Profile) => void; onSaved: () => void; onNavigate: (tab: AssistantTabId) => void; notify: (message: string) => void; fail: (message: string) => void }) {
+  const saved = overview.profile;
+  const dirty = !sameProfile(profile, saved);
+  const [notes, setNotes] = useState("");
+  const [busy, setBusy] = useState<"" | "generate" | "save">("");
+  const [confirmReplace, setConfirmReplace] = useState(false);
+  const [generatedWith, setGeneratedWith] = useState<string | null>(null);
+  const [aiProblem, setAiProblem] = useState<string | null>(overview.ai.configured ? null : "AI Configuration is not complete. Save a provider, model and API key first; the personality is generated with that model.");
+  const [justSaved, setJustSaved] = useState(false);
+  const languageChoices = profile.languages && !languageOptions.includes(profile.languages) ? [profile.languages, ...languageOptions] : languageOptions;
+  const set = (key: keyof Profile, value: string) => { setProfile({ ...profile, [key]: value }); setJustSaved(false); };
+
+  async function generate() {
+    setConfirmReplace(false);
+    setBusy("generate");
+    setAiProblem(null);
+    try {
+      const data = await api<{ profile: Profile; model: string }>("/api/v1/assistant/profile/generate", { method: "POST", json: { assistantName: profile.assistantName, businessName: profile.businessName, languages: profile.languages, notes } });
+      setProfile(data.profile);
+      setGeneratedWith(data.model);
+      setJustSaved(false);
+      notify("Personality generated. Review the fields, then click Save personality.");
+    } catch (error) {
+      if (needsAiConfiguration(error)) setAiProblem(errorText(error, "AI Configuration needs attention."));
+      else fail(errorText(error, "Could not generate the personality"));
+    } finally { setBusy(""); }
+  }
+
+  function requestGenerate() {
+    // Generated values replace the form; unsaved edits are only discarded after the admin confirms.
+    if (dirty) setConfirmReplace(true); else void generate();
+  }
+
   async function save(event: FormEvent) {
     event.preventDefault();
-    setSaving(true);
+    setBusy("save");
     try {
       await api("/api/v1/assistant/profile", { method: "PUT", json: profile });
-      notify("Assistant personality saved. Generate a new prompt to apply the changes.");
+      setGeneratedWith(null);
+      setJustSaved(true);
+      notify("Assistant personality saved.");
       onSaved();
-    } catch (error) { fail(errorText(error, "Could not save the personality")); } finally { setSaving(false); }
+    } catch (error) { fail(errorText(error, "Could not save the personality")); } finally { setBusy(""); }
   }
-  return <form onSubmit={save}>
-    <Section icon="☺" title="Assistant personality" description="How the assistant should behave. These answers feed the prompt generator. They never include customer data.">
+
+  const canGenerate = overview.ai.configured && profile.assistantName.trim() && profile.businessName.trim();
+
+  return <form className="assistant-stack" onSubmit={save}>
+    <Section icon="✦" title="Generate with AI" description="Enter the basics and let the configured AI model fill in every personality field from your real menu and ordering rules. You can edit everything before saving.">
       <div className="assistant-field-grid">
-        {profileFields.map((field) => <label key={field.key} className={field.long ? "settings-field is-wide" : "settings-field"}>
-          <span>{field.label}{field.required && <i>Required</i>}</span>
-          {field.long
-            ? <textarea rows={3} maxLength={field.max} value={profile[field.key]} placeholder={field.placeholder} onChange={(event) => setProfile({ ...profile, [field.key]: event.target.value })} />
-            : <input required={field.required} maxLength={field.max} value={profile[field.key]} placeholder={field.placeholder} onChange={(event) => setProfile({ ...profile, [field.key]: event.target.value })} />}
-        </label>)}
+        <label className="settings-field"><span>Assistant name <i>Required</i></span><input required maxLength={80} value={profile.assistantName} onChange={(event) => set("assistantName", event.target.value)} placeholder="e.g. Kumari" /></label>
+        <label className="settings-field"><span>Business name <i>Required</i></span><input required maxLength={120} value={profile.businessName} onChange={(event) => set("businessName", event.target.value)} placeholder="e.g. Kumari Bites" /></label>
+        <div className="settings-field is-wide"><span>Language preferences</span>
+          <div className="custom-form-select"><CustomSelect value={profile.languages} portalMenu placeholder="Choose languages" onChange={(value) => set("languages", value)} options={languageChoices.map((option) => ({ value: option, label: option }))} /></div>
+        </div>
+        <label className="settings-field is-wide"><span>Anything specific? <i>Optional</i></span><textarea rows={2} maxLength={1500} value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="e.g. We park near the bus stand in the evenings; push the combo meals; keep replies very short." /><small>Only used for this generation; it is not saved on its own.</small></label>
       </div>
-      <div className="assistant-actions"><button type="submit" className="primary-button" disabled={saving}>{saving ? "Saving…" : "Save personality"}</button></div>
+      {aiProblem && <div className="assistant-callout is-warning" role="alert"><p>{aiProblem}</p><button type="button" className="secondary-button" onClick={() => onNavigate("ai")}>Open AI Configuration</button></div>}
+      {confirmReplace && <div className="assistant-confirm" role="alertdialog" aria-label="Replace unsaved edits">
+        <p><strong>Replace your unsaved edits?</strong> Generating fills every field below with new values. Your saved personality stays unchanged until you click Save personality.</p>
+        <div className="assistant-actions"><button type="button" className="primary-button" onClick={() => void generate()}>Replace and generate</button><button type="button" className="secondary-button" onClick={() => setConfirmReplace(false)}>Keep my edits</button></div>
+      </div>}
+      <div className="assistant-actions">
+        <button type="button" className="primary-button" disabled={!canGenerate || Boolean(busy) || confirmReplace} onClick={requestGenerate}>{busy === "generate" ? "Generating personality…" : "Generate Assistant Personality with AI"}</button>
+      </div>
+      {overview.ai.configured && <small className="muted assistant-hint">Uses {overview.providers.find((item) => item.id === overview.ai.provider)?.label} · {overview.ai.model}. Takes about 10–30 seconds.</small>}
+    </Section>
+
+    <Section icon="☺" title="Personality details" description="How the assistant talks and behaves. These fields feed the Prompt Generator.">
+      {generatedWith && <p className="assistant-ok-text">Filled in by {generatedWith}. Nothing is saved yet: review, edit, then save.</p>}
+      {profileGroups.map((group) => <fieldset key={group.title} className="assistant-fieldset">
+        <legend>{group.title}</legend>
+        <div className="assistant-field-grid">
+          {group.fields.map((field) => <label key={field.key} className="settings-field">
+            <span>{field.label}</span>
+            <textarea rows={3} maxLength={field.max} value={profile[field.key]} placeholder={field.placeholder} onChange={(event) => set(field.key, event.target.value)} />
+          </label>)}
+        </div>
+      </fieldset>)}
+      {justSaved && <div className="assistant-callout"><p>Saved. The WhatsApp assistant keeps using the current prompt until you regenerate and save it.</p><button type="button" className="secondary-button" onClick={() => onNavigate("prompt")}>Go to Prompt Generator</button></div>}
+      <div className="assistant-actions assistant-actions-split">
+        <small className="muted">{dirty ? "Unsaved changes" : "All changes saved"}</small>
+        <div className="assistant-actions-inline">
+          <button type="button" className="secondary-button" disabled={!dirty || Boolean(busy)} onClick={() => { setProfile(saved); setGeneratedWith(null); }}>Discard changes</button>
+          <button type="submit" className="primary-button" disabled={!dirty || Boolean(busy)}>{busy === "save" ? "Saving…" : "Save personality"}</button>
+        </div>
+      </div>
     </Section>
   </form>;
 }
 
 // ---------------- Prompt generator + preview ----------------
 
-function PromptTab({ overview, profile, onSaved, notify, fail }: { overview: Overview; profile: Profile; onSaved: () => void; notify: (message: string) => void; fail: (message: string) => void }) {
+function PromptTab({ overview, personalityDirty, onSaved, onNavigate, notify, fail }: { overview: Overview; personalityDirty: boolean; onSaved: () => void; onNavigate: (tab: AssistantTabId) => void; notify: (message: string) => void; fail: (message: string) => void }) {
   const [draft, setDraft] = useState(overview.prompt?.prompt ?? "");
   const [busy, setBusy] = useState<"" | "generate" | "save">("");
   const [problems, setProblems] = useState<string[]>(overview.promptProblems);
   const saved = overview.prompt;
   const dirty = draft.trim() !== (saved?.prompt ?? "").trim();
+  const [aiProblem, setAiProblem] = useState<string | null>(overview.ai.configured ? null : "Complete the AI Configuration (provider, model and API key) first; the prompt is generated with that model.");
 
   async function generate() {
     setBusy("generate");
     try {
-      const data = await api<{ prompt: string; problems: string[]; model: string }>("/api/v1/assistant/prompt/generate", { method: "POST", json: { profile } });
+      // No profile in the body: the server uses the saved personality.
+      const data = await api<{ prompt: string; problems: string[]; model: string }>("/api/v1/assistant/prompt/generate", { method: "POST", json: {} });
       setDraft(data.prompt);
       setProblems(data.problems);
       notify(`Prompt generated with ${data.model}. Review it, then save.`);
-    } catch (error) { fail(errorText(error, "Could not generate the prompt")); } finally { setBusy(""); }
+    } catch (error) {
+      if (needsAiConfiguration(error)) setAiProblem(errorText(error, "AI Configuration needs attention."));
+      else fail(errorText(error, "Could not generate the prompt"));
+    } finally { setBusy(""); }
   }
 
   async function save() {
@@ -351,7 +457,8 @@ function PromptTab({ overview, profile, onSaved, notify, fail }: { overview: Ove
 
   return <div className="assistant-two-column">
     <Section icon="✎" title="Prompt generator" description="Generates the assistant's instructions from your personality settings and the live menu structure, using the saved AI configuration.">
-      {!overview.ai.configured && <p className="assistant-error-text">Complete the AI Configuration (provider, model and API key) first; the prompt is generated with that model.</p>}
+      {aiProblem && <div className="assistant-callout is-warning" role="alert"><p>{aiProblem}</p><button type="button" className="secondary-button" onClick={() => onNavigate("ai")}>Open AI Configuration</button></div>}
+      {personalityDirty && <div className="assistant-callout"><p>You have unsaved changes in Assistant Personality. The prompt is generated from the saved personality.</p><button type="button" className="secondary-button" onClick={() => onNavigate("personality")}>Review personality</button></div>}
       <div className="assistant-actions">
         <button type="button" className="primary-button" disabled={!overview.ai.configured || Boolean(busy)} onClick={generate}>{busy === "generate" ? "Generating…" : draft ? "Regenerate AI prompt" : "Generate AI prompt"}</button>
       </div>
@@ -421,7 +528,7 @@ function PreviewPanel({ draft, canRun }: { draft: string | undefined; canRun: bo
 
 // ---------------- Automation ----------------
 
-function AutomationTab({ overview, onSaved, notify, fail }: { overview: Overview; onSaved: () => void; notify: (message: string) => void; fail: (message: string) => void }) {
+function AutomationTab({ overview, onSaved, onNavigate, notify, fail }: { overview: Overview; onSaved: () => void; onNavigate: (tab: AssistantTabId) => void; notify: (message: string) => void; fail: (message: string) => void }) {
   const [automation, setAutomation] = useState(overview.automation);
   const [saving, setSaving] = useState(false);
   const set = (key: keyof Automation) => (value: boolean) => setAutomation((current) => ({
@@ -430,6 +537,7 @@ function AutomationTab({ overview, onSaved, notify, fail }: { overview: Overview
     ...(key === "orderCollection" && !value ? { autoCreateOrders: false } : {})
   }));
   const blocked = overview.effectiveAutomation.blockedReason;
+  const dirty = (Object.keys(automation) as Array<keyof Automation>).some((key) => automation[key] !== overview.automation[key]);
 
   async function save() {
     setSaving(true);
@@ -440,18 +548,55 @@ function AutomationTab({ overview, onSaved, notify, fail }: { overview: Overview
     } catch (error) { fail(errorText(error, "Could not save automation settings")); } finally { setSaving(false); }
   }
 
-  return <Section icon="⚑" title="Order automation" description="Each switch is enforced by the server, not just hidden here. Everything stays off until AI and a prompt are configured.">
-    {blocked && <p className="assistant-error-text">Auto-replies are paused: {blocked}.</p>}
-    <div className="assistant-switch-list">
-      <Switch checked={automation.autoReplies} onChange={set("autoReplies")} label="WhatsApp auto-replies" description="Let the assistant answer customers who message the linked number." />
-      <Switch checked={automation.menuRecommendations} onChange={set("menuRecommendations")} label="AI menu recommendations" description="Suggest dishes based on taste and budget. When off, the assistant only answers menu questions factually." />
-      <Switch checked={automation.imageSending} onChange={set("imageSending")} label="Menu image sending" description="Send the real menu photo when a customer asks or is deciding." />
-      <Switch checked={automation.orderCollection} onChange={set("orderCollection")} label="WhatsApp order collection" description="Build a draft cart in chat and send an exact summary for the customer to confirm with YES." />
-      <Switch checked={automation.autoCreateOrders} onChange={set("autoCreateOrders")} disabled={!automation.orderCollection} label="Create orders automatically after customer confirmation" description="When on, a YES places the order in Orders immediately. When off, a YES hands the order to your team to confirm in the chat." />
-      <Switch checked={automation.humanHandoff} onChange={set("humanHandoff")} label="Human handoff" description="Pause the assistant and flag the chat for staff on complaints, payment issues or questions it cannot answer safely." />
+  return <Section icon="⚑" title="Order automation" description="Choose what the assistant may do on its own. The server enforces every switch, and all of them stay paused until AI and a prompt are set up.">
+    {blocked && <div className="assistant-callout is-warning" role="status"><p>The assistant is paused: {blocked}. Your choices below are still saved and take effect once that is fixed.</p><button type="button" className="secondary-button" onClick={() => onNavigate(blocked.startsWith("AI") ? "ai" : "prompt")}>{blocked.startsWith("AI") ? "Open AI Configuration" : "Open Prompt Generator"}</button></div>}
+
+    <fieldset className="assistant-fieldset">
+      <legend>Replying to customers</legend>
+      <Switch checked={automation.autoReplies} onChange={set("autoReplies")} label="Reply automatically on WhatsApp"
+        description="The main switch for the assistant."
+        whenOn="Customers who message your WhatsApp number get an instant reply from the assistant."
+        whenOff="The assistant stays silent; you answer every message yourself from the phone." />
+      <Switch checked={automation.humanHandoff} onChange={set("humanHandoff")} label="Hand difficult chats to staff"
+        description="For complaints, refunds, payment problems or questions the assistant cannot answer safely."
+        whenOn="The assistant tells the customer a person will reply, stops replying in that chat and lists it under Integration Status."
+        whenOff="The assistant keeps the conversation going and suggests the customer speaks to staff at the truck." />
+    </fieldset>
+
+    <fieldset className="assistant-fieldset">
+      <legend>Helping customers choose</legend>
+      <Switch checked={automation.menuRecommendations} onChange={set("menuRecommendations")} label="Suggest dishes"
+        description="Recommendations based on taste, budget or veg/non-veg."
+        whenOn="The assistant suggests suitable items, e.g. “something under ₹100”."
+        whenOff="The assistant still answers menu and price questions, but does not recommend items." />
+      <Switch checked={automation.imageSending} onChange={set("imageSending")} label="Send menu photos"
+        description="Uses the photos already uploaded in Menu Management. Never a made-up image."
+        whenOn="Customers can ask “show me a photo” and receive the real item photo."
+        whenOff="The assistant describes items in text only." />
+    </fieldset>
+
+    <fieldset className="assistant-fieldset">
+      <legend>Taking orders</legend>
+      <Switch checked={automation.orderCollection} onChange={set("orderCollection")} label="Take orders in the chat"
+        description="The assistant builds the order, then sends an exact summary with live prices."
+        whenOn="Customers can order on WhatsApp and must reply YES to the summary to confirm."
+        whenOff="The assistant tells customers to order at the truck or with the QR menu." />
+      <Switch checked={automation.autoCreateOrders} onChange={set("autoCreateOrders")} disabled={!automation.orderCollection}
+        disabledReason="Turn on “Take orders in the chat” first."
+        label="Place confirmed orders automatically"
+        description="Your permission for the system to add orders without a staff member checking first."
+        whenOn="When the customer replies YES, the order appears in Orders straight away with an order number."
+        whenOff="When the customer replies YES, the chat is passed to staff to confirm the order by hand." />
+      <div className="settings-url-note"><span aria-hidden="true">ⓘ</span><p><strong>Two separate permissions.</strong> “Place confirmed orders automatically” is your permission as the admin. The customer still has to reply YES to the exact summary every time; nothing is ordered without it. Payment is always collected at the counter. Replying to a customer yourself from the phone pauses the assistant in that chat.</p></div>
+    </fieldset>
+
+    <div className="assistant-actions assistant-actions-split">
+      <small className="muted">{dirty ? "Unsaved changes" : "All changes saved"}</small>
+      <div className="assistant-actions-inline">
+        <button type="button" className="secondary-button" disabled={!dirty || saving} onClick={() => setAutomation(overview.automation)}>Discard changes</button>
+        <button type="button" className="primary-button" disabled={!dirty || saving} onClick={save}>{saving ? "Saving…" : "Save automation"}</button>
+      </div>
     </div>
-    <div className="settings-url-note"><span aria-hidden="true">ⓘ</span><p>Customer consent and admin permission are separate. Turning on automatic orders permits the system to place orders, but each order is still placed only after that customer replies YES to the exact summary. Replying from the phone yourself pauses the assistant in that chat.</p></div>
-    <div className="assistant-actions"><button type="button" className="primary-button" disabled={saving} onClick={save}>{saving ? "Saving…" : "Save automation"}</button></div>
   </Section>;
 }
 
@@ -487,45 +632,38 @@ function StatusTab({ overview, onChanged, notify, fail }: { overview: Overview; 
 
 // ---------------- Container ----------------
 
-export function AssistantSettings({ onNotice, onError }: { onNotice: (message: string) => void; onError: (message: string) => void }) {
+/** Content of one assistant tab. The tab bar itself belongs to the Settings page. */
+export function AssistantSettings({ tab, onNavigate, onNotice, onError }: { tab: AssistantTabId; onNavigate: (tab: AssistantTabId) => void; onNotice: (message: string) => void; onError: (message: string) => void }) {
   const [overview, setOverview] = useState<Overview | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loadError, setLoadError] = useState("");
-  const [tab, setTab] = useState<TabId>(() => {
-    try { const saved = window.localStorage.getItem("kb-assistant-tab"); return tabs.some((item) => item.id === saved) ? saved as TabId : "connection"; } catch { return "connection"; }
-  });
 
   const load = useCallback(async () => {
     try {
       const data = await api<Overview>("/api/v1/assistant/overview");
       setOverview(data);
+      // The personality draft survives tab switches; it starts from the saved values.
       setProfile((current) => current ?? data.profile);
       setLoadError("");
     } catch (error) { setLoadError(errorText(error, "Could not load assistant settings")); }
   }, []);
   useEffect(() => { load(); }, [load]);
-  useEffect(() => { try { window.localStorage.setItem("kb-assistant-tab", tab); } catch { /* storage unavailable */ } }, [tab]);
 
   // Tabs are re-mounted after a save so they start from the saved server state.
   const [version, setVersion] = useState(0);
   const refresh = useCallback(async () => { await load(); setVersion((value) => value + 1); }, [load]);
 
-  return <section className="assistant-settings" aria-labelledby="assistant-settings-title">
-    <div className="assistant-settings-heading">
-      <div><h2 id="assistant-settings-title">WhatsApp AI Assistant</h2><p>Answer customers on WhatsApp with live menu prices, photos and orders.</p></div>
-      {overview && <span className={`assistant-status-pill is-${overview.whatsapp.state}`}><span aria-hidden="true" />{stateLabels[overview.whatsapp.state]}</span>}
-    </div>
-    <div className="assistant-tabs" role="tablist" aria-label="Assistant settings">
-      {tabs.map((item) => <button key={item.id} type="button" role="tab" aria-selected={tab === item.id} className={tab === item.id ? "assistant-tab active" : "assistant-tab"} onClick={() => setTab(item.id)}><span aria-hidden="true">{item.icon}</span>{item.label}</button>)}
-    </div>
-    {loadError && <div className="inline-error" role="alert">{loadError}<button type="button" onClick={load}>Retry</button></div>}
-    {!overview || !profile ? !loadError && <section className="panel settings-loading"><p className="muted">Loading assistant settings…</p></section> : <div role="tabpanel" key={`${tab}-${version}`}>
-      {tab === "connection" && <ConnectionTab initial={overview.whatsapp} encryptionConfigured={overview.encryptionConfigured} notify={onNotice} fail={onError} />}
-      {tab === "ai" && <AiTab overview={overview} onSaved={refresh} notify={onNotice} fail={onError} />}
-      {tab === "personality" && <PersonalityTab profile={profile} setProfile={setProfile} onSaved={refresh} notify={onNotice} fail={onError} />}
-      {tab === "prompt" && <PromptTab overview={overview} profile={profile} onSaved={refresh} notify={onNotice} fail={onError} />}
-      {tab === "automation" && <AutomationTab overview={overview} onSaved={refresh} notify={onNotice} fail={onError} />}
-      {tab === "status" && <StatusTab overview={overview} onChanged={load} notify={onNotice} fail={onError} />}
-    </div>}
-  </section>;
+  if (loadError) return <div className="inline-error" role="alert">{loadError}<button type="button" onClick={load}>Retry</button></div>;
+  if (!overview || !profile) return <section className="panel settings-loading"><p className="muted">Loading assistant settings…</p></section>;
+
+  const personalityDirty = !sameProfile(profile, overview.profile);
+  // Personality keeps its draft in this container, so it is not re-mounted (that would drop its post-save hint).
+  return <div className="assistant-settings" role="tabpanel" key={tab === "personality" ? tab : `${tab}-${version}`}>
+    {tab === "connection" && <ConnectionTab initial={overview.whatsapp} encryptionConfigured={overview.encryptionConfigured} notify={onNotice} fail={onError} />}
+    {tab === "ai" && <AiTab overview={overview} onSaved={refresh} notify={onNotice} fail={onError} />}
+    {tab === "personality" && <PersonalityTab overview={overview} profile={profile} setProfile={setProfile} onSaved={refresh} onNavigate={onNavigate} notify={onNotice} fail={onError} />}
+    {tab === "prompt" && <PromptTab overview={overview} personalityDirty={personalityDirty} onSaved={refresh} onNavigate={onNavigate} notify={onNotice} fail={onError} />}
+    {tab === "automation" && <AutomationTab overview={overview} onSaved={refresh} onNavigate={onNavigate} notify={onNotice} fail={onError} />}
+    {tab === "status" && <StatusTab overview={overview} onChanged={load} notify={onNotice} fail={onError} />}
+  </div>;
 }

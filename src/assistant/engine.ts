@@ -1,9 +1,10 @@
-import { AiProviderError, createAiClient, type AiClient, type AiConfig, type ChatMessage } from "../ai/client.js";
-import { CONFIRMATION_TTL_MS, isExplicitCancellation, isExplicitConfirmation } from "./intents.js";
+import { AiProviderError, createAiClient, type AiClient, type AiConfig, type AiUsage, type ChatMessage } from "../ai/client.js";
+import { CONFIRMATION_TTL_MS, isExplicitCancellation, isExplicitConfirmation, parseBudget, removeOrderInvitations } from "./intents.js";
 import { cartSignature, formatRupees, priceCart } from "./menuQueries.js";
 import { buildRuntimePrompt, shouldGreet } from "./prompts.js";
 import { effectiveAutomation } from "./settings.js";
 import { runTool, toolDefinitions, type ToolContext } from "./tools.js";
+import { toWhatsAppFormat } from "./whatsappFormat.js";
 import type {
   AssistantRuntimeSettings, Catalog, ConversationRecord, ConversationState, ConversationStore, InboundMessage, OrderGateway, OutboundAction
 } from "./types.js";
@@ -35,10 +36,16 @@ export type TurnResult = {
   reason?: string;
   conversationId?: number;
   actions: OutboundAction[];
+  /** Provider-reported token usage for this turn (absent when no AI call was made). */
+  usage?: AiUsage & { requests: number };
 };
 
-const MAX_TOOL_ROUNDS = 6;
-const HISTORY_LIMIT = 20;
+const MAX_TOOL_ROUNDS = 5;
+// Each AI request resends the history, so it is kept short; tools re-fetch any facts that scrolled out.
+const HISTORY_LIMIT = 12;
+const HISTORY_MESSAGE_CHARS = 400;
+// WhatsApp replies are short. Providers such as Groq count this reservation against tokens-per-minute.
+const REPLY_MAX_TOKENS = 400;
 const RATE_WINDOW_MS = 60_000;
 const RATE_MAX_TURNS = 10;
 
@@ -176,13 +183,16 @@ export function createAssistantEngine(deps: EngineDeps) {
       deps.catalog.loadItems(), deps.catalog.loadCategories(), deps.store.recentMessages(conversation.id, HISTORY_LIMIT)
     ]);
     const greet = shouldGreet(conversation, at);
-    const ctx: ToolContext = { conversation, state, automation, items, categories, orders: deps.orders, outbox: [], confirmationSummary: null, handoffReason: null, now: at };
+    const budget = message.messageType === "text" ? parseBudget(message.text) : null;
+    const ctx: ToolContext = { conversation, state, automation, items, categories, orders: deps.orders, outbox: [], confirmationSummary: null, handoffReason: null, budget, now: at };
+    const clip = (text: string) => text.length > HISTORY_MESSAGE_CHARS ? `${text.slice(0, HISTORY_MESSAGE_CHARS)}…` : text;
     const messages: ChatMessage[] = [
-      { role: "system", content: buildRuntimePrompt({ basePrompt: settings.prompt!.prompt, profile: settings.profile, automation, conversation, state, items, greet, now: at }) },
+      { role: "system", content: buildRuntimePrompt({ basePrompt: settings.prompt!.prompt, profile: settings.profile, automation, conversation, state, items, greet, budget, now: at }) },
       ...history.map((entry): ChatMessage => entry.direction === "inbound"
-        ? { role: "user", content: entry.messageType === "text" ? entry.content : `[${entry.messageType}] ${entry.content}` }
-        : { role: "assistant", content: entry.content })
+        ? { role: "user", content: clip(entry.messageType === "text" ? entry.content : `[${entry.messageType}] ${entry.content}`) }
+        : { role: "assistant", content: clip(entry.content) })
     ];
+    const usage = { promptTokens: 0, completionTokens: 0, totalTokens: 0, requests: 0 };
 
     const known = new Set<number>(items.flatMap((item) => item.price === null ? [] : [item.price]));
     let reply = "";
@@ -191,7 +201,13 @@ export function createAssistantEngine(deps: EngineDeps) {
       const tools = toolDefinitions(automation);
       let corrected = false;
       for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
-        const result = await client.chat({ messages, tools, temperature: 0.4, maxTokens: 700 });
+        const result = await client.chat({ messages, tools, temperature: 0.4, maxTokens: REPLY_MAX_TOKENS });
+        usage.requests++;
+        if (result.usage) {
+          usage.promptTokens += result.usage.promptTokens;
+          usage.completionTokens += result.usage.completionTokens;
+          usage.totalTokens += result.usage.totalTokens;
+        }
         if (result.toolCalls.length) {
           messages.push({ role: "assistant", content: result.content || null, tool_calls: result.toolCalls });
           for (const call of result.toolCalls) {
@@ -220,15 +236,33 @@ export function createAssistantEngine(deps: EngineDeps) {
       const handoff = automation.humanHandoff;
       if (handoff) deps.notifyStaff?.({ type: "handoff", conversationId: conversation.id, reason: `AI provider error: ${aiError.kind}` });
       const result = await finish(conversation, conversation.state, [{ type: "text", text: FALLBACK_REPLY }], { handoff });
-      return { ...result, status: "error", reason: aiError.publicMessage };
+      return { ...result, status: "error", reason: aiError.publicMessage, usage };
     }
 
-    if (!reply && !ctx.confirmationSummary) reply = "Sorry, I didn't quite get that. Could you tell me a bit more?";
-    const text = [reply, ctx.confirmationSummary].filter(Boolean).join("\n\n");
+    reply = toWhatsAppFormat(reply);
+    if (!automation.orderCollection) {
+      // Server-side guarantee: with chat ordering off, no reply may invite the customer to order here.
+      const cleaned = removeOrderInvitations(reply);
+      if (cleaned.removed) {
+        log.info({ conversationId: conversation.id }, "Removed an ordering invitation while chat ordering is off");
+        reply = cleaned.text || `You can order at the ${settings.profile.businessName} truck or with our QR menu.`;
+      }
+    }
+    if (greet) {
+      // The configured greeting is sent exactly once per conversation; drop a model-written welcome line.
+      const lines = reply.split("\n");
+      const first = lines[0]!.trim();
+      const isGreetingLine = first.length < 160 && (/welcome/i.test(first) || /^(hi|hello|hey|hai|vanakkam|வணக்கம்)\b[^?]{0,40}$/i.test(first));
+      if (isGreetingLine) reply = lines.slice(1).join("\n").trim();
+    }
+    if (!reply && !ctx.confirmationSummary) reply = greet ? "" : "Sorry, I didn't quite get that. Could you tell me a bit more?";
+    const greeting = greet ? toWhatsAppFormat(settings.profile.greetingMessage || `Hi! Welcome to ${settings.profile.businessName}.`) : "";
+    const text = [greeting, reply, ctx.confirmationSummary].filter(Boolean).join("\n\n");
     const actions: OutboundAction[] = [{ type: "text", text }, ...ctx.outbox];
 
     if (ctx.handoffReason) deps.notifyStaff?.({ type: "handoff", conversationId: conversation.id, reason: ctx.handoffReason });
-    return finish(conversation, state, actions, { greeted: greet, handoff: Boolean(ctx.handoffReason) });
+    log.info({ conversationId: conversation.id, ...usage }, "AI turn token usage");
+    return { ...(await finish(conversation, state, actions, { greeted: greet, handoff: Boolean(ctx.handoffReason) })), usage };
   }
 
   return { handleMessage };

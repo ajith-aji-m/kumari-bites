@@ -7232,15 +7232,7 @@ button {
 .customer-phone-help.is-error { color: #b2391f; font-weight: 650; }
 
 /* ---- WhatsApp AI assistant (Settings) ---- */
-.assistant-settings { display:grid; gap:16px; min-width:0; margin-top:8px; padding-top:22px; border-top:1px solid rgba(255,220,197,.1); }
-.assistant-settings-heading { display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap; }
-.assistant-settings-heading h2 { margin:0 0 6px; color:#fff3e9; font-size:clamp(21px,2.4vw,26px); letter-spacing:-.03em; }
-.assistant-settings-heading p { margin:0; color:rgba(255,235,220,.62); font-size:12px; }
-.assistant-tabs { display:flex; gap:8px; overflow-x:auto; padding-bottom:2px; scrollbar-width:thin; }
-.assistant-tab { display:inline-flex; align-items:center; gap:7px; flex:0 0 auto; padding:10px 14px; border:1px solid rgba(255,220,197,.14); border-radius:999px; background:rgba(255,255,255,.03); color:rgba(255,235,220,.72); font:inherit; font-size:12px; font-weight:700; cursor:pointer; }
-.assistant-tab:hover { border-color:rgba(255,145,79,.45); color:#fff0e4; }
-.assistant-tab.active { border-color:rgba(255,145,79,.8); background:rgba(255,107,26,.16); color:#ffd2b5; }
-.assistant-tab:focus-visible,.assistant-settings button:focus-visible { outline:2px solid #ff914f; outline-offset:2px; }
+.assistant-settings { display:grid; gap:16px; min-width:0; }
 .assistant-two-column { display:grid; grid-template-columns:minmax(0,1.45fr) minmax(280px,1fr); gap:18px; align-items:start; }
 .assistant-settings .assistant-card,.assistant-settings .assistant-qr-card,.assistant-settings .settings-loading { padding:22px; border-radius:18px; min-width:0; }
 .assistant-settings .settings-field select,.assistant-settings .settings-field textarea { width:100%; min-width:0; padding:12px 14px; border:1px solid rgba(255,220,197,.17); border-radius:11px; outline:none; background:rgba(13,8,6,.36); color:#fff3e9; font:inherit; font-weight:500; }
@@ -7335,3 +7327,55 @@ button {
   .assistant-chat-input button { flex:1; }
   .assistant-conversations li { flex-direction:column; align-items:stretch; }
 }
+
+/* Settings tabs reuse .menu-tabs; on narrow screens they scroll sideways instead of wrapping. */
+.settings-page .settings-tabs { overflow-x:auto; overflow-y:hidden; border-bottom-color:rgba(255,220,197,.12); scrollbar-width:none; -webkit-overflow-scrolling:touch; }
+.settings-page .settings-tabs::-webkit-scrollbar { display:none; }
+.settings-page .settings-tabs button { flex:0 0 auto; white-space:nowrap; padding:11px 14px; color:rgba(255,235,220,.66); border:1px solid transparent; font-size:13px; }
+/* Tabs already separate the sections; drop the global form top margin inside Settings. */
+.settings-page form.settings-layout,.assistant-settings form { margin-top:0; }
+
+/* Shared CustomSelect inside Settings: same dark treatment as Menu Management. */
+.settings-page .custom-form-select .custom-select-trigger {
+  min-height:46px;
+  padding:12px 14px;
+  border-radius:11px;
+  color:#fff4eb;
+  border-color:rgba(255,220,197,.17);
+  background:rgba(13,8,6,.36);
+  font-weight:500;
+}
+.settings-page .custom-form-select .custom-select-trigger:focus { border-color:rgba(255,145,79,.8); box-shadow:0 0 0 3px rgba(255,107,26,.12); }
+.settings-page .custom-select-chevron { color:#f3c4a8; }
+.settings-page .custom-select-trigger > span:first-child { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0; }
+.assistant-inline-field .custom-form-select { flex:1; min-width:0; }
+
+.assistant-stack { display:grid; gap:18px; min-width:0; }
+.assistant-hint { display:block; margin-top:10px; font-size:11px; }
+.assistant-fieldset { margin:18px 0 0; padding:18px 0 0; border:0; border-top:1px solid rgba(255,220,197,.1); min-width:0; }
+.assistant-card > .settings-card-heading + .assistant-fieldset { margin-top:0; padding-top:0; border-top:0; }
+/* Float keeps the legend inside the fieldset instead of on its border. */
+.assistant-fieldset legend { float:left; width:100%; padding:0; margin-bottom:8px; color:#ffad78; font-size:11px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; }
+.assistant-fieldset legend + * { clear:both; }
+.assistant-fieldset > .assistant-field-grid { margin-top:4px; }
+.assistant-callout { display:flex; align-items:center; justify-content:space-between; gap:14px; margin-top:16px; padding:12px 14px; border:1px solid rgba(255,165,104,.2); border-radius:12px; background:rgba(255,107,26,.07); }
+.assistant-callout p { margin:0; color:rgba(255,235,220,.8); font-size:12px; line-height:1.55; }
+.assistant-callout.is-warning { border-color:rgba(255,120,104,.35); background:rgba(190,52,38,.12); }
+.assistant-callout.is-warning p { color:#ffcfc6; }
+.assistant-callout .secondary-button { flex-shrink:0; padding:9px 13px; font-size:12px; }
+.assistant-actions-inline { display:flex; flex-wrap:wrap; gap:10px; }
+.assistant-switch-row { align-items:flex-start; }
+.assistant-switch-row .switch { margin-top:2px; }
+.assistant-switch-effects { display:grid; gap:3px; margin:6px 0 0; padding:0; list-style:none; }
+.assistant-switch-effects li { color:rgba(255,235,220,.45); font-size:11px; line-height:1.5; }
+.assistant-switch-effects li.is-current { color:rgba(255,235,220,.82); }
+.assistant-switch-effects b { color:inherit; font-weight:800; }
+.assistant-switch-note { color:#ffbd8f !important; }
+.assistant-fieldset .settings-url-note { margin-top:12px; }
+.assistant-fieldset .settings-url-note strong { color:#ffd2b5; }
+@media(max-width:700px) {
+  .assistant-callout { flex-direction:column; align-items:stretch; }
+  .assistant-actions-inline { flex-direction:column; }
+  .assistant-actions-inline > button { width:100%; }
+}
+.assistant-fieldset .assistant-switch-row:last-child { border-bottom:0; }

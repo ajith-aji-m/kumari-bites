@@ -1,8 +1,8 @@
-import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { createPortal } from "react-dom";
+import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { ImageUpload } from "./components/ImageUpload";
+import { CustomSelect } from "./components/CustomSelect";
 import { CustomerLanding } from "./CustomerLanding";
-import { AssistantSettings } from "./assistant/AssistantSettings";
+import { AssistantSettings, assistantTabs, type AssistantTabId } from "./assistant/AssistantSettings";
 
 type DashboardData = {
   today: { orders: number; sales: number; averageOrder: number; activeOrders: number; completedOrders: number; cancelledOrders: number };
@@ -652,63 +652,6 @@ function Orders() {
   </section>;
 }
 
-function CustomSelect({ value, onChange, options, placeholder = "Select...", portalMenu = false, statusTone = false }: { value: string; onChange: (value: string) => void; options: { value: string; label: string }[]; placeholder?: string; portalMenu?: boolean; statusTone?: boolean }) {
-  const [open, setOpen] = useState(false);
-  const [menuPosition, setMenuPosition] = useState<{ top: number; left: number; width: number }>({ top: 0, left: 0, width: 180 });
-  const triggerRef = useRef<HTMLButtonElement | null>(null);
-  const selected = options.find(option => option.value === value);
-
-  useEffect(() => {
-    if (!open || !portalMenu) return;
-    const positionMenu = () => {
-      const trigger = triggerRef.current;
-      if (!trigger) return;
-      const rect = trigger.getBoundingClientRect();
-      const width = rect.width;
-      const menuHeight = Math.min(options.length * 34 + 14, 260);
-      const left = Math.max(8, Math.min(rect.left, window.innerWidth - width - 8));
-      const top = rect.bottom + menuHeight + 8 <= window.innerHeight
-        ? rect.bottom + 6
-        : Math.max(8, rect.top - menuHeight - 6);
-      setMenuPosition({ top, left, width });
-    };
-    positionMenu();
-    window.addEventListener("resize", positionMenu);
-    window.addEventListener("scroll", positionMenu, true);
-    return () => {
-      window.removeEventListener("resize", positionMenu);
-      window.removeEventListener("scroll", positionMenu, true);
-    };
-  }, [open, portalMenu, options.length]);
-
-  const menu = open && <div
-    className={`custom-select-menu${portalMenu ? " custom-select-menu-portal" : ""}${statusTone ? " order-status-menu" : ""}`}
-    style={portalMenu ? { position: "fixed", top: menuPosition.top, left: menuPosition.left, width: menuPosition.width, maxHeight: 220, overflowY: "auto", overscrollBehavior: "contain", zIndex: 10000 } : undefined}
-    role="listbox"
-  >
-    {options.map(option => <button
-      type="button"
-      key={option.value}
-      role="option"
-      aria-selected={option.value === value}
-      className={`custom-select-option${option.value === value ? " selected" : ""}${statusTone ? ` order-status-option order-status-option-${option.value}` : ""}`}
-      onClick={() => { onChange(option.value); setOpen(false); }}
-    >{option.label}</button>)}
-  </div>;
-
-  return <div className={`custom-select${statusTone ? " order-status-select" : ""}`}>
-    <button
-      ref={triggerRef}
-      type="button"
-      className={`custom-select-trigger${statusTone ? ` order-status-trigger order-status-trigger-${value}` : ""}`}
-      onClick={() => setOpen(current => !current)}
-      aria-expanded={open}
-    >
-      <span>{selected?.label ?? placeholder}</span><span className="custom-select-chevron">⌄</span>
-    </button>
-    {open && portalMenu && typeof document !== "undefined" ? createPortal(menu, document.body) : menu}
-  </div>;
-}
 function MenuManagement() {
   const [tab, setTab] = useState<"items" | "categories">("items");
   const [categories, setCategories] = useState<Category[]>([]);
@@ -1326,13 +1269,28 @@ const emptySiteSettings: SiteSettings = {
   customerLandingUrl: ""
 };
 
+const settingsTabs = [{ id: "general", label: "General" }, ...assistantTabs] as const;
+type SettingsTabId = "general" | AssistantTabId;
+const SETTINGS_TAB_KEY = "kb-settings-tab";
+
 function SettingsPage() {
+  const [tab, setTab] = useState<SettingsTabId>(() => {
+    try {
+      const saved = window.localStorage.getItem(SETTINGS_TAB_KEY);
+      return settingsTabs.some(item => item.id === saved) ? saved as SettingsTabId : "general";
+    } catch { return "general"; }
+  });
   const [settings, setSettings] = useState<SiteSettings>(emptySiteSettings);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [generatedUrl, setGeneratedUrl] = useState("");
+  const selectTab = useCallback((next: SettingsTabId) => {
+    setTab(next);
+    setError("");
+    try { window.localStorage.setItem(SETTINGS_TAB_KEY, next); } catch { /* storage unavailable */ }
+  }, []);
 
   const loadSettings = useCallback(async () => {
     setLoading(true);
@@ -1423,9 +1381,16 @@ function SettingsPage() {
       <h1>Settings</h1>
     </div>
 
+    <div className="menu-tabs settings-tabs" role="tablist" aria-label="Settings sections">
+      {settingsTabs.map(item => <button key={item.id} type="button" role="tab" aria-selected={tab === item.id} className={tab === item.id ? "active" : ""} onClick={() => selectTab(item.id)}>
+        <span>{item.label}</span>
+      </button>)}
+    </div>
+
     {error && <div className="inline-error" role="alert">{error}<button type="button" onClick={() => setError("")}>Dismiss</button></div>}
     {notice && <div className="chef-success-toast category-success-toast settings-success-toast" role="status" aria-live="polite"><div className="chef-success-bubble"><strong>Chef says</strong><span>{notice}</span></div><div className="chef-success-character" aria-hidden="true"><img src="/assets/kumari-bites-chef.webp" alt="" /></div></div>}
-    {loading ? <section className="panel settings-loading"><p className="muted">Loading settings…</p></section> : <form id="site-settings-form" className="settings-layout" onSubmit={saveSettings}>
+    {tab !== "general" ? <AssistantSettings tab={tab} onNavigate={selectTab} onNotice={showNotice} onError={setError} />
+      : loading ? <section className="panel settings-loading"><p className="muted">Loading settings…</p></section> : <form id="site-settings-form" className="settings-layout" onSubmit={saveSettings}>
       <div className="settings-main-column">
         <section className="panel settings-card">
           <div className="settings-card-heading"><span className="settings-card-icon">✦</span><div><h2>Brand identity</h2><p>These details represent your business across the site.</p></div></div>
@@ -1470,8 +1435,6 @@ function SettingsPage() {
       </aside>
       <div className="settings-form-footer"><span aria-live="polite">{saving ? "Saving your settings…" : " "}</span><button type="submit" className="primary-button" disabled={saving}>{saving ? "Saving…" : "Save changes"}</button></div>
     </form>}
-
-    {!loading && <AssistantSettings onNotice={showNotice} onError={setError} />}
   </section>;
 }
 

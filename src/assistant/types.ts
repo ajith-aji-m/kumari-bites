@@ -4,22 +4,27 @@ import { z } from "zod";
 
 const text = (max: number) => z.string().trim().max(max).default("");
 
+/** Maximum length of each free-text personality field (also used to trim AI-generated values). */
+export const profileFieldMax = {
+  languages: 200,
+  greetingMessage: 500,
+  tone: 300,
+  businessDescription: 1500,
+  customerServiceInstructions: 1500,
+  menuRecommendationBehavior: 1000,
+  pricingBehavior: 1000,
+  imageBehavior: 1000,
+  orderCollectionInstructions: 1500,
+  orderConfirmationRules: 1000,
+  unavailableItemHandling: 1000,
+  escalationInstructions: 1000,
+  additionalInstructions: 2000
+} as const;
+
 export const assistantProfileSchema = z.object({
   assistantName: z.string().trim().min(1).max(80).default("Kumari"),
   businessName: z.string().trim().min(1).max(120).default("Kumari Bites"),
-  languages: text(200),
-  greetingMessage: text(500),
-  tone: text(300),
-  businessDescription: text(1500),
-  customerServiceInstructions: text(1500),
-  menuRecommendationBehavior: text(1000),
-  pricingBehavior: text(1000),
-  imageBehavior: text(1000),
-  orderCollectionInstructions: text(1500),
-  orderConfirmationRules: text(1000),
-  unavailableItemHandling: text(1000),
-  escalationInstructions: text(1000),
-  additionalInstructions: text(2000)
+  ...Object.fromEntries(Object.entries(profileFieldMax).map(([field, max]) => [field, text(max)])) as { [K in keyof typeof profileFieldMax]: ReturnType<typeof text> }
 });
 export type AssistantProfile = z.infer<typeof assistantProfileSchema>;
 

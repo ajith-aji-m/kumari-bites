@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import type { ToolDefinition } from "../ai/client.js";
+import type { Budget } from "./intents.js";
 import { cartSignature, describeItem, formatOrderSummary, formatRupees, isOrderable, priceCart, searchItems } from "./menuQueries.js";
 import type {
   AutomationSettings, Catalog, CatalogCategory, CatalogItem, ConversationRecord, ConversationState, OrderGateway, OutboundAction
@@ -21,6 +22,8 @@ export type ToolContext = {
   outbox: OutboundAction[];
   confirmationSummary: string | null;
   handoffReason: string | null;
+  /** Budget wording in the customer's latest message, e.g. "under ₹100" (strict). */
+  budget: Budget | null;
   now: Date;
 };
 
@@ -61,88 +64,70 @@ function cartView(ctx: ToolContext) {
 export const tools = [
   defineTool({
     name: "get_menu_categories",
-    description: "List active menu categories with how many items are available now and their price range.",
+    description: "Menu categories with available item counts and price ranges.",
     schema: z.object({}),
     enabled: () => true,
     run: (_args, ctx) => ctx.categories.map((category) => {
       const available = ctx.items.filter((item) => item.categoryId === category.id && isOrderable(item));
       const prices = available.map((item) => item.price!).sort((a, b) => a - b);
-      return { name: category.name, description: category.description, available_items: available.length, price_range: prices.length ? `${formatRupees(prices[0]!)}–${formatRupees(prices.at(-1)!)}` : null };
+      return { name: category.name, items: available.length, ...(prices.length ? { from: prices[0], to: prices.at(-1) } : {}) };
     })
   }),
   defineTool({
     name: "search_menu",
-    description: "Search the live menu. Use for any question about dishes, prices, budgets (max_price), veg options or a category. Returns only real items with current prices.",
+    description: "Search the live menu (names, categories, prices, veg, photos). price_below = strictly under a budget (\"under ₹100\"); max_price = that price or less (\"₹100 or less\", \"up to ₹100\").",
     schema: z.object({
-      query: z.string().max(100).optional().describe("Words to match in item name, category or description; omit to list everything matching the filters"),
+      query: z.string().max(100).optional(),
       category: z.string().max(100).optional(),
+      price_below: z.coerce.number().positive().optional(),
       max_price: z.coerce.number().nonnegative().optional(),
       min_price: z.coerce.number().nonnegative().optional(),
       veg_only: z.boolean().optional(),
-      include_unavailable: z.boolean().optional().describe("Also return items that are sold out, e.g. to explain why something cannot be ordered")
+      include_unavailable: z.boolean().optional()
     }),
     enabled: () => true,
     run: (args, ctx) => {
+      let { price_below: priceBelow, max_price: maxPrice } = args;
+      // "under ₹100" never includes ₹100, even if the model passed it as max_price.
+      if (ctx.budget?.strict && maxPrice === ctx.budget.amount) { priceBelow = maxPrice; maxPrice = undefined; }
       const found = searchItems(ctx.items, {
-        query: args.query, category: args.category, maxPrice: args.max_price, minPrice: args.min_price,
-        vegOnly: args.veg_only, includeUnavailable: args.include_unavailable, limit: 12
+        query: args.query, category: args.category, maxPrice, priceBelow, minPrice: args.min_price,
+        vegOnly: args.veg_only, includeUnavailable: args.include_unavailable, limit: 10
       });
       remember(ctx, found.map((item) => item.id));
-      return { count: found.length, items: found.map(describeItem) };
+      return { items: found.map(describeItem), ...(priceBelow !== undefined ? { note: `Only items priced below ₹${priceBelow}` } : {}) };
     }
   }),
   defineTool({
     name: "get_menu_item_details",
-    description: "Get full current details (price, description, availability, whether a photo exists) for specific item ids.",
-    schema: z.object({ item_ids: z.array(id).min(1).max(10) }),
+    description: "Current price, availability and photo for item ids; pass quantity to check stock for that amount.",
+    schema: z.object({ item_ids: z.array(id).min(1).max(10), quantity: z.coerce.number().int().positive().max(MAX_QUANTITY_PER_ITEM).optional() }),
     enabled: () => true,
     run: (args, ctx) => {
       const found = args.item_ids.map((itemId) => findItem(ctx, itemId));
       remember(ctx, found.filter((item): item is CatalogItem => Boolean(item)).map((item) => item.id));
-      return args.item_ids.map((itemId, index) => found[index] ? describeItem(found[index]!) : { id: itemId, error: "No such item on the menu" });
-    }
-  }),
-  defineTool({
-    name: "check_item_availability",
-    description: "Check whether an item can be ordered right now in a given quantity.",
-    schema: z.object({ item_id: id, quantity: z.coerce.number().int().positive().max(MAX_QUANTITY_PER_ITEM).default(1) }),
-    enabled: () => true,
-    run: (args, ctx) => {
-      const item = findItem(ctx, args.item_id);
-      if (!item) return { available: false, reason: "No such item on the menu" };
-      if (!isOrderable(item)) return { available: false, name: item.name, reason: "Currently unavailable" };
-      if (item.stockQuantity < args.quantity) return { available: false, name: item.name, reason: `Only ${item.stockQuantity} left` };
-      return { available: true, name: item.name, price: item.price, price_text: formatRupees(item.price!) };
+      return args.item_ids.map((itemId, index) => {
+        const item = found[index];
+        if (!item) return { id: itemId, error: "Not on the menu" };
+        const view = describeItem(item);
+        if (args.quantity && view.available && item.stockQuantity < args.quantity) return { ...view, available: false, note: `Only ${item.stockQuantity} left` };
+        return view;
+      });
     }
   }),
   defineTool({
     name: "calculate_order_total",
-    description: "Calculate the exact total for a list of items using current menu prices (no tax or discount applies).",
+    description: "Exact total for items at current prices (prices are final; no tax or fees).",
     schema: z.object({ items: z.array(z.object({ item_id: id, quantity: z.coerce.number().int().positive().max(MAX_QUANTITY_PER_ITEM) })).min(1).max(MAX_CART_LINES) }),
     enabled: () => true,
     run: (args, ctx) => {
       const priced = priceCart(args.items.map((item) => ({ menuItemId: item.item_id, quantity: item.quantity })), ctx.items);
-      return { lines: priced.lines.map((line) => ({ name: line.name, quantity: line.quantity, unit_price: line.unitPrice, line_total: line.lineTotal, problem: line.problem })), total: priced.total, total_text: formatRupees(priced.total), problems: priced.problems };
+      return { lines: priced.lines.map((line) => ({ name: line.name, qty: line.quantity, price: line.unitPrice, total: line.lineTotal, ...(line.problem ? { problem: line.problem } : {}) })), total: priced.total };
     }
   }),
   defineTool({
-    name: "get_ordering_options",
-    description: "How ordering, pickup, payment and order tracking work at Kumari Bites.",
-    schema: z.object({}),
-    enabled: () => true,
-    run: (_args, ctx) => ({
-      fulfilment: "Pickup only, at the Kumari Bites food truck. There is no delivery.",
-      payment: "Pay at the counter when collecting (cash). Online payment through WhatsApp is not available, and payment is never taken in chat.",
-      whatsapp_ordering: ctx.automation.orderCollection
-        ? (ctx.automation.autoCreateOrders ? "Customers can order here. After they reply YES to the order summary, the order is placed and an order number is sent." : "Customers can build an order here. After they reply YES, the team reviews and confirms it.")
-        : "Ordering through WhatsApp is not enabled right now. Customers can order at the truck or by scanning the QR menu.",
-      order_statuses: ["placed", "preparing", "ready", "completed", "cancelled"],
-      taxes_and_discounts: "Menu prices are final; no tax or delivery charge is added."
-    })
-  }),
-  defineTool({
     name: "send_menu_images",
-    description: `Send the real photos of up to ${MAX_IMAGES_PER_TURN} menu items to the customer. Only call this when a photo exists (hasPhoto true) and it helps the customer.`,
+    description: `Send real menu photos (max ${MAX_IMAGES_PER_TURN}) for items whose photo is true. Call it directly when the customer asks to see one.`,
     schema: z.object({ item_ids: z.array(id).min(1).max(MAX_IMAGES_PER_TURN) }),
     enabled: (automation) => automation.imageSending,
     run: (args, ctx) => {
@@ -157,17 +142,17 @@ export const tools = [
         return { item_id: itemId, name: item.name, sent: true };
       });
       remember(ctx, args.item_ids);
-      return { results, note: "Photos are sent right after your text reply." };
+      return { results, note: "Photos are sent after your text reply." };
     }
   }),
   defineTool({
     name: "update_cart",
-    description: "Change the customer's draft order. Use action 'add' to add quantity, 'set' to set an exact quantity, 'remove' to drop an item, 'clear' to empty the cart. Only use item ids returned by menu tools.",
+    description: "Change the draft order: add (adds quantity), set (exact quantity), remove, or clear. Use item ids from menu tools.",
     schema: z.object({
       action: z.enum(["add", "set", "remove", "clear"]),
       item_id: id.optional(),
       quantity: z.coerce.number().int().positive().max(MAX_QUANTITY_PER_ITEM).optional(),
-      note: z.string().trim().max(200).optional().describe("Preparation note from the customer, e.g. 'less spicy' or 'fried'")
+      note: z.string().trim().max(200).optional()
     }),
     enabled: (automation) => automation.orderCollection,
     run: (args, ctx) => {
@@ -194,49 +179,36 @@ export const tools = [
     }
   }),
   defineTool({
-    name: "view_cart",
-    description: "Show the customer's current draft order with exact totals from current prices.",
-    schema: z.object({}),
-    enabled: (automation) => automation.orderCollection,
-    run: (_args, ctx) => cartView(ctx)
-  }),
-  defineTool({
-    name: "set_customer_name",
-    description: "Save the name the customer wants on the order (only when they tell you).",
-    schema: z.object({ name: z.string().trim().min(1).max(120) }),
-    enabled: (automation) => automation.orderCollection,
-    run: (args, ctx) => { ctx.state.customerName = args.name; cartChanged(ctx); return { ok: true }; }
-  }),
-  defineTool({
     name: "prepare_order_confirmation",
-    description: "Call when the customer says their order is complete. Validates the cart against live stock and prices and sends the customer the exact order summary asking them to reply YES. You cannot place orders yourself; the system places it only after the customer replies YES.",
-    schema: z.object({}),
+    description: "When the customer's order is complete: re-checks stock and prices and makes the system send the exact summary asking them to reply YES. Pass customer_name once they give it. You cannot place orders.",
+    schema: z.object({ customer_name: z.string().trim().min(1).max(120).optional() }),
     enabled: (automation) => automation.orderCollection,
-    run: (_args, ctx) => {
+    run: (args, ctx) => {
+      if (args.customer_name) ctx.state.customerName = args.customer_name;
       if (!ctx.state.cart.length) return { ok: false, error: "The cart is empty" };
       const priced = priceCart(ctx.state.cart, ctx.items);
       if (priced.problems.length) return { ok: false, error: "Some items cannot be ordered", problems: priced.problems };
       const customerName = ctx.state.customerName ?? ctx.conversation.customerName;
-      if (!customerName) return { ok: false, error: "Ask the customer for the name to put on the order, then call set_customer_name" };
+      if (!customerName) return { ok: false, error: "Ask the customer for the name to put on the order" };
       ctx.state.pendingConfirmation = { id: randomUUID(), cartSignature: cartSignature(priced.lines), total: priced.total, customerName, createdAt: ctx.now.toISOString() };
       ctx.confirmationSummary = formatOrderSummary(priced, customerName);
-      return { ok: true, total_text: formatRupees(priced.total), instruction: "The exact summary with the YES prompt is appended to your reply automatically. Write only a short lead-in sentence; do not repeat the items or total." };
+      return { ok: true, total: priced.total, instruction: "The exact summary and YES prompt are appended automatically. Write one short lead-in sentence only." };
     }
   }),
   defineTool({
     name: "get_order_status",
-    description: "Look up this customer's own orders (by order number such as KB-000123, or their most recent ones). Never guess a status.",
+    description: "This customer's own orders (by number like KB-000123, or most recent). Never guess a status.",
     schema: z.object({ order_number: z.string().trim().regex(/^KB-\d{1,10}$/i).optional() }),
     enabled: () => true,
     run: async (args, ctx) => {
       const found = await ctx.orders.findForCustomer({ conversationId: ctx.conversation.id, customerPhone: ctx.conversation.customerPhone, orderNumber: args.order_number?.toUpperCase() });
       if (!found.length) return { found: false, note: "No matching order for this customer's WhatsApp number" };
-      return { found: true, orders: found.map((order) => ({ order_number: order.orderNumber, status: order.status, total_text: formatRupees(Number(order.totalAmount)), placed_at: order.placedAt.toISOString(), items: order.items })) };
+      return { found: true, orders: found.map((order) => ({ order_number: order.orderNumber, status: order.status, total: Number(order.totalAmount), placed_at: order.placedAt.toISOString(), items: order.items })) };
     }
   }),
   defineTool({
     name: "request_human_handoff",
-    description: "Hand the chat to the Kumari Bites team when the customer asks for a person, has a complaint, a refund/payment issue, an allergy question you cannot answer from the menu, or anything you cannot answer safely.",
+    description: "Hand the chat to staff: complaints, refunds/payment problems, allergy questions, a request for a person, or anything you cannot answer safely.",
     schema: z.object({ reason: z.string().trim().min(3).max(300) }),
     enabled: (automation) => automation.humanHandoff,
     run: (args, ctx) => { ctx.handoffReason = args.reason; return { ok: true, instruction: "Tell the customer a team member will reply here soon. Do not promise a time." }; }
@@ -245,9 +217,17 @@ export const tools = [
 
 type AnyTool = (typeof tools)[number];
 
+const VALIDATION_ONLY_KEYS = new Set(["$schema", "additionalProperties", "maxLength", "minLength", "minimum", "maximum", "exclusiveMinimum", "exclusiveMaximum", "minItems", "maxItems", "pattern", "default"]);
+
+/** JSON schema for the model without validation-only keywords (each costs tokens on every request). */
+function compactSchema(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(compactSchema);
+  if (!value || typeof value !== "object") return value;
+  return Object.fromEntries(Object.entries(value).filter(([key]) => !VALIDATION_ONLY_KEYS.has(key)).map(([key, inner]) => [key, compactSchema(inner)]));
+}
+
 function toParameters(schema: z.ZodType) {
-  const { $schema: _ignored, ...json } = z.toJSONSchema(schema, { io: "input" }) as Record<string, unknown>;
-  return json;
+  return compactSchema(z.toJSONSchema(schema, { io: "input" })) as Record<string, unknown>;
 }
 
 export function enabledTools(automation: AutomationSettings) {

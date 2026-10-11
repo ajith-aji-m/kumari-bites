@@ -161,8 +161,8 @@ export async function registerMenuRoutes(app: FastifyInstance) {
     if (!Number.isInteger(id) || id <= 0) return reply.code(400).send({ message: "Invalid menu item id" });
 
     const input = menuItemSchema.partial().parse(request.body);
-    const existing = await db.select().from(menuItems).where(eq(menuItems.id, id)).limit(1);
-    if (!existing[0]) return reply.code(404).send({ message: "Menu item not found" });
+    const current = (await db.select().from(menuItems).where(eq(menuItems.id, id)).limit(1))[0];
+    if (!current) return reply.code(404).send({ message: "Menu item not found" });
 
     await db.transaction(async (tx) => {
       const { price, ...itemInput } = input;
@@ -170,10 +170,10 @@ export async function registerMenuRoutes(app: FastifyInstance) {
         itemInput.slug = itemInput.slug || input.name!.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
       }
       if (input.stockQuantity !== undefined || input.lowStockThreshold !== undefined || input.lowStockAlertEnabled !== undefined || input.isAvailable !== undefined) {
-        const stock = input.stockQuantity ?? existing[0].stockQuantity;
-        const threshold = input.lowStockThreshold ?? existing[0].lowStockThreshold;
-        const alerts = input.lowStockAlertEnabled ?? existing[0].lowStockAlertEnabled;
-        itemInput.isAvailable = alerts ? Boolean(input.isAvailable ?? existing[0].isAvailable) && stock > threshold : Boolean(input.isAvailable ?? existing[0].isAvailable);
+        const stock = input.stockQuantity ?? current.stockQuantity;
+        const threshold = input.lowStockThreshold ?? current.lowStockThreshold;
+        const alerts = input.lowStockAlertEnabled ?? current.lowStockAlertEnabled;
+        itemInput.isAvailable = alerts ? Boolean(input.isAvailable ?? current.isAvailable) && stock > threshold : Boolean(input.isAvailable ?? current.isAvailable);
       }
       if (Object.keys(itemInput).length) {
         await tx.update(menuItems).set(itemInput).where(eq(menuItems.id, id));

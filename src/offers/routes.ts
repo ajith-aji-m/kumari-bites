@@ -210,12 +210,13 @@ export async function registerOfferRoutes(app: FastifyInstance) {
     const existing = await db.select().from(coupons).where(eq(coupons.id, id)).limit(1);
     if (!existing[0]) return reply.code(404).send({ message: "Coupon not found" });
 
-    const { discountValue, ...couponInput } = input;
+    // Decimal columns take strings, so the numeric amounts are converted rather than spread as-is.
+    const { discountValue, minOrderAmount, maxDiscountAmount, ...couponInput } = input;
     await db.update(coupons).set({
       ...couponInput,
       ...(discountValue !== undefined ? { discountValue: discountValue.toFixed(2) } : {}),
-      ...(input.minOrderAmount !== undefined ? { minOrderAmount: input.minOrderAmount.toFixed(2) } : {}),
-      ...(input.maxDiscountAmount !== undefined ? { maxDiscountAmount: input.maxDiscountAmount.toFixed(2) } : {})
+      ...(minOrderAmount !== undefined ? { minOrderAmount: minOrderAmount.toFixed(2) } : {}),
+      ...(maxDiscountAmount !== undefined ? { maxDiscountAmount: maxDiscountAmount.toFixed(2) } : {})
     }).where(eq(coupons.id, id));
 
     return { ok: true };
